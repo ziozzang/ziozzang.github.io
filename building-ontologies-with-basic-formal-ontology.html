@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building Ontologies with Basic Formal Ontology 깊이 읽기</title>
+  <style>
+    :root {
+      --bg: #f5f1e8;
+      --paper: #fffdf8;
+      --ink: #1f1d1a;
+      --muted: #6a6258;
+      --line: #d9cdbb;
+      --accent: #8f3d23;
+      --accent-soft: #f2dfd4;
+      --accent-2: #264653;
+      --shadow: 0 18px 45px rgba(50, 38, 27, 0.08);
+      --max: 1160px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Pretendard Variable", "Noto Serif KR", "Apple SD Gothic Neo", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(143, 61, 35, 0.11), transparent 34%),
+        radial-gradient(circle at top right, rgba(38, 70, 83, 0.10), transparent 30%),
+        linear-gradient(180deg, #f8f5ee 0%, var(--bg) 100%);
+      line-height: 1.72;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .shell {
+      width: min(calc(100% - 40px), var(--max));
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 64px 0 28px;
+    }
+
+    .hero-card {
+      background: linear-gradient(145deg, rgba(255, 253, 248, 0.97), rgba(252, 246, 238, 0.97));
+      border: 1px solid rgba(143, 61, 35, 0.14);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, rgba(143, 61, 35, 0.10), transparent 35%),
+        linear-gradient(300deg, rgba(38, 70, 83, 0.08), transparent 34%);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      position: relative;
+      padding: 52px 44px 40px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    h1 {
+      margin-top: 18px;
+      font-size: clamp(2.1rem, 5vw, 4.2rem);
+      font-family: "Iowan Old Style", "Noto Serif KR", serif;
+      max-width: 13ch;
+    }
+
+    .subtitle {
+      max-width: 820px;
+      margin-top: 20px;
+      font-size: 1.08rem;
+      color: var(--muted);
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .meta-card {
+      padding: 16px 18px;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+
+    .meta-card strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--accent-2);
+      font-size: 0.9rem;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+      background: rgba(245, 241, 232, 0.82);
+      border-top: 1px solid rgba(217, 205, 187, 0.75);
+      border-bottom: 1px solid rgba(217, 205, 187, 0.75);
+    }
+
+    .nav-inner {
+      width: min(calc(100% - 40px), var(--max));
+      margin: 0 auto;
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 13px 0;
+    }
+
+    .nav-inner a {
+      white-space: nowrap;
+      text-decoration: none;
+      font-size: 0.94rem;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+    }
+
+    .nav-inner a:hover {
+      border-color: var(--line);
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    main {
+      padding: 28px 0 80px;
+    }
+
+    section {
+      margin: 28px 0;
+    }
+
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 34px 30px;
+    }
+
+    .lead-grid,
+    .grid-3,
+    .grid-2 {
+      display: grid;
+      gap: 16px;
+    }
+
+    .lead-grid {
+      grid-template-columns: 1.25fr 0.95fr;
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .note,
+    .card {
+      padding: 22px 22px 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(249,245,238,0.92));
+      border: 1px solid var(--line);
+      border-radius: 22px;
+    }
+
+    h2 {
+      font-size: clamp(1.55rem, 3vw, 2.4rem);
+      margin-bottom: 16px;
+      font-family: "Iowan Old Style", "Noto Serif KR", serif;
+    }
+
+    h3 {
+      font-size: 1.18rem;
+      margin-bottom: 12px;
+      color: var(--accent-2);
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    .quote {
+      padding: 20px 22px;
+      border-left: 4px solid var(--accent);
+      background: #fbf3ee;
+      border-radius: 0 18px 18px 0;
+      color: #5f4c42;
+      font-size: 1.02rem;
+    }
+
+    .chapter {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .chapter-index {
+      position: sticky;
+      top: 72px;
+      padding: 22px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, #f8ebe2, #f5f2ea);
+      border: 1px solid var(--line);
+    }
+
+    .chapter-index .num {
+      display: inline-flex;
+      width: 54px;
+      height: 54px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 800;
+      margin-bottom: 14px;
+      font-size: 1.08rem;
+    }
+
+    .chapter-index p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    .chapter-body {
+      display: grid;
+      gap: 16px;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: #f0e8db;
+      color: #5f5548;
+      font-size: 0.87rem;
+    }
+
+    .closing {
+      background: linear-gradient(145deg, rgba(38, 70, 83, 0.98), rgba(28, 45, 53, 0.98));
+      color: #f7f2eb;
+      border-radius: 28px;
+      padding: 36px 30px;
+      box-shadow: var(--shadow);
+    }
+
+    .closing .tag {
+      background: rgba(255,255,255,0.14);
+      color: #f5eee4;
+    }
+
+    .footer {
+      padding: 18px 0 40px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 980px) {
+      .lead-grid,
+      .grid-3,
+      .grid-2,
+      .chapter {
+        grid-template-columns: 1fr;
+      }
+
+      .chapter-index {
+        position: static;
+      }
+
+      .hero-inner,
+      .panel,
+      .closing {
+        padding: 28px 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="shell">
+      <div class="hero-card">
+        <div class="hero-inner">
+          <span class="eyebrow">Deep Reading Guide</span>
+          <h1><em>Building Ontologies with Basic Formal Ontology</em> 깊이 읽기</h1>
+          <p class="subtitle">
+            Robert Arp, Barry Smith, Andrew D. Spear가 함께 쓴 이 책은 단순히 “온톨로지를 어떻게 구현할 것인가”를 묻지 않는다.
+            그보다 먼저, 무엇을 어떤 방식으로 존재론적으로 분류해야 하는지, 왜 상위 범주가 필요한지,
+            그리고 개념의 모호함이 어떻게 데이터, 추론, 협업 전체를 무너뜨리는지를 집요하게 추적한다.
+            이 문서는 책의 주장을 한국어로 재구성해, 철학적 토대와 공학적 실천이 하나의 흐름으로 보이도록 정리한 해설서다.
+          </p>
+          <div class="meta">
+            <div class="meta-card">
+              <strong>원서</strong>
+              <span><em>Building Ontologies with Basic Formal Ontology</em></span>
+            </div>
+            <div class="meta-card">
+              <strong>저자</strong>
+              <span>Robert Arp · Barry Smith · Andrew D. Spear</span>
+            </div>
+            <div class="meta-card">
+              <strong>핵심 질문</strong>
+              <span>좋은 온톨로지는 무엇을 정확히 가리키며, 어떻게 설계되어야 하는가</span>
+            </div>
+            <div class="meta-card">
+              <strong>이 문서의 초점</strong>
+              <span>논증 구조, 장별 통찰, 설계 원칙, 실무적 함의</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#overview">전체 개관</a>
+      <a href="#architecture">책의 구조</a>
+      <a href="#chapter-1">1장</a>
+      <a href="#chapter-2">2장</a>
+      <a href="#chapter-3">3장</a>
+      <a href="#chapter-4">4장</a>
+      <a href="#chapter-5">5장</a>
+      <a href="#chapter-6">6장</a>
+      <a href="#chapter-7">7장</a>
+      <a href="#chapter-8">8장</a>
+      <a href="#appendix">부록</a>
+      <a href="#closing">종합 결론</a>
+    </div>
+  </nav>
+
+  <main class="shell">
+    <section id="overview" class="panel">
+      <h2>이 책을 관통하는 대전제</h2>
+      <div class="lead-grid">
+        <div class="note">
+          <p>
+            이 책의 가장 강한 주장 하나를 꼽으라면, 온톨로지는 “용어 정리표”가 아니라
+            <strong>현실의 일반적 구조를 공적으로 기술하는 도구</strong>라는 점이다.
+            따라서 좋은 온톨로지는 사람들 머릿속 개념을 단순히 나열하는 대신,
+            세계에 실제로 존재하는 유형들, 그 유형들 사이의 관계, 그리고 그것들을 구분하는 정의 원리를 드러내야 한다.
+          </p>
+          <p>
+            저자들은 이 전제를 바탕으로 세 가지 문제를 동시에 밀어붙인다.
+            첫째, 현대 과학과 정보 시스템은 데이터의 양이 너무 커져서 의미적 정합성 없이 운영될 수 없다.
+            둘째, 상호운용성 문제는 기술 미비보다 인간의 모호한 사고와 언어 사용에서 더 자주 발생한다.
+            셋째, 그래서 온톨로지 설계는 소프트웨어 편의가 아니라 존재론적 엄밀성과 정의의 질을 중심에 두어야 한다.
+          </p>
+        </div>
+        <div class="note">
+          <h3>한눈에 보는 핵심 명제</h3>
+          <ul>
+            <li>상호운용성은 부가 기능이 아니라 과학적 지식 축적의 전제 조건이다.</li>
+            <li>분류 체계만으로는 부족하며, 관계와 공리가 들어가야 온톨로지가 된다.</li>
+            <li>정의의 품질이 낮으면 추론 엔진은 형식적으로는 맞지만 실질적으로는 틀린 결과를 낸다.</li>
+            <li>상위 온톨로지는 여러 도메인 온톨로지를 이어 주는 통합층이다.</li>
+            <li>철학은 구현의 적이 아니라 설계 실패를 막는 품질 보증 장치다.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="quote" style="margin-top:16px;">
+        이 책은 “컴퓨터로 다루기 쉬운 모델을 만들자”는 실용주의를 거부하지 않는다.
+        다만 그 실용주의가 현실을 흐리게 만드는 순간, 실용은 곧바로 장기적 비효율과 오류로 되돌아온다고 본다.
+      </div>
+    </section>
+
+    <section id="architecture" class="panel">
+      <h2>책의 구조를 읽는 가장 좋은 방식</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>1. 문제 제기</h3>
+          <p>
+            초반부는 왜 온톨로지가 필요한지, 왜 기존 데이터 표준과 용어 체계만으로는 충분하지 않은지를 묻는다.
+            정보 폭증, 상호운용성 실패, 정의 오류, 의미 혼동이 출발점이다.
+          </p>
+        </div>
+        <div class="card">
+          <h3>2. 존재론적 정초</h3>
+          <p>
+            중반부는 온톨로지가 무엇을 가리켜야 하는지 정리한다.
+            보편자와 개별자, 자연적 종류와 정의된 클래스, continuant와 occurrent,
+            그리고 관계의 유형을 엄격히 나누며 BFO의 철학적 뼈대를 세운다.
+          </p>
+        </div>
+        <div class="card">
+          <h3>3. 공학적 실행</h3>
+          <p>
+            후반부는 이 철학적 정초를 실제 설계 원칙과 도구로 연결한다.
+            정의 방식, 계층 설계, 관계 공리, 재사용 전략, OWL/Protege 기반 구현까지
+            “생각의 엄밀성”이 “구현의 엄밀성”으로 넘어가는 다리를 놓는다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>책 전체를 움직이는 반복 축</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>현실 vs 개념</h3>
+          <p>
+            이 책은 거의 모든 장에서 같은 질문을 되풀이한다.
+            지금 다루는 용어가 세계의 무엇을 가리키는가, 아니면 단지 우리 머릿속 개념과 표상 습관을 가리키는가.
+            저자들이 concept orientation을 비판하는 이유도 여기에 있다.
+          </p>
+        </div>
+        <div class="card">
+          <h3>분류 vs 관계</h3>
+          <p>
+            taxonomy는 출발점이지만 종착점이 아니다.
+            무엇이 무엇의 하위형인지 아는 것만으로는 세계를 충분히 설명할 수 없고,
+            무엇이 무엇의 일부인지, 무엇이 무엇에 참여하는지, 무엇이 무엇에 의존하는지를 함께 기술해야 한다.
+          </p>
+        </div>
+        <div class="card">
+          <h3>정의 vs 구현</h3>
+          <p>
+            구현 언어는 중요하지만, 저자들은 거의 집요할 정도로 정의를 먼저 세운다.
+            정합한 정의 없이 OWL이나 reasoner를 도입하면 기계는 오류를 정교하게 증폭할 뿐이라고 보기 때문이다.
+          </p>
+        </div>
+        <div class="card">
+          <h3>도메인 vs 상위 범주</h3>
+          <p>
+            현장의 세부 지식은 도메인 ontology에 담기지만,
+            그 지식이 다른 분야와 연결되려면 더 일반적인 부모 범주와 관계 어휘가 필요하다.
+            BFO는 바로 그 접속면을 제공하는 틀로 제시된다.
+          </p>
+        </div>
+        <div class="card">
+          <h3>정태적 분류 vs 시간성</h3>
+          <p>
+            많은 모델이 사물의 분류에는 익숙하지만 사건의 전개에는 약하다.
+            그래서 책의 중후반부는 continuant와 occurrent를 갈라 세우며,
+            시간 속에서 지속하는 것과 시간 속에서 일어나는 것을 다른 문법으로 다뤄야 한다고 주장한다.
+          </p>
+        </div>
+        <div class="card">
+          <h3>완성품 vs 수정 가능한 체계</h3>
+          <p>
+            ontology는 완성된 사전이 아니라 과학의 수정 가능성을 받아들이는 공적 구조여야 한다.
+            open-world assumption, versioning, fallibilism을 강조하는 이유도
+            “오늘의 분류가 내일의 수정 가능성을 막아서는 안 된다”는 태도에 있다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>저자들이 실제로 권하는 작업 순서</h2>
+      <div class="lead-grid">
+        <div class="note">
+          <p>
+            책을 따라가다 보면 저자들이 암묵적으로 권하는 workflow가 분명하게 드러난다.
+            먼저 표현하고 싶은 세계의 한 구역을 잡는다.
+            그다음 그 구역에서 정말 반복적으로 나타나는 유형이 무엇인지, 무엇이 본질이고 무엇이 우연적인지 가른다.
+            그 후에 상위 범주를 찾고, Aristotelian definition으로 부모와 차이를 서술하며,
+            마지막에야 형식 언어와 reasoner를 동원한다.
+          </p>
+          <p>
+            이 흐름은 소프트웨어 개발의 “데이터 모델부터 짜자”와 닮았지만 사실 더 까다롭다.
+            여기서는 데이터베이스 스키마를 짜는 것이 아니라,
+            그 스키마가 가리키는 대상들이 어떤 존재론적 지위를 가지는지 먼저 판별해야 하기 때문이다.
+            저자들이 반복해서 인간의 해석 능력과 철학적 분석을 앞세우는 것은 이 선행 작업 없이는
+            뒤에 오는 모든 형식화가 표류한다고 보기 때문이다.
+          </p>
+        </div>
+        <div class="note">
+          <h3>압축된 절차</h3>
+          <ul>
+            <li>도메인의 범위를 정하고, 무엇을 위해 ontology를 만드는지 먼저 밝힌다.</li>
+            <li>핵심 일반 용어를 추리고, 기존 참조 온톨로지에서 재사용 가능한 항목을 조사한다.</li>
+            <li>각 용어가 현실의 보편자를 가리키는지, 정의된 클래스인지, 역할이나 진단명 같은 파생 표현인지를 구분한다.</li>
+            <li>상위 온톨로지의 부모 범주에 연결한 뒤 genus-differentia 정의를 세운다.</li>
+            <li>관계, domain/range, 시간 조건, 공리를 분명히 한 다음 구현 언어로 옮긴다.</li>
+            <li>reasoner는 설계를 대신하지 않으며, 설계된 구조를 검증하는 보조 수단으로 사용한다.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="chapter-1" class="panel">
+      <div class="chapter">
+        <aside class="chapter-index">
+          <div class="num">1장</div>
+          <h3>What Is an Ontology?</h3>
+          <p>왜 지금 온톨로지인가. 정보 폭증과 상호운용성 위기 속에서 온톨로지가 어떤 종류의 “새로운 도구”로 요청되는지 밝힌다.</p>
+        </aside>
+        <div class="chapter-body">
+          <div class="tag-row">
+            <span class="tag">새로운 organon</span>
+            <span class="tag">상호운용성</span>
+            <span class="tag">정의 오류</span>
+            <span class="tag">지속적 유지보수</span>
+          </div>
+          <div class="card">
+            <h3>장의 핵심</h3>
+            <p>
+              1장은 온톨로지를 “철학에서 빌려온 장식적 어휘”로 취급하지 않는다.
+              오히려 디지털 과학 시대의 기반 시설로 내세운다.
+              저자들에 따르면 과학 정보의 양은 인간의 직관적 관리 능력을 이미 넘어섰고,
+              문제는 단순 저장이 아니라 서로 다른 연구 집단, 데이터베이스, 표준, 주석 체계가
+              같은 대상을 각기 다르게 표현한다는 데 있다.
+            </p>
+            <p>
+              여기서 중요한 포인트는 상호운용성 실패의 원인을 기술 부족으로만 보지 않는다는 점이다.
+              사람마다 다른 용어 습관, 애매한 정의, 순환 정의, 현실과 표현의 혼동,
+              그리고 “대충 알아듣겠지” 식의 설계가 더 근본적 원인으로 제시된다.
+              즉 컴퓨터는 문제를 만든 주체가 아니라, 인간의 모호함을 확대 재생산하는 증폭기다.
+            </p>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>이 장의 통찰</h3>
+              <ul>
+                <li>좋은 온톨로지는 데이터 접근을 쉽게 하는 수준을 넘어, 서로 다른 저장소 간 의미 번역을 가능하게 한다.</li>
+                <li>정의의 질이 낮으면 자동 추론은 “형식적으로는 합법적인 오판”을 대량 생산한다.</li>
+                <li>도메인 온톨로지만 늘리면 오히려 새로운 사일로가 생긴다. 그래서 공통 상위 범주가 필요하다.</li>
+                <li>온톨로지는 완성품이 아니라 수정 가능성과 확장 가능성을 내장한 살아 있는 구조여야 한다.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>왜 중요한가</h3>
+              <p>
+                1장은 이후 모든 논의를 위한 윤리적 기준을 세운다.
+                “일단 돌아가게 만들자”는 태도는 짧게 보면 빠르지만,
+                장기적으로는 해석 불가능한 데이터, 통합되지 않는 시스템, 검증 불가능한 추론으로 되돌아온다.
+                이 책이 끊임없이 정의와 상위 범주를 강조하는 이유는 여기 있다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>책 속 대표 사례</h3>
+              <p>
+                저자들이 가장 강하게 비판하는 예시는 BRIDG 모델의 초기 정의들이다.
+                예컨대 “living subject”를 “살아 있든 아니든 유기체를 표상하는 Entity의 하위형”처럼 다루면,
+                살아 있는 주체와 죽은 대상을 한 범주 안에 밀어 넣을 뿐 아니라
+                대상 그 자체와 그 대상을 가리키는 표상을 뒤섞는 오류까지 동시에 발생한다.
+              </p>
+              <p>
+                “performed activity”를 실제 활동이 아니라 그 활동의 “description”으로 두는 예도 나온다.
+                이렇게 되면 인슐린 투여 같은 실제 사건을 사건의 기술문으로 오인하게 되고,
+                여러 정의를 조합할수록 시스템은 현실이 아니라 문장들의 혼합물을 다루게 된다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>사례가 밀어주는 결론</h3>
+              <p>
+                이 장의 논지는 추상적이지 않다.
+                순환 정의, use/mention 혼동, 현실과 기술의 혼동은 모두 실제 데이터 모델에서 일어났고,
+                저자들은 이를 통해 “정의 오류는 곧 추론 오류”라는 사실을 보여 준다.
+                특히 “성공적으로 혹은 성공하지 못하게 완료된 활동” 같은 표현이
+                수행되지 않은 채 놓친 혈액 채취까지 performed activity로 끌어들이는 대목은,
+                일상어 수준의 부정확함이 형식 모델에서 얼마나 큰 파열음을 내는지 선명하게 드러낸다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>더 깊게 읽기</h3>
+              <p>
+                1장은 정보 과학의 문제를 단순한 기술적 확장 문제로 보지 않는다는 점에서 중요하다.
+                컴퓨터가 더 빨라지고 저장 공간이 더 커지는 것으로는 해결되지 않는 층위,
+                즉 “무슨 말을 하고 있는지 서로 다르게 이해하는 문제”를 ontology의 문제로 재정의한다.
+                그래서 이 장은 데이터 통합의 비용 문제, 개별 연구 공동체의 임시방편,
+                대형 표준 프로젝트 내부의 애매한 정의까지 모두 하나의 축 위에 올려놓는다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>이 장이 남기는 긴 여운</h3>
+              <p>
+                책 전체를 다 읽고 다시 돌아와 보면, 사실 대부분의 후반부 논의는 이 장의 문제 설정을 해결하기 위한 시도다.
+                왜 top-level ontology가 필요한가, 왜 role과 function을 구분해야 하는가,
+                왜 all-some 규율이 필요한가, 왜 open world가 중요한가 하는 질문들은
+                결국 1장이 던진 “의미적 불일치와 부정확함을 어떻게 다룰 것인가”라는 문제의 변주다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="chapter-2" class="panel">
+      <div class="chapter">
+        <aside class="chapter-index">
+          <div class="num">2장</div>
+          <h3>Kinds of Ontologies and the Role of Taxonomies</h3>
+          <p>온톨로지를 현실 지향적 표상으로 규정하고, 분류와 관계, 보편자와 개별자, 자연 클래스와 정의 클래스의 차이를 정밀하게 가른다.</p>
+        </aside>
+        <div class="chapter-body">
+          <div class="tag-row">
+            <span class="tag">실재론</span>
+            <span class="tag">보편자와 개별자</span>
+            <span class="tag">taxonomy vs ontology</span>
+            <span class="tag">use/mention 구분</span>
+          </div>
+          <div class="card">
+            <h3>장의 핵심</h3>
+            <p>
+              이 장은 책 전체에서 가장 철학적인 장이지만, 동시에 가장 실무적인 장이기도 하다.
+              저자들은 온톨로지를 개념 사전이 아니라 <strong>현실을 가리키는 표상물</strong>로 이해해야 한다고 주장한다.
+              그래서 온톨로지의 기본 단위는 “마음속 개념”이 아니라,
+              여러 사례 속에서 반복적으로 실현되는 보편자와 그것을 개별적으로 구현하는 개별자다.
+            </p>
+            <p>
+              여기서 taxonomy는 필요하지만 충분하지 않다.
+              taxonomy는 주로 is_a 위계를 제공하지만,
+              ontology는 그 위계에 더해 part_of, instantiates, located_in 같은 관계를 포함해야 한다.
+              다시 말해 분류만으로는 세계의 구조를 포착할 수 없고,
+              관계를 통해서만 존재자들이 어떻게 얽혀 있는지 설명할 수 있다.
+            </p>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>이 장이 세우는 구분</h3>
+              <ul>
+                <li><strong>보편자와 개별자</strong>: 반복 가능성과 비반복성의 차이.</li>
+                <li><strong>자연 클래스와 정의 클래스</strong>: 현실에 근거한 분류와 인간이 선택 조건으로 만든 집합의 차이.</li>
+                <li><strong>use와 mention</strong>: 용어가 현실을 가리키는지, 아니면 용어 자체를 말하는지의 차이.</li>
+                <li><strong>is_a와 instantiates</strong>: 보편자-보편자 관계와 개별자-보편자 관계의 구분.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>특히 날카로운 포인트</h3>
+              <p>
+                저자들은 “concept” 중심 접근을 강하게 경계한다.
+                현실을 가리켜야 할 온톨로지가 사람의 심적 표상이나 코드 체계에 붙잡히면,
+                결국 질의 결과도 세계에 대한 정보가 아니라 설계자의 머릿속 분류 습관을 되돌려주게 되기 때문이다.
+              </p>
+              <p>
+                그래서 이 장은 온톨로지 설계에서 가장 흔한 오류를
+                “범주를 잘못 고르는 것”보다 먼저 “무엇을 가리키는지 애매하게 두는 것”으로 본다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>책 속 대표 사례</h3>
+              <p>
+                2장에서 저자들은 ontology를 “taxonomy를 proper part로 포함하는 representational artifact”로 정의한다.
+                이 정의는 단지 형식적 선언이 아니라 방향 전환이다.
+                ontology가 마음속 개념을 정리하는 도구가 아니라,
+                보편자와 정의된 클래스, 그리고 그 관계를 가리키는 공적 표상물이라는 점을 못 박기 때문이다.
+              </p>
+              <p>
+                이어서 ISO의 concept 중심 접근과 SNOMED의 “disorder is a concept ...” 식 서술을 비판한다.
+                질병을 실제 병리 상태가 아니라 thought unit 쪽으로 끌고 가면,
+                질환을 제거한다는 말이 곧 개념을 제거한다는 말처럼 들릴 정도의 혼동이 생긴다는 것이다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>사례가 밀어주는 결론</h3>
+              <p>
+                이 장의 진짜 타격점은 “concept”라는 말이 지나치게 많은 것을 뜻한다는 데 있다.
+                임상의 머릿속 생각, 코드 식별자, 현실의 질환, 용어의 의미가 한 단어 안에서 서로 미끄러지면
+                ontology는 세계를 안정적으로 가리킬 수 없게 된다.
+                그래서 저자들은 ontology를 현실 지향적 표상으로 되돌려 놓고,
+                is_a는 보편자 사이에, instantiates는 개별자와 보편자 사이에만 써야 한다는 엄격한 문법을 세운다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>놓치기 쉬운 포인트</h3>
+              <p>
+                2장을 단순히 “실재론 옹호”로만 읽으면 반쯤만 읽은 셈이다.
+                저자들은 순수 형이상학 논쟁을 하고 싶은 것이 아니라,
+                ontology가 질의될 때 시스템이 마음속 표상에 대한 정보를 반환하는 것이 아니라
+                세계에 대한 정보를 반환해야 한다는 실무적 기준을 세우고 있다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>왜 이 구분이 실무를 바꾸는가</h3>
+              <p>
+                개념과 현실을 뒤섞으면 질병, 역할, 기록, 코드, 이미지, 설명문 같은 서로 다른 층위가 한 노드에 몰린다.
+                반대로 reference relation을 명확히 두면 ontology는 용어 정리표를 넘어
+                관찰, 설명, 예측, 통합을 위한 기반 문법이 된다.
+                이 장은 바로 그 변환의 철학적 허가증 역할을 한다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="chapter-3" class="panel">
+      <div class="chapter">
+        <aside class="chapter-index">
+          <div class="num">3장</div>
+          <h3>Best Practice I: Domain Ontology Design</h3>
+          <p>좋은 도메인 온톨로지가 어떤 구조를 가져야 하는지, 왜 상위 온톨로지가 통합층으로 필수인지 본격적으로 설명한다.</p>
+        </aside>
+        <div class="chapter-body">
+          <div class="tag-row">
+            <span class="tag">도메인 온톨로지</span>
+            <span class="tag">상위 온톨로지</span>
+            <span class="tag">재사용</span>
+            <span class="tag">top-down 설계</span>
+          </div>
+          <div class="card">
+            <h3>장의 핵심</h3>
+            <p>
+              3장은 “도메인 온톨로지를 어떻게 세울 것인가”에 대한 첫 번째 실전 장이다.
+              핵심은 도메인 온톨로지가 독립된 섬처럼 만들어져서는 안 되며,
+              반드시 더 일반적인 상위 구조 속에 자리 잡아야 한다는 주장이다.
+              저자들이 BFO를 높게 평가하는 이유도 바로 여기에 있다.
+              BFO는 개별 도메인의 세부 내용을 대신하지 않으면서도,
+              서로 다른 도메인이 공통의 범주 언어를 사용할 수 있게 해 주는 최소 골격을 제공한다.
+            </p>
+            <p>
+              이 장에서 ontology는 “정교한 taxonomy”라는 표현으로 설명된다.
+              즉 taxonomy의 장점인 계층적 질서를 버리지 않되,
+              관계, 정의, 동의어, 공리, 재사용 전략을 더해 추론 가능한 구조로 끌어올린 것이 ontology라는 뜻이다.
+            </p>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>실무적으로 가장 큰 메시지</h3>
+              <ul>
+                <li>도메인 온톨로지의 루트는 더 일반적인 부모 범주 없이 안정적으로 정의되기 어렵다.</li>
+                <li>참조 온톨로지와 응용 온톨로지를 목적에 따라 구분해야 한다.</li>
+                <li>재사용 가능한 고품질 자산을 먼저 조사하고, 그 위를 확장하는 편이 새로 만드는 것보다 낫다.</li>
+                <li>상위 온톨로지 없는 도메인 온톨로지 증식은 사일로 해소가 아니라 사일로 증식이 된다.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>이 장을 읽고 남는 질문</h3>
+              <p>
+                “우리는 정말 같은 대상을 같은 방식으로 분류하고 있는가?”
+                이 질문이 없다면 재사용도, 협업도, 통합도 모두 외형적 연결에 머문다.
+                저자들은 상위 온톨로지를 도입하는 일이 단순한 표준화가 아니라
+                서로 다른 공동체가 공동의 실재를 바라보도록 만드는 작업이라고 본다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>책 속 대표 사례</h3>
+              <p>
+                저자들은 ontology를 “정교한 taxonomy”라고 부르면서도,
+                단순 분류표와 ontology의 차이를 분명히 한다.
+                예를 들어 taxonomy는 대개 is_a 위계를 중심으로 서지만,
+                ontology는 여기에 part_of 같은 비계층 관계, 정의, 동의어, 공리를 더해
+                추론 가능한 지식 구조가 된다.
+              </p>
+              <p>
+                또한 BFO, DOLCE, SUMO 같은 상위 틀을 비교하면서,
+                범주의 철학적 성격뿐 아니라 채택 폭과 재사용 가능성도 함께 보라고 요구한다.
+                여기서 상위 온톨로지는 장식이 아니라, 여러 도메인 온톨로지가 동일한 부모 범주를 공유하도록 만드는 구조적 접합부다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>사례가 밀어주는 결론</h3>
+              <p>
+                3장의 요지는 결국 “루트 없는 도메인 온톨로지는 오래 버티기 어렵다”는 말로 압축된다.
+                부모 범주가 빈약하면 정의는 제각각 흩어지고,
+                서로 다른 공동체가 만든 온톨로지는 연결되는 순간 다시 사일로가 된다.
+                저자들이 OBO Foundry 같은 재사용 생태계를 중시하는 이유도,
+                좋은 ontology engineering을 개인의 취향이 아니라 공동의 분류 문법 위에 올려야 한다고 보기 때문이다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>상위 온톨로지 선택 논의의 핵심</h3>
+              <p>
+                이 장에서 BFO, DOLCE, SUMO를 나란히 두는 대목은 단순한 제품 비교가 아니다.
+                저자들은 철학적 지향, 범주의 청결성, downward population 가능성, 채택 생태계의 규모를 함께 비교한다.
+                예컨대 SUMO가 유용한 점이 있더라도 이미 생물학적 항목을 내부에 품고 있으면,
+                엄밀한 의미의 top-level로서 domain-neutral한 출발점을 제공하기 어렵다고 본다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>실무자를 위한 독해 메모</h3>
+              <p>
+                3장의 메시지는 결국 “처음에 무엇을 부모로 두느냐가 나중의 재사용성과 통합 가능성을 결정한다”는 말이다.
+                그래서 이 장은 ontology를 새로 만들고 싶은 욕망을 조금 늦추고,
+                먼저 existing reference ontology와 top-level scaffold를 살펴보라고 요구한다.
+                이 지연이 곧 품질 관리다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="chapter-4" class="panel">
+      <div class="chapter">
+        <aside class="chapter-index">
+          <div class="num">4장</div>
+          <h3>Best Practice II: Terms, Definitions, and Classification</h3>
+          <p>정의, 분류, 재사용, 버전 관리, 관점성, 수정 가능성까지 포함한 설계 원칙의 핵심 장이다.</p>
+        </aside>
+        <div class="chapter-body">
+          <div class="tag-row">
+            <span class="tag">여섯 원리</span>
+            <span class="tag">재사용 우선</span>
+            <span class="tag">fallibilism</span>
+            <span class="tag">모듈성</span>
+          </div>
+          <div class="card">
+            <h3>장의 핵심</h3>
+            <p>
+              4장은 설계 원칙을 철학적 신념과 공학적 습관 사이에 정확히 걸쳐 놓는다.
+              저자들이 밀어붙이는 여섯 원리는 대체로 다음 방향으로 수렴한다.
+              현실을 가리킬 것, 여러 관점을 허용할 것, 지식의 수정 가능성을 인정할 것,
+              사회적 존재를 포함해 다양한 층위의 실재를 동등하게 다룰 것,
+              기존 자산을 재사용할 것, 그리고 유용성과 실재 적합성 사이의 긴장을 관리할 것.
+            </p>
+            <p>
+              이 장에서 특히 중요한 것은 <strong>regimentation</strong>이라는 발상이다.
+              저자들에게 regimentation은 단순 정리정돈이 아니다.
+              도메인 지식을 인간이 이해 가능한 표현으로 다듬고,
+              그것을 다시 형식적 구조에 맞게 정제하며,
+              계층과 정의를 반복적으로 수정하는 왕복 운동이다.
+            </p>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>이 장이 주는 설계 태도</h3>
+              <ul>
+                <li>처음부터 거대한 단일 온톨로지를 만들지 말고 모듈적으로 구성하라.</li>
+                <li>기존 자산을 조사하고, 재사용 가능한 것은 반드시 재사용하라.</li>
+                <li>버전 관리는 부차적 관리 업무가 아니라 존재론적 수정 가능성을 반영하는 핵심 장치다.</li>
+                <li>분류는 한 번에 완성되지 않으며, 계층과 정의는 지속적으로 상호 교정된다.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>왜 인상적인가</h3>
+              <p>
+                많은 방법론이 “원리”를 추상적으로 말하고 끝나지만,
+                이 장은 그 원리를 실제 작업 습관으로 내린다.
+                재사용 조사, 작은 핵심 어휘부터 구축, 버전 관리 내장, 관점 차이 수용,
+                그리고 정의와 계층의 반복 개선이 모두 하나의 존재론적 태도에서 나온다는 점이 분명해진다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>책 속 대표 사례</h3>
+              <p>
+                이 장에서 가장 교육적인 예시는 multiple inheritance를 그대로 허용하지 말라는 논의다.
+                “mother role”을 biological role과 social role의 다중 상속 노드처럼 두면 편해 보이지만,
+                실제로는 생물학적 어머니이지만 사회적 양육을 하지 않는 경우와,
+                입양을 통해 사회적 어머니 역할을 하지만 생물학적 어머니는 아닌 경우를 설명하지 못한다.
+              </p>
+              <p>
+                또 “portion of water”와 “knife”의 정의 예시는 자연물과 인공물의 essential feature가 다르게 잡힌다는 점을 보여 준다.
+                물은 분자 구성과 결합 구조가 본질적이고,
+                칼은 절단 도구라는 기능과 그 기능을 지탱하는 구조가 본질적이라는 식이다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>사례가 밀어주는 결론</h3>
+              <p>
+                저자들이 말하는 regimentation은 이렇게 작동한다.
+                애매한 단어를 버리고, 어떤 존재자가 어떤 부모 아래 들어가야 하는지 다시 따지며,
+                apparent multiple inheritance를 normalized classification으로 풀어낸다.
+                여기에 open-world assumption과 objectivity 규칙까지 더해지면,
+                ontology는 “지금 우리가 알고 있는 것의 목록”이 아니라
+                “현실을 향해 열려 있는 정교한 가설 구조”로 바뀐다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>정의론의 미세한 요구</h3>
+              <p>
+                이 장은 좋은 정의가 단지 참이기만 해서는 부족하다고 말한다.
+                term과 definition이 의미를 해치지 않고 교체 가능해야 하고,
+                사람에게도 문법적으로 읽혀야 하며,
+                essential feature를 붙잡아야 하고,
+                circularity를 피해야 한다.
+                triangle, water, knife 같은 예시를 나란히 두는 이유도
+                자연물과 인공물이 각각 다른 방식으로 본질을 드러낸다는 점을 훈련시키기 위해서다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>이 장의 실제 난점</h3>
+              <p>
+                정의를 엄밀하게 만들수록 현실의 경계 사례들이 드러난다.
+                biological mother와 social mother의 갈라짐,
+                질병과 진단의 구분,
+                측정값과 측정 대상의 구분은 모두 같은 난점을 공유한다.
+                즉 ontology engineering은 “예외를 지우는 일”이 아니라
+                예외가 드러내는 존재론적 층위를 분해하는 일이라는 점이 이 장에서 분명해진다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="chapter-5" class="panel">
+      <div class="chapter">
+        <aside class="chapter-index">
+          <div class="num">5장</div>
+          <h3>BFO I: Continuants</h3>
+          <p>continuant, 독립/종속 continuant, disposition, role, function, information entity 같은 BFO의 핵심 범주가 촘촘하게 전개된다.</p>
+        </aside>
+        <div class="chapter-body">
+          <div class="tag-row">
+            <span class="tag">continuant</span>
+            <span class="tag">independent vs dependent</span>
+            <span class="tag">role/function/disposition</span>
+            <span class="tag">information entity</span>
+          </div>
+          <div class="card">
+            <h3>장의 핵심</h3>
+            <p>
+              5장은 BFO의 존재론적 엔진룸에 해당한다.
+              여기서 continuant는 시간 속에서 동일성을 유지하는 존재자들의 큰 부류이며,
+              다시 독립 continuant와 종속 continuant로 나뉜다.
+              이 구분이 중요한 이유는 “무엇이 스스로 존재하고 무엇이 다른 것에 기대어 존재하는가”를 명확히 하기 때문이다.
+            </p>
+            <p>
+              특히 role, function, disposition의 구별은 실무적으로 매우 중요하다.
+              function은 대체로 내부 구조와 기원에 결박된 성향이고,
+              role은 외부 맥락에 의해 부여되는 자리이며,
+              disposition은 발현되지 않아도 존재할 수 있는 실현 가능성이다.
+              이 차이를 흐리면 의료, 생물학, 사회 제도, 정보 구조를 한데 모델링할 때 곧바로 혼란이 생긴다.
+            </p>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>장 안에서 특히 강한 통찰</h3>
+              <ul>
+                <li>continuant의 분류는 단순 명명 규칙이 아니라 의존 구조를 드러내는 지도다.</li>
+                <li>실현되지 않은 disposition도 존재한다. 가능성은 발현과 동일하지 않다.</li>
+                <li>정보 객체는 하나의 매체에 갇히지 않고 여러 concretization을 가질 수 있다는 점에서 독특하다.</li>
+                <li>role은 본질이 아니라 맥락 의존적 지위이므로, function과 섞으면 설계가 흐려진다.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>읽는 포인트</h3>
+              <p>
+                이 장은 범주 이름을 외우는 장이 아니라, “의존성의 문법”을 익히는 장이다.
+                어떤 것이 bearer 없이 존재할 수 없는가,
+                어떤 것이 본질적 속성이고 어떤 것이 외부 제도나 상황이 부여한 위치인가,
+                그리고 정보라는 것이 어떻게 물리적 복사본을 넘어 동일성을 유지하는가를 따라가면 구조가 선명해진다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>책 속 대표 사례</h3>
+              <p>
+                5장에서 매우 인상적인 예시는 정보 객체의 다중 concretization이다.
+                저자들은 <em>Robinson Crusoe</em> 같은 소설을 떠올리게 하며,
+                같은 작품이 여러 인쇄본에 동일한 정보 내용으로 실현될 수 있음을 설명한다.
+                정보 객체는 하나의 종이 묶음과 동일하지 않고,
+                서로 다른 bearer들 위에서 반복적으로 concretize될 수 있다는 것이다.
+              </p>
+              <p>
+                또 site를 설명할 때는 콧속 빈 공간, 정맥의 내부, 사무실의 내부, 자동차 트렁크, 강아지 주머니 같은 사례가 줄줄이 나온다.
+                여기서 핵심은 site가 벽이나 조직이 아니라,
+                그 벽과 조직이 둘러싸고 있는 <strong>빈 자리</strong>라는 점이다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>사례가 밀어주는 결론</h3>
+              <p>
+                이 사례들은 dependent continuant를 직관적으로 이해하게 한다.
+                role, function, disposition, information content, quality는 모두
+                독립 존재자에 기대어 존재하지만 서로 기대는 방식이 다르다.
+                site 역시 공간 영역과 동일하지 않다.
+                배가 움직이면 화물칸이라는 site는 계속 같은 site이지만,
+                점유하는 spatial region은 계속 바뀐다.
+                이런 차이를 분리해 내는 능력이 곧 BFO의 섬세함이다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>continuant 분류의 진짜 어려움</h3>
+              <p>
+                5장은 범주명이 많아 보여서 처음에는 사전처럼 읽히기 쉽다.
+                하지만 실제 난점은 목록을 외우는 데 있지 않고,
+                의존의 방향과 존재의 층위를 구분하는 데 있다.
+                quality가 bearer에 기대는 방식과,
+                information content가 여러 concretization을 가질 수 있는 방식,
+                role이 외부 맥락에 의해 성립하는 방식은 서로 모두 다르다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>이 장을 통해 얻게 되는 감각</h3>
+              <p>
+                이 장을 제대로 통과하면 “실체처럼 보이지만 사실은 기생적 존재인 것들”을 보는 눈이 생긴다.
+                질병, 계획, 법적 지위, 문서 내용, 진단명, 측정치, 역할 같은 것들이
+                왜 같은 상자에 들어가면 안 되는지,
+                그리고 왜 그럼에도 모두 현실의 일부로 다뤄져야 하는지가 비로소 명확해진다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="chapter-6" class="panel">
+      <div class="chapter">
+        <aside class="chapter-index">
+          <div class="num">6장</div>
+          <h3>BFO II: Occurrents</h3>
+          <p>process, process boundary, temporal region, spatiotemporal region을 통해 시간성과 사건성을 다루는 BFO의 방식이 제시된다.</p>
+        </aside>
+        <div class="chapter-body">
+          <div class="tag-row">
+            <span class="tag">occurrent</span>
+            <span class="tag">process</span>
+            <span class="tag">temporal region</span>
+            <span class="tag">3D/4D perspectivalism</span>
+          </div>
+          <div class="card">
+            <h3>장의 핵심</h3>
+            <p>
+              6장은 continuant와 대조되는 occurrent의 세계를 연다.
+              여기서 process는 시간 속에서 펼쳐지는 사건적 존재자이며,
+              process boundary는 그 시작과 끝을 가르는 극한점,
+              temporal region과 spatiotemporal region은 시간과 시공간을 다루는 틀로 기능한다.
+            </p>
+            <p>
+              이 장의 가장 매혹적인 지점은 BFO가 3차원주의와 4차원주의를
+              단순 타협이 아니라 <strong>관점의 분업</strong>으로 취급한다는 점이다.
+              continuant는 시간에 걸쳐 동일성을 유지하는 관점에서,
+              occurrent는 시간적 부분을 가진 펼쳐진 존재로 다루어진다.
+              이중 관점 덕분에 BFO는 변화와 동일성을 함께 다룰 수 있다.
+            </p>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>이 장의 결정적 성과</h3>
+              <ul>
+                <li>과정과 물체를 같은 방식으로 다루지 않고, 각자의 존재 양식에 맞는 문법을 부여한다.</li>
+                <li>시간은 배경이 아니라 온톨로지적 분류를 바꾸는 축이다.</li>
+                <li>process는 mereological rigidity를 가지며, 아주 작은 부분 차이도 다른 process를 만든다.</li>
+                <li>temporal region은 시간 기술의 기준틀을 제공해 continuant와 occurrent 사이를 이어 준다.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>실무적으로 읽으면 좋은 부분</h3>
+              <p>
+                이벤트, 절차, 진단 과정, 실험 단계, 임상 경과처럼 시간성을 강하게 띠는 대상을 다룰 때
+                많은 모델이 객체 중심 언어에 갇혀 실패한다.
+                이 장은 그런 실패를 피하기 위해 “시간에 걸쳐 동일한 것”과
+                “시간 속에서 벌어지는 것”을 처음부터 다르게 설계해야 함을 보여 준다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>책 속 대표 사례</h3>
+              <p>
+                6장은 electrocardiogram 사례를 통해 occurrent 분류의 감각을 잡게 한다.
+                검사 전체는 process이고,
+                검사의 시작과 종료는 process boundary이며,
+                그 시작과 끝이 놓이는 시점은 temporal instant다.
+                동일한 의료 상황 안에서도 사건, 경계, 시간 구간이 서로 다른 범주로 갈라진다는 점이 한눈에 드러난다.
+              </p>
+              <p>
+                또 continuant와 occurrent의 차이를 설명할 때는 팔을 잃거나 머리카락 하나를 잃는 사람의 예를 든다.
+                사람은 부분을 잃어도 동일한 continuant로 존속할 수 있지만,
+                process는 작은 단계 하나만 달라져도 다른 process가 된다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>사례가 밀어주는 결론</h3>
+              <p>
+                이 장은 변화와 동일성을 동시에 다루려면 관점이 둘 필요하다는 사실을 보여 준다.
+                사람, 세포, 장기 같은 것은 시간에 걸쳐 동일성을 유지하는 방식으로,
+                검사, 분열, 수술, 생애 같은 것은 시간적 부분을 지닌 펼쳐진 과정으로 다뤄야 한다.
+                temporal region과 spatiotemporal region은 바로 이 둘 사이를 이어 주는 매개다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>3D/4D 문제를 푸는 방식</h3>
+              <p>
+                이 장의 미덕은 전통적 형이상학 대립을 “둘 중 하나의 승리”로 처리하지 않는 데 있다.
+                continuant에 대해서는 diachronic identity를 보존하는 3차원적 관점이 유용하고,
+                process에 대해서는 temporal parts를 정직하게 받아들이는 4차원적 관점이 더 적합하다고 본다.
+                그래서 BFO는 철학적 중재안이 아니라, 작업 대상에 따라 다른 문법을 배정하는 체계가 된다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>왜 이 장이 어려운가</h3>
+              <p>
+                많은 실무 모델은 시간 정보를 속성 몇 개로 처리한다.
+                하지만 저자들은 시간 자체가 ontology의 분류 원리라고 본다.
+                이 관점을 받아들이면 event log, clinical pathway, 실험 프로토콜, 공정 흐름, 생애사처럼
+                시간적 구조가 중요한 영역을 훨씬 더 정교하게 다룰 수 있게 된다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="chapter-7" class="panel">
+      <div class="chapter">
+        <aside class="chapter-index">
+          <div class="num">7장</div>
+          <h3>The Ontology of Relations</h3>
+          <p>분류보다 더 깊은 수준에서, 관계와 공리가 왜 형식 추론의 심장부인지 설명한다.</p>
+        </aside>
+        <div class="chapter-body">
+          <div class="tag-row">
+            <span class="tag">relation taxonomy</span>
+            <span class="tag">all-some rule</span>
+            <span class="tag">primitive relations</span>
+            <span class="tag">axiomatization</span>
+          </div>
+          <div class="card">
+            <h3>장의 핵심</h3>
+            <p>
+              7장은 이 책이 왜 taxonomy만으로 만족하지 않는지를 가장 선명하게 보여 준다.
+              관계는 단지 보조 링크가 아니라, 추론을 가능하게 만드는 작동 장치다.
+              저자들은 관계를 보편자-보편자, 개별자-보편자, 개별자-개별자라는 세 층위로 나누고,
+              상위 수준의 관계가 실제로는 개별 사례들에 대한 조건으로 환원되어야 함을 강조한다.
+            </p>
+            <p>
+              여기서 유명한 all-some 규율이 등장한다.
+              어떤 보편자 수준의 관계를 주장하려면,
+              모든 source 인스턴스가 적어도 하나의 target 인스턴스와 해당 관계를 맺는지를 따져야 한다.
+              이 규율 하나만으로도 성급한 일반화와 잘못된 universal-level parthood 진술이 대량으로 걸러진다.
+            </p>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>이 장이 남기는 실전 교훈</h3>
+              <ul>
+                <li>관계는 정의될 수 있는 것과 공리로만 제약될 수 있는 primitive relation을 구분해야 한다.</li>
+                <li>continuant 관련 관계는 시간 지시가 필요하고, occurrent 관련 관계는 그렇지 않은 경우가 많다.</li>
+                <li>part_of와 has_part는 대칭적 자동 역관계가 아니므로, 양방향 검증이 필요하다.</li>
+                <li>공리가 없으면 ontology는 보기 좋은 분류도일 뿐, 추론 기계가 아니다.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>왜 중요하게 읽어야 하나</h3>
+              <p>
+                실제 모델링 실패는 종종 클래스 정의보다 관계 정의에서 발생한다.
+                어떤 대상이 어디에 위치하는지, 무엇의 일부인지, 무엇에 참여하는지,
+                무엇으로부터 유래하는지에 대한 관계가 허술하면 전체 시스템은 연쇄적으로 흔들린다.
+                이 장은 관계를 “디테일”이 아니라 ontology의 엔진으로 되돌려 놓는다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>책 속 대표 사례</h3>
+              <p>
+                저자들은 universal-level relation을 검증할 때 all-some 규율을 적용하라고 말한다.
+                대표적 반례로 “human has continuant part testis” 같은 진술이 나온다.
+                모든 human 인스턴스가 적어도 하나의 testis 인스턴스를 part로 가져야 한다는 뜻이 되므로,
+                여성이나 특정 의학적 상황을 고려하는 순간 이 명제는 무너진다.
+              </p>
+              <p>
+                Fido와 꼬리 사례도 반복해서 등장한다.
+                Fido의 꼬리는 지금은 Fido의 continuant part일 수 있지만,
+                어느 시점에는 잘려 나가 더 이상 part가 아닐 수 있다.
+                그래서 continuant parthood는 시간 인덱스를 필요로 하고,
+                occurrent parthood는 그렇지 않다는 차이가 드러난다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>사례가 밀어주는 결론</h3>
+              <p>
+                관계를 잘 정의한다는 것은 문장 하나를 그럴듯하게 쓰는 일이 아니다.
+                domain과 range를 정하고, 어떤 층위의 relation인지 명시하고,
+                시간 지시가 필요한지 따지고, 역관계가 아니라 reciprocal relation이 필요한지도 구분해야 한다.
+                7장은 이런 점검 없이는 ontology가 관계를 표현하는 척만 할 뿐,
+                실제로는 추론 가능한 구조를 갖지 못한다고 못 박는다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>관계 장의 숨은 메시지</h3>
+              <p>
+                이 장은 사실 ontology를 “정의의 집합”에서 “법칙의 집합”으로 밀어 올린다.
+                class node가 아무리 잘 서 있어도,
+                relation이 느슨하면 그 ontology는 단지 분류표의 고급 버전에 그친다.
+                반대로 relation과 axiom이 단단하면, ontology는 특정 사례에 대한 새로운 결론을 산출하는 장치가 된다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>특히 기억할 규율</h3>
+              <p>
+                universal-level claim은 늘 과감하게 적는 것보다 엄격하게 줄이는 편이 낫다.
+                “모든 C는 어떤 D와 이런 관계를 맺는다”는 문장은 멋져 보이지만,
+                반례 하나면 ontology 전체의 신뢰도를 깎는다.
+                저자들이 all-some discipline을 강조하는 것은 ontology를 덜 화려하게 만들기 위해서가 아니라
+                더 견고하게 만들기 위해서다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="chapter-8" class="panel">
+      <div class="chapter">
+        <aside class="chapter-index">
+          <div class="num">8장</div>
+          <h3>Basic Formal Ontology at Work</h3>
+          <p>BFO가 실제 중간 수준 및 도메인 온톨로지에서 어떻게 작동하는지, 그리고 구현 언어와 도구가 왜 철학적 엄밀성을 배반하지 않는지 보여 준다.</p>
+        </aside>
+        <div class="chapter-body">
+          <div class="tag-row">
+            <span class="tag">OGMS</span>
+            <span class="tag">IDO</span>
+            <span class="tag">federated integration</span>
+            <span class="tag">layered architecture</span>
+          </div>
+          <div class="card">
+            <h3>장의 핵심</h3>
+            <p>
+              마지막 본문 장은 이 책이 단순히 추상 원리를 설파하는 데 머물지 않는다는 사실을 입증한다.
+              BFO는 상위 레벨의 범주를 제공하고,
+              그 위에 중간 수준 참조 온톨로지와 도메인 특화 온톨로지가 층층이 올라가는 구조를 가능하게 한다.
+              이 layered architecture는 분산된 데이터 환경에서 특히 강력하다.
+            </p>
+            <p>
+              저자들은 의료 영역 사례를 통해,
+              질병을 단순 라벨이나 진단 코드가 아니라 disposition과 disorder의 구조 속에서 해석할 수 있음을 보여 준다.
+              이때 철학적 구분은 현장성과 멀어지지 않는다.
+              오히려 모호한 임상 용어를 더 엄밀하게 만들고,
+              서로 다른 시스템이 동일한 환자 상태를 더 일관되게 이해하도록 돕는다.
+            </p>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>이 장에서 드러나는 실무 가치</h3>
+              <ul>
+                <li>상위 범주를 공유하면 이질적 데이터셋도 연합적으로 통합할 수 있다.</li>
+                <li>도메인 모델의 성공은 구현 언어보다 먼저, 정의와 부모 범주의 선택에서 결정된다.</li>
+                <li>reference ontology를 경유하면 임상 용어의 맥락 의존성과 불일치를 줄일 수 있다.</li>
+                <li>철학적 엄밀성은 추상적 사치가 아니라 장기 유지보수와 통합의 비용 절감 장치다.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>이 책의 실질적 결론</h3>
+              <p>
+                BFO의 가치는 “범주 이름 몇 개를 제공한다”는 데 있지 않다.
+                그것은 서로 다른 공동체가 각자의 지식을 구축하면서도
+                동일한 상위 문법을 공유하도록 만드는 <strong>협업의 형식 조건</strong>을 제공한다.
+                그래서 이 장은 BFO를 교리처럼 제시하기보다,
+                통합과 검증, 재사용을 가능하게 하는 공통 기반으로 제시한다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>책 속 대표 사례</h3>
+              <p>
+                가장 중요한 사례는 OGMS다.
+                이 ontology는 disease, disorder, diagnosis, patient, healthcare provider 같은
+                임상 핵심 용어를 일반 의학 차원에서 다시 세우고,
+                이를 특정 질환 ontology들이 확장할 수 있는 참조 틀로 만든다.
+                여기서 질병은 단순 코드가 아니라,
+                신체적 disorder에 근거해 환자 쪽에서 성립하는 disposition으로 해석된다.
+              </p>
+              <p>
+                이어지는 IDO 사례는 layered architecture를 더 선명하게 보여 준다.
+                IDO-Core가 OGMS를 확장하고, 그 위에 HIV, 인플루엔자, 말라리아 같은 하위 온톨로지가 붙는다.
+                “pathogen = material entity and has disposition some pathogenic disposition” 같은 정의는
+                상위 범주와 도메인 개념이 어떻게 접합되는지를 잘 보여 준다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>사례가 밀어주는 결론</h3>
+              <p>
+                8장은 BFO가 교실 안의 철학이 아니라, 계층적 재사용과 도메인 확장을 실제로 가능하게 하는
+                설계 기반임을 증명한다.
+                IAO가 정보 객체를 generically dependent continuant로 다루고,
+                임상 ontology들이 OGMS를 통해 질환 서술을 정리하는 방식은
+                상위 범주가 공학적 재사용성과 얼마나 긴밀히 이어지는지를 보여 준다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>이 장이 보여 주는 layered architecture</h3>
+              <p>
+                BFO 위에 OGMS 같은 일반 참조 ontology가 놓이고,
+                그 위에 IDO 같은 하위 도메인 ontology가, 다시 그 아래에 특정 병원체나 질환 ontology가 놓이는 구조는
+                책 전체의 설계 철학이 실제 생태계 안에서 작동하는 방식이다.
+                이 layered architecture가 있기 때문에 각 ontology는 자기 전문성을 유지하면서도
+                상위 범주를 통해 다른 ontology들과 연결될 수 있다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>독자가 여기서 배워야 할 것</h3>
+              <p>
+                좋은 ontology engineering은 “모든 것을 한 군데 담는 것”이 아니라
+                서로 다른 층위의 ontology가 어떤 역할을 맡는지 분명히 하는 것이다.
+                상위 레벨은 범주 문법을 제공하고,
+                참조 ontology는 교과서적 핵심 어휘를 안정화하며,
+                응용 ontology는 특정 과업을 위해 이를 선택적으로 조합한다.
+                이 역할 분담 감각이 없으면 재사용은 곧 복붙이 된다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="appendix" class="panel">
+      <div class="chapter">
+        <aside class="chapter-index">
+          <div class="num">부록</div>
+          <h3>Implementation</h3>
+          <p>OWL, RDF, RDFS, Protege, reasoner, OWL 2 profile, open world와 database 비교까지 포함해 구현층의 실제 논리를 집중적으로 해설한다.</p>
+        </aside>
+        <div class="chapter-body">
+          <div class="tag-row">
+            <span class="tag">OWL</span>
+            <span class="tag">RDF/RDFS</span>
+            <span class="tag">Protege</span>
+            <span class="tag">open world</span>
+            <span class="tag">reasoner</span>
+            <span class="tag">OWL 2</span>
+          </div>
+          <div class="card">
+            <h3>부록의 의미</h3>
+            <p>
+              부록은 단순한 도구 소개가 아니다.
+              오히려 앞선 장의 철학적 엄밀성이 어떻게 오늘의 표준 기술 스택에 번역되는지를 보여 주는 다리다.
+              HTML에서 XML, RDF, RDFS, OWL로 올라가는 표현력의 계단은
+              “사람이 읽는 웹”에서 “기계가 의미를 다루는 웹”으로의 이동을 압축적으로 보여 준다.
+            </p>
+            <p>
+              여기서 특히 중요한 것은 OWL이 만능 언어가 아니라는 점을 숨기지 않는 태도다.
+              표현력의 제한은 분명 존재하지만,
+              표준화, 도구 생태계, 추론 가능성, 실무 채택성을 고려하면
+              여전히 가장 현실적인 작업 기반이라는 판단이 제시된다.
+            </p>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>구현 파트를 어떻게 읽어야 하는가</h3>
+              <p>
+                이 부록을 제대로 읽으려면 “철학이 끝나고 이제 코딩이 시작된다”는 식으로 이해하면 안 된다.
+                오히려 이 부분은 앞선 장들에서 확보한 존재론적 구분이 어떤 형식 언어로 얼마나 보존될 수 있는지를 점검하는 단계다.
+                다시 말해 구현은 철학의 반대편이 아니라, 철학적 구분이 손실 없이 얼마나 운반되는지를 시험하는 압축 기법이다.
+              </p>
+              <p>
+                저자들이 FOL의 표현력을 더 높게 평가하면서도 OWL을 실무 언어로 택하는 이유는 이 균형감에 있다.
+                가장 이상적인 형식 체계와 가장 널리 쓰이는 표준 체계가 일치하지 않을 수 있으며,
+                실무자는 이 틈을 이해한 채 선택해야 한다는 것이다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>부록의 숨은 질문</h3>
+              <p>
+                “좋은 정의를 세웠는데 그것을 기계가 어느 수준까지 이해하게 만들 수 있는가?”
+                이 질문이 부록의 중심에 있다.
+                XML은 구조를 말해 주지만 의미를 충분히 말해 주지 못하고,
+                RDF는 관계를 말할 수 있지만 제약과 추론의 폭이 좁으며,
+                RDFS는 schema를 얹지만 relation의 성격과 cardinality를 제대로 다루지 못한다.
+                그래서 OWL이 등장하고, 동시에 OWL의 한계 또한 곧바로 문제로 떠오른다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>부록에서 꼭 붙잡아야 할 것</h3>
+              <ul>
+                <li>형식 언어는 사유를 대신하지 않는다. 이해가 먼저고 부호화는 그다음이다.</li>
+                <li>개방세계 가정은 과학 지식의 불완전성과 수정 가능성에 더 잘 맞는다.</li>
+                <li>OWL의 클래스는 단순 멤버 집합과 다르므로, 외연만 같다고 같은 개념은 아니다.</li>
+                <li>좋은 구현은 좋은 철학을 배반하지 않고, 오히려 그것을 운영 가능한 형태로 압축한다.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>부록의 최종 메시지</h3>
+              <p>
+                도구는 중요하지만 도구가 출발점은 아니다.
+                올바른 구현 워크플로는 대략 다음 순서를 따른다.
+                핵심 용어를 모은다. 그 의미를 과학적 문맥 속에서 파악한다.
+                사람이 이해 가능한 정의를 세운다. 그 후에야 형식 언어로 옮긴다.
+                이 순서를 뒤집으면 구현은 빨라질 수 있어도 ontology는 약해진다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>책 속 대표 사례</h3>
+              <p>
+                부록에서 가장 좋은 설명은 기술 스택의 단계적 상승이다.
+                HTML은 인간에게 문서를 보여 주는 데 적합하지만,
+                XML은 구조화된 기술을 가능하게 하고,
+                RDF는 subject-predicate-object triple을 통해 관계를 표현하며,
+                RDFS는 schema 수준의 어휘를 제공하고,
+                OWL은 여기에 제약과 형식 의미론을 얹는다.
+              </p>
+              <p>
+                저자들은 관계형 데이터베이스와 ontology의 차이도 간단한 질의 예로 대비한다.
+                데이터베이스에서는 Rover가 dog인지 모르면 “아니다”로 닫히기 쉽지만,
+                ontology에서는 “모른다”가 남는다.
+                개방세계 가정은 과학 지식의 불완전성에 더 적합하다는 설명이다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>사례가 밀어주는 결론</h3>
+              <p>
+                이 부록은 구현 언어의 사양을 늘어놓는 데서 멈추지 않는다.
+                왜 OWL이 XML보다, 왜 RDF가 단순 문서 구조보다,
+                왜 open world가 closed world보다 특정 종류의 과학 지식에 더 적합한지까지 설명한다.
+                결국 이 장의 메시지는 하나다.
+                ontology engineering은 툴 사용법이 아니라, 어떤 툴이 어떤 존재론적 태도와 맞물리는지를 아는 일이다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>HTML → XML → RDF → RDFS → OWL의 실제 의미</h3>
+              <p>
+                이 계단식 설명은 단순 역사 서술이 아니다.
+                HTML은 문서를 보여 주는 언어다.
+                XML은 문서에 구조를 부여하지만, 관계의 의미를 기계가 표준 방식으로 해석하게 하지는 못한다.
+                RDF는 subject-predicate-object 삼중항으로 “무엇이 무엇과 어떤 관계를 맺는가”를 표현하며,
+                RDFS는 class, subClassOf, domain, range 같은 스키마 어휘를 추가한다.
+              </p>
+              <p>
+                그러나 저자들의 눈에는 여기서도 아직 부족하다.
+                왜냐하면 transitive, symmetric, inverse 같은 relation의 성질과,
+                all values from, some values from, cardinality 같은 제약을 표현해야
+                ontology가 단순 연결 그래프가 아니라 reasoning의 재료가 되기 때문이다.
+                그래서 OWL은 “웹 문서의 구조화”가 아니라 “의미의 공리화” 단계에 해당한다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>Protege의 위치</h3>
+              <p>
+                Protege는 책에서 단순 편집기가 아니라 ontology 작업대처럼 제시된다.
+                BFO의 최신 OWL 버전을 가져와 import하고,
+                각 도메인 용어를 상위 범주의 subclass로 배치하며,
+                relation과 restriction을 붙이고,
+                reasoner를 걸어 class가 satisfiable한지 점검하는 흐름이 암묵적인 표준 워크플로다.
+              </p>
+              <p>
+                중요한 것은 Protege가 ontology를 자동으로 “좋게” 만들어 주지 않는다는 점이다.
+                잘못된 부모 범주에 잘못된 정의를 달면 Protege는 그 오류를 보기 좋게 저장해 줄 뿐이다.
+                따라서 저자들의 관점에서 tool proficiency는 언제나 ontological judgment 다음이다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>OWL이 구현에서 주는 힘</h3>
+              <p>
+                부록이 소개하는 OWL의 진짜 힘은 vocabulary의 양이 아니라 restriction의 질에 있다.
+                <code>allValuesFrom</code>은 어떤 관계를 통해 연결되는 대상이 모두 특정 class에 속해야 함을,
+                <code>someValuesFrom</code>은 적어도 하나의 그러한 대상이 존재함을,
+                cardinality 제약은 몇 개가 가능한지를,
+                <code>intersectionOf</code>, <code>unionOf</code>, <code>complementOf</code>는
+                class를 논리 연산으로 조합할 수 있음을 뜻한다.
+              </p>
+              <p>
+                여기에 <code>equivalentClass</code>, <code>equivalentProperty</code>,
+                inverse, functional, inverse-functional, transitive, symmetric, asymmetric,
+                reflexive, irreflexive 같은 속성을 얹으면
+                ontology는 단지 용어집이 아니라 함축을 생산하는 체계가 된다.
+                저자들이 OGMS나 IDO 사례를 통해 보여 주는 formal definition이 바로 이런 장치를 발판으로 작동한다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>하지만 OWL은 무엇을 희생하는가</h3>
+              <p>
+                저자들은 OWL을 칭찬하면서도 표준 FOL보다 표현력이 약하다는 점을 분명히 한다.
+                다시 말해 과학적 정의의 풍부한 내용을 그대로 전부 옮기는 데에는 구조적 한계가 있다.
+                그래서 ontology engineer는 두 층위를 동시에 관리해야 한다.
+                인간이 읽는 정의 텍스트와, reasoner가 처리할 수 있는 형식 제약이 그것이다.
+              </p>
+              <p>
+                이 긴장 때문에 구현은 언제나 절충이다.
+                너무 많은 의미를 형식화하려 들면 언어의 한계와 계산 비용에 막히고,
+                너무 적게 형식화하면 ontology는 보기만 좋은 용어 사전으로 후퇴한다.
+                부록의 핵심 미덕은 바로 이 균형을 숨기지 않는 데 있다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>Reasoner가 하는 일과 하지 못하는 일</h3>
+              <p>
+                저자들이 reasoner를 강조하는 이유는 consistency checking 때문이다.
+                class에 인스턴스가 존재 가능한지,
+                어떤 subclass 배치가 모순을 만드는지,
+                relation property가 새로운 함축을 산출하는지를 확인할 수 있어야 ontology가 살아 움직인다.
+                OWL의 relation 성질이 database의 단순 표와 다른 이유도 이 지점에서 분명해진다.
+              </p>
+              <p>
+                그러나 reasoner는 의미를 이해하지 않는다.
+                잘못된 부모 범주 아래에 일관되게 정의된 항목이 있다면,
+                형식적 모순이 없다는 이유만으로 통과시킬 수도 있다.
+                그래서 부록의 메시지는 분명하다.
+                reasoner는 ontology quality의 최종 심판이 아니라,
+                이미 숙고된 구조를 검증하는 형식 도우미다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>Database와 ontology를 가르는 구현 감각</h3>
+              <p>
+                부록의 database 비교는 implementation 철학을 가장 압축적으로 드러낸다.
+                관계형 데이터베이스는 닫힌 세계를 전제하며, 모르는 것은 거짓으로 취급하기 쉽다.
+                반면 ontology는 개방세계를 전제하므로, 모르는 것은 단지 아직 모르는 것으로 남는다.
+                이 차이는 과학처럼 지식이 계속 확장되는 영역에서 결정적이다.
+              </p>
+              <p>
+                Rover 예시가 여기서 유효하다.
+                데이터베이스는 “Rover가 dog인가?”에 대해 기록이 없으면 아니라고 말할 수 있지만,
+                ontology는 “현재 가진 지식으로는 판단할 수 없다”고 남겨 둔다.
+                또 데이터베이스는 dog가 하나라고 셀 수 있어도,
+                ontology는 적어도 하나라는 bounded existential answer만 내놓을 수 있다.
+                구현 파트는 이 차이를 단점으로만 보지 않고,
+                과학적 불완전성과 잘 맞는 장점으로 해석한다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>형식 언어를 둘러싼 균형감</h3>
+              <p>
+                부록은 OWL의 장점을 말하면서도 그것을 절대화하지 않는다.
+                표현력은 FOL보다 약하고, 어떤 제약은 우회적으로만 표현되며,
+                reasoning의 tractability를 얻는 대신 포기한 것들도 있다.
+                그럼에도 표준성, 툴 체인, 공유 가능성 때문에 실무 기반으로 선택된다는 설명은 매우 현실적이다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>부록이 책 전체에서 맡는 역할</h3>
+              <p>
+                부록은 앞선 철학적 논의를 “현실과 동떨어진 원론”으로 남기지 않는다.
+                오히려 왜 RDF의 triple 구조가 유의미한지, 왜 OWL의 property 특성이 중요한지,
+                왜 open world가 ontology의 수정 가능성과 어울리는지를 보여 주며
+                원리와 구현이 하나의 곡선 위에 있음을 확인시킨다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>책 외부 보충: W3C 표준 계보</h3>
+              <p>
+                아래 내용은 원서 바깥의 기술 보충이다.
+                W3C 공식 문서를 기준으로 보면,
+                <a href="https://www.w3.org/TR/owl-overview/" target="_blank" rel="noopener noreferrer">OWL 2 Overview</a>는
+                OWL 1의 확장판으로서 ontology의 구조, syntax, semantics, profile을 한꺼번에 조망하는 로드맵 문서다.
+                이 문서는 OWL 2 tool들이 공통으로 맞춰야 하는 중심 참조점 역할을 하며,
+                RDF/XML을 모든 conformant tool이 지원해야 하는 기본 교환 구문으로 둔다고 설명한다.
+              </p>
+              <p>
+                같은 맥락에서 W3C의
+                <a href="https://www.w3.org/standards/history/rdf11-concepts/" target="_blank" rel="noopener noreferrer">RDF 1.1 Concepts</a>
+                기록에 따르면 RDF 1.1 Concepts and Abstract Syntax는 2014년 2월 25일 Recommendation이 되었다.
+                즉 책이 설명하는 RDF/RDFS/OWL 계단은 단순한 개념도가 아니라,
+                실제 W3C 표준화 이력을 가진 연속적인 기술 스택이라는 점이 확인된다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>책 외부 보충: SPARQL의 범위</h3>
+              <p>
+                원서는 SPARQL을 비교적 간단히 언급하지만,
+                W3C의 <a href="https://www.w3.org/TR/sparql11-overview/" target="_blank" rel="noopener noreferrer">SPARQL 1.1 Overview</a>를 보면
+                SPARQL 1.1은 단순 query language 하나가 아니라 query, update, federated query, service description,
+                results format, entailment regime, graph store protocol까지 포괄하는 specification 군으로 설명된다.
+                Recommendation 날짜는 2013년 3월 21일이다.
+              </p>
+              <p>
+                이 보충은 implementation 관점에서 중요하다.
+                책을 읽다 보면 triplestore 질의가 SQL의 대응물처럼 보이지만,
+                실제 SPARQL 생태계는 “질의”를 넘어 endpoint 기술, update, 분산 질의, entailment-aware query까지 포함한다.
+                따라서 ontology engineering의 운영 단계에서는 단순 클래스 설계만이 아니라
+                ontology를 어떤 질의 환경과 protocol 위에 놓을 것인지도 함께 설계 대상이 된다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>OWL 2와 profile 선택의 실무성</h3>
+              <p>
+                OWL 2가 도입된 이유를 설명하는 대목도 구현 관점에서 매우 중요하다.
+                초기 OWL은 qualified cardinality restriction을 제대로 다루지 못했다.
+                예를 들어 “애완견 네 마리 중 두 마리는 수컷” 같은 문장을 자연스럽게 제약으로 걸기 어렵고,
+                숫자 literal에 대한 구간 제약 역시 불편했다.
+                이런 불편은 단순한 문법 결손이 아니라, 실제 모델링 표현력의 병목이었다.
+              </p>
+              <p>
+                이후 등장한 EL, RL, QL profile은 이 책이 얼마나 실무를 의식하는지 보여 준다.
+                대규모 ontology에는 EL,
+                rule-based 처리에는 RL,
+                관계형 데이터베이스와의 접속에는 QL이 유리하다는 설명은
+                구현 언어를 하나의 절대 정답이 아니라 사용 시나리오별 선택지로 이해하게 만든다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>구현 파트가 8장 사례와 만나는 방식</h3>
+              <p>
+                부록은 독립된 도구 설명이 아니라 8장의 사례들로 이어지는 전주곡이다.
+                OGMS의 subclass 표현,
+                IDO의 equivalence 정의,
+                IAO의 data property와 functional 제약,
+                MFO-EM의 상위 범주 재사용은
+                부록에서 설명한 OWL machinery가 실제 ontology 안에서 어떻게 쓰이는지를 보여 준다.
+              </p>
+              <p>
+                그래서 implementation 파트를 집중적으로 읽는다는 것은
+                “OWL 문법을 암기한다”는 뜻이 아니라,
+                철학적 distinction이 어떤 형식 장치로 번역되는지를 파악한다는 뜻이다.
+                이 책이 보여 주는 최고의 구현 감각은 바로 이 번역의 정확성에 있다.
+              </p>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>책 외부 보충: Protégé의 현재 위치</h3>
+              <p>
+                원서 밖의 공식 자료를 보면,
+                <a href="https://protege.stanford.edu/" target="_blank" rel="noopener noreferrer">Protégé 공식 사이트</a>는
+                Protégé를 “free, open-source OWL ontology editor”로 소개하고,
+                Desktop과 WebProtégé를 함께 제공한다고 밝힌다.
+                또 “full ontology development lifecycle”, 즉 modelling, reasoning, querying, collaboration까지
+                폭넓게 지원한다고 설명한다.
+              </p>
+              <p>
+                이는 책의 구현 파트를 오늘 시점에서 읽을 때 꽤 중요한 보강이다.
+                책에서는 Protégé가 OWL 기반 ontology 편집 도구라는 점이 강조되지만,
+                외부 공식 설명을 덧대면 Protégé는 이제 단순 editor가 아니라
+                개인 편집과 협업 편집을 모두 포괄하는 작업 플랫폼에 더 가깝다.
+                OBO Foundry, ICD-11, NCI Thesaurus 같은 대형 프로젝트가 공식 사례로 제시된다는 점도
+                BFO류 ontology engineering이 소규모 연구 취미가 아니라는 사실을 뒷받침한다.
+              </p>
+            </div>
+            <div class="card">
+              <h3>책 외부 보충: OWL 2 toolchain 해석</h3>
+              <p>
+                W3C OWL 2 Overview는 OWL ontology를 abstract structure로도, RDF graph로도 볼 수 있다고 설명한다.
+                이중 시각은 책의 구현 논리를 한층 분명하게 만든다.
+                인간 설계자는 ontology를 class, property, restriction의 구조로 사고하지만,
+                toolchain과 exchange layer에서는 결국 RDF graph로 직렬화되고 교환된다.
+              </p>
+              <p>
+                즉 implementation을 잘 이해한다는 것은
+                “사람이 읽는 Manchester Syntax 같은 표현”과
+                “기계가 교환하는 RDF/XML 또는 다른 serialization” 사이를 함께 이해한다는 뜻이다.
+                이 점은 원서에 암시돼 있지만, 외부 공식 문서를 붙여 보면 훨씬 분명해진다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Implementation 집중 해설</h2>
+      <div class="lead-grid">
+        <div class="note">
+          <p>
+            이 책의 구현 파트는 “BFO를 OWL로 표현하는 법”만을 다루지 않는다.
+            더 정확히 말하면, 존재론적 엄밀성이 어떻게 표준 웹 기술 스택 위에서 손실과 타협을 겪으며 운반되는지를 보여 준다.
+            이 시각에서 보면 implementation은 철학의 뒤처리가 아니라,
+            ontology engineering이 현실의 도구와 계산 자원 안에서 어떤 형태를 취할 수 있는지를 검증하는 두 번째 전장이다.
+          </p>
+          <p>
+            따라서 구현을 잘한다는 말은 Protege를 능숙하게 클릭한다는 뜻이 아니라,
+            어느 구분은 textual definition으로 남겨야 하고,
+            어느 구분은 OWL restriction으로 formalize해야 하며,
+            어느 부분은 reasoner에 맡길 수 있고,
+            어느 부분은 애초에 ontological analysis 단계에서 해결해야 하는지 아는 것을 뜻한다.
+          </p>
+        </div>
+        <div class="note">
+          <h3>구현 파트의 핵심 문장</h3>
+          <ul>
+            <li>형식 언어의 선택은 존재론적 이상과 계산 가능성 사이의 절충이다.</li>
+            <li>OWL은 FOL보다 약하지만, 표준화와 reasoning 생태계 때문에 실무적 우위를 가진다.</li>
+            <li>RDFS만으로는 relation의 성질과 cardinality를 충분히 다룰 수 없다.</li>
+            <li>Reasoner는 의미 분석을 대체하지 않고, 구조적 일관성을 확인한다.</li>
+            <li>Open-world assumption은 과학 지식의 불완전성과 더 잘 맞는다.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="grid-3" style="margin-top:16px;">
+        <div class="card">
+          <h3>1. 입력</h3>
+          <p>
+            구현은 도메인 용어 수집에서 시작하지만, 저자들의 기준에서는 이 단계조차 단순 어휘 수집이 아니다.
+            각 용어가 보편자를 가리키는지, 역할인지, 진단명인지, 정보 객체인지 먼저 판별해야 한다.
+          </p>
+        </div>
+        <div class="card">
+          <h3>2. 상위 연결</h3>
+          <p>
+            그다음 각 용어를 BFO의 적절한 부모 범주에 연결한다.
+            이 연결이 틀리면 이후의 formalization은 모두 겉만 그럴듯한 오류가 된다.
+          </p>
+        </div>
+        <div class="card">
+          <h3>3. 정의와 제약</h3>
+          <p>
+            사람에게 읽히는 정의를 세우고, 가능한 범위에서 subclass, restriction, property characteristic으로 변환한다.
+            여기서 textual layer와 formal layer의 분업이 일어난다.
+          </p>
+        </div>
+        <div class="card">
+          <h3>4. 검증</h3>
+          <p>
+            Reasoner는 satisfiability, subclass entailment, property implication을 확인한다.
+            다만 ontological nonsense를 자동으로 철학적으로 교정해 주지는 못한다.
+          </p>
+        </div>
+        <div class="card">
+          <h3>5. 재사용</h3>
+          <p>
+            구현된 ontology는 고립된 산출물이 아니라 재사용 가능한 참조 자산이 된다.
+            동일한 상위 범주와 relation 문법을 공유할수록 다른 ontology와의 접속 비용이 낮아진다.
+          </p>
+        </div>
+        <div class="card">
+          <h3>6. 진화</h3>
+          <p>
+            마지막으로 ontology는 배포 후에도 끝나지 않는다.
+            새 과학 지식, 새 use case, 새 profile 요구에 맞춰 계속 갱신되며, 이 점에서 구현은 본질적으로 versioned activity다.
+          </p>
+        </div>
+      </div>
+      <div class="quote" style="margin-top:16px;">
+        구현은 ontology를 기계가 읽게 만드는 과정이지만, 그 전에 인간이 무엇을 말하고 있는지 스스로 분명히 아는 과정이어야 한다.
+      </div>
+      <div class="note" style="margin-top:16px;">
+        <h3>책 외부 보충임을 밝히는 메모</h3>
+        <p>
+          이 문서의 implementation 관련 일부 설명은 원서 자체의 내용에 더해,
+          W3C의 OWL 2 / RDF 1.1 / SPARQL 1.1 공식 문서와 Protégé 공식 사이트를 참조해 보강한 것이다.
+          따라서 이 부분은 “원서의 주장”과 “현재도 유효한 표준 기술 설명”을 구분해 읽는 편이 좋다.
+          전자는 Robert Arp, Barry Smith, Andrew D. Spear의 논지이고,
+          후자는 그 논지를 오늘의 공식 표준 문맥에서 재배치한 보조 층위다.
+        </p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>장들 사이의 연결을 한 번 더 정리하면</h2>
+      <div class="grid-2">
+        <div class="card">
+          <p>
+            1장은 위기를 정의한다. 데이터가 많아졌지만 의미는 흩어져 있다는 사실,
+            그리고 그 원인이 인간의 부정확함에도 있다는 사실을 드러낸다.
+            2장은 무엇을 표상해야 하는지를 정한다. ontology는 개념이 아니라 현실의 일반 구조를 다뤄야 한다는 기준이 여기서 세워진다.
+            3장과 4장은 그 기준을 설계 원칙으로 바꾼다. 상위 범주, 정의, 단일 상속, open world, objectivity, reuse가 이 단계의 핵심이다.
+          </p>
+        </div>
+        <div class="card">
+          <p>
+            5장과 6장은 BFO의 범주 문법을 제공하고, 7장은 그 범주들 사이를 묶는 관계 공리를 제공한다.
+            마지막 8장과 부록은 이 모든 것이 실제 ontology 생태계와 구현 도구 안에서 어떻게 돌아가는지를 보여 준다.
+            따라서 이 책은 “왜 ontology인가”에서 시작해 “무엇을 표상해야 하는가”, “어떻게 설계해야 하는가”,
+            “어떤 상위 문법을 써야 하는가”, “어떻게 구현하고 재사용할 것인가”로 점층적으로 이동하는 구조를 가진다.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="closing" class="closing">
+      <h2>종합 결론</h2>
+      <div class="tag-row" style="margin-top: 10px; margin-bottom: 18px;">
+        <span class="tag">현실 적합성</span>
+        <span class="tag">정의의 엄밀성</span>
+        <span class="tag">관계의 공리화</span>
+        <span class="tag">상위 범주의 공유</span>
+        <span class="tag">지속적 수정 가능성</span>
+      </div>
+      <p>
+        <em>Building Ontologies with Basic Formal Ontology</em>는 “온톨로지를 만들려면 어떤 툴을 써야 하는가”보다
+        “무엇을 어떻게 가리켜야 하는가”를 훨씬 더 근본적인 질문으로 놓는다.
+        이 책이 반복해서 보여 주는 것은, 존재론적 엄밀성 없는 정보 모델은 결국
+        정의의 혼란, 추론의 왜곡, 통합의 실패, 유지보수의 폭증으로 되돌아온다는 사실이다.
+      </p>
+      <p>
+        동시에 이 책은 순수 철학으로 후퇴하지도 않는다.
+        철학적 구분을 실제 설계 원칙, 범주 체계, 관계 공리, 재사용 전략, 구현 도구의 선택 기준으로 끝까지 밀어 넣는다.
+        그래서 이 책의 진짜 미덕은 BFO를 단순히 소개하는 데 있지 않다.
+        “좋은 온톨로지란 무엇인가”에 대한 강한 품질 기준을 세우고,
+        그 기준을 현실의 정보 공학 작업으로 번역해 낸다는 데 있다.
+      </p>
+      <p>
+        요약하면 이 책의 메시지는 명확하다.
+        온톨로지는 분류표가 아니다.
+        좋은 ontology engineering은 좋은 존재론, 좋은 정의, 좋은 관계 설계, 좋은 재사용 습관,
+        그리고 수정 가능성을 전제한 긴 호흡의 작업이다.
+      </p>
+    </section>
+
+    <section class="footer">
+      <p>이 해설 문서는 Robert Arp, Barry Smith, Andrew D. Spear의 원서를 바탕으로 핵심 주장과 구조를 한국어로 재구성한 독해용 정리본이다.</p>
+    </section>
+  </main>
+</body>
+</html>
