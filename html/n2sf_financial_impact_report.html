@@ -1,0 +1,1420 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>국가 망 보안체계(N2SF) 전환과 금융권 보안규제 영향 분석 보고서</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #667085;
+      --line: #d8dee8;
+      --paper: #ffffff;
+      --bg: #f4f7fb;
+      --blue: #1f5eff;
+      --teal: #087c7c;
+      --green: #18794e;
+      --red: #b42318;
+      --amber: #b54708;
+      --soft-blue: #eef4ff;
+      --soft-teal: #eafaf8;
+      --soft-red: #fff1f0;
+      --soft-amber: #fff7ed;
+      --soft-green: #ecfdf3;
+      --shadow: 0 16px 40px rgba(15, 23, 42, 0.10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+      line-height: 1.72;
+      letter-spacing: 0;
+    }
+
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      padding: 28px 22px;
+      background: #101828;
+      color: #f2f4f7;
+    }
+
+    aside h2 {
+      margin: 0 0 16px;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    aside .meta {
+      margin: 0 0 24px;
+      color: #b9c0d0;
+      font-size: 12px;
+    }
+
+    aside nav a {
+      display: block;
+      padding: 8px 0;
+      color: #d0d5dd;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    main {
+      padding: 42px 48px 80px;
+    }
+
+    .report {
+      max-width: 1120px;
+      margin: 0 auto;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--line);
+    }
+
+    .cover {
+      padding: 70px 70px 54px;
+      background:
+        linear-gradient(135deg, rgba(31,94,255,0.92), rgba(8,124,124,0.88)),
+        linear-gradient(45deg, #1f5eff, #087c7c);
+      color: #fff;
+    }
+
+    .cover .eyebrow {
+      font-size: 14px;
+      font-weight: 700;
+      opacity: 0.9;
+      margin-bottom: 18px;
+    }
+
+    .cover h1 {
+      margin: 0 0 20px;
+      font-size: 42px;
+      line-height: 1.18;
+      letter-spacing: 0;
+      max-width: 850px;
+    }
+
+    .cover p {
+      max-width: 820px;
+      font-size: 18px;
+      opacity: 0.95;
+      margin: 0;
+    }
+
+    .cover-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 38px;
+    }
+
+    .cover-stat {
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.12);
+    }
+
+    .cover-stat strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .cover-stat span {
+      display: block;
+      margin-top: 5px;
+      font-size: 12px;
+      opacity: 0.88;
+    }
+
+    section {
+      padding: 42px 70px;
+      border-top: 1px solid var(--line);
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      font-size: 28px;
+      line-height: 1.32;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 30px 0 12px;
+      font-size: 20px;
+      line-height: 1.4;
+      letter-spacing: 0;
+    }
+
+    h4 {
+      margin: 20px 0 8px;
+      font-size: 15px;
+      color: #344054;
+    }
+
+    p { margin: 0 0 14px; }
+    ul, ol { margin-top: 8px; padding-left: 22px; }
+    li { margin: 6px 0; }
+
+    .lead {
+      font-size: 18px;
+      color: #344054;
+    }
+
+    .note, .warning, .lawbox, .finding {
+      margin: 18px 0;
+      padding: 16px 18px;
+      border-left: 5px solid;
+      background: #f8fafc;
+    }
+
+    .note { border-color: var(--blue); background: var(--soft-blue); }
+    .warning { border-color: var(--red); background: var(--soft-red); }
+    .lawbox { border-color: var(--amber); background: var(--soft-amber); }
+    .finding { border-color: var(--green); background: var(--soft-green); }
+
+    .source {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .kicker {
+      display: inline-block;
+      padding: 4px 9px;
+      margin-bottom: 10px;
+      border-radius: 999px;
+      background: #eef2f7;
+      color: #344054;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0 24px;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 11px;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+      text-align: left;
+      color: #344054;
+    }
+
+    .matrix td:first-child,
+    .matrix th:first-child {
+      width: 20%;
+      font-weight: 700;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3538cd;
+      font-size: 11px;
+      font-weight: 700;
+      margin: 2px 4px 2px 0;
+      white-space: nowrap;
+    }
+
+    .tag.green { background: #dcfae6; color: #067647; }
+    .tag.red { background: #fee4e2; color: #b42318; }
+    .tag.amber { background: #fef0c7; color: #b54708; }
+    .tag.teal { background: #ccfbef; color: #0e766e; }
+
+    .figure {
+      margin: 22px 0 28px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      background: #fbfcfe;
+    }
+
+    .figure-title {
+      font-weight: 800;
+      margin-bottom: 14px;
+      color: #1d2939;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .flow .box {
+      position: relative;
+      min-height: 96px;
+      padding: 13px 12px;
+      border: 1px solid #c7d7fe;
+      background: var(--soft-blue);
+      font-size: 13px;
+    }
+
+    .flow .box::after {
+      content: "→";
+      position: absolute;
+      right: -12px;
+      top: 36px;
+      color: var(--blue);
+      font-weight: 900;
+      font-size: 18px;
+    }
+
+    .flow .box:last-child::after { display: none; }
+
+    .box strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .three-col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 18px 0 24px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      padding: 16px;
+      background: #fff;
+    }
+
+    .card h4 {
+      margin-top: 0;
+      font-size: 16px;
+      color: var(--ink);
+    }
+
+    .card p {
+      font-size: 13px;
+      color: #475467;
+    }
+
+    .risk-map {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .risk-map .cell {
+      padding: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      min-height: 116px;
+    }
+
+    .risk-map .cell strong { display: block; margin-bottom: 6px; }
+    .risk-map .high { border-top: 5px solid var(--red); }
+    .risk-map .mid { border-top: 5px solid var(--amber); }
+    .risk-map .low { border-top: 5px solid var(--green); }
+
+    .timeline {
+      position: relative;
+      margin: 22px 0;
+      padding-left: 20px;
+      border-left: 4px solid #c7d7fe;
+    }
+
+    .timeitem {
+      position: relative;
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+    }
+
+    .timeitem::before {
+      content: "";
+      position: absolute;
+      left: -28px;
+      top: 16px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--blue);
+      border: 3px solid #fff;
+    }
+
+    .checkgrid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .check {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 13px;
+    }
+
+    .check::before {
+      content: "□ ";
+      color: var(--blue);
+      font-weight: 900;
+    }
+
+    .caption {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: -12px;
+      margin-bottom: 18px;
+    }
+
+    .page-break { break-before: page; }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      main { padding: 20px; }
+      .cover, section { padding: 34px 24px; }
+      .cover-grid, .flow, .two-col, .three-col, .risk-map, .checkgrid { grid-template-columns: 1fr; }
+      .flow .box::after { display: none; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      aside { display: none; }
+      .layout { display: block; }
+      main { padding: 0; }
+      .report { box-shadow: none; border: 0; }
+      section { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <h2>N2SF 금융권 영향 보고서</h2>
+      <p class="meta">작성 기준일: 2026-06-12<br>자료 기준: 로컬 수집 공식자료 및 법령 원문</p>
+      <nav>
+        <a href="#summary">1. 요약</a>
+        <a href="#why">2. 배경</a>
+        <a href="#concept">3. N2SF 개념</a>
+        <a href="#compare">4. 기존 망분리와 차이</a>
+        <a href="#sources">5. 원전과 기준일</a>
+        <a href="#law">6. 법령ㆍ규정 체계</a>
+        <a href="#architecture">7. 설계 원리</a>
+        <a href="#zt">8. 제로트러스트 관계</a>
+        <a href="#cloud">9. 클라우드와 SaaS</a>
+        <a href="#ai">10. AIㆍLLM 활용</a>
+        <a href="#cases">11. 사례 분석</a>
+        <a href="#finance">12. 금융권 영향</a>
+        <a href="#decision">13. 판단 프레임</a>
+        <a href="#checklist">14. 체크리스트</a>
+        <a href="#conclusion">15. 결론</a>
+        <a href="#appendix">16. 부록</a>
+      </nav>
+    </aside>
+
+    <main>
+      <article class="report">
+        <header class="cover">
+          <div class="eyebrow">정책ㆍ규제 영향 분석 보고서</div>
+          <h1>국가 망 보안체계(N2SF) 전환과 금융권 보안규제 영향 분석</h1>
+          <p>공공부문 N2SF, 제로트러스트, 금융권 망분리 개선, 클라우드ㆍSaaSㆍAI 활용 규제를 연결해 실무자가 이해할 수 있는 판단 기준과 증적 체계를 정리한 보고서.</p>
+          <div class="cover-grid">
+            <div class="cover-stat"><strong>N2SF</strong><span>공공 망 보안체계</span></div>
+            <div class="cover-stat"><strong>ZT</strong><span>지속 검증 접근통제</span></div>
+            <div class="cover-stat"><strong>금융권</strong><span>직접 법령은 전자금융 체계</span></div>
+            <div class="cover-stat"><strong>증적</strong><span>승인ㆍ차단ㆍ로그 중심</span></div>
+          </div>
+        </header>
+
+        <section id="summary">
+          <span class="kicker">Executive Summary</span>
+          <h2>1. 핵심 요약</h2>
+          <p class="lead">N2SF는 망분리를 없애는 제도가 아니라, 정보와 서비스의 중요도에 따라 보안통제를 다르게 적용하기 위한 공공부문 망 보안체계다. 금융권에는 직접 법령으로 적용되지는 않지만, 금융권 망분리 개선ㆍ내부 업무망 SaaSㆍAI 활용ㆍ클라우드 이용절차를 해석할 때 강력한 비교 기준이 된다.</p>
+
+          <div class="finding">
+            <strong>보고서의 결론</strong>
+            <p>N2SF의 핵심은 “인터넷을 열어도 된다”가 아니다. 핵심은 정보서비스를 등급화하고, 사용자ㆍ단말ㆍ세션ㆍ데이터ㆍ접속경로를 계속 확인하며, 예외 접속은 승인ㆍ통제ㆍ로그로 입증하는 것이다. 금융권에서는 전자금융거래법과 전자금융감독규정이 직접 근거이고, N2SF는 위험기반 보안 설계의 비교 프레임으로 활용해야 한다.</p>
+          </div>
+
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th>질문</th>
+                <th>짧은 답</th>
+                <th>실무상 의미</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>N2SF는 금융권에 바로 적용되는가?</td>
+                <td>아니다. 공공부문 기준이다.</td>
+                <td>금융권은 전자금융거래법, 전자금융감독규정, 금융보안원 가이드가 직접 축이다. 다만 N2SF는 위험기반 통제 설계의 비교 기준이 된다.</td>
+              </tr>
+              <tr>
+                <td>망분리를 없애는 것인가?</td>
+                <td>아니다.</td>
+                <td>획일적 물리분리에서 정보등급ㆍ업무중요도ㆍ접속경로에 따른 차등통제로 전환하는 것이다.</td>
+              </tr>
+              <tr>
+                <td>클라우드 논리분리는 곧 망분리인가?</td>
+                <td>단정할 수 없다.</td>
+                <td>클라우드 이용절차, 망분리 예외, 접근통제, 로그, 자료반출 통제, 잔여위험 승인까지 함께 봐야 한다.</td>
+              </tr>
+              <tr>
+                <td>금융권 AIㆍSaaS 도입에 영향이 있는가?</td>
+                <td>있다.</td>
+                <td>규제 완화의 방향은 “무조건 허용”이 아니라 보안성 심의, 대체통제, 반기 평가, CISO 보고 등 증적 중심으로 이동한다.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="figure">
+            <div class="figure-title">그림 1. 보고서 전체 해석 구조</div>
+            <div class="flow">
+              <div class="box"><strong>공공 N2SF</strong>정보서비스 등급화와 차등 보안통제</div>
+              <div class="box"><strong>제로트러스트</strong>사용자ㆍ단말ㆍ세션 지속 검증</div>
+              <div class="box"><strong>금융권 규제</strong>전자금융 안전성ㆍ망분리ㆍ클라우드 절차</div>
+              <div class="box"><strong>업무 사례</strong>SaaS, AI API, K8s, 개발망/운영망</div>
+              <div class="box"><strong>증적</strong>승인, 차단, 로그, 재검토</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="why">
+          <span class="kicker">Background</span>
+          <h2>2. 왜 N2SF가 등장했는가</h2>
+          <p>전통적인 망분리는 외부 침입을 막기 위해 업무망과 인터넷망을 강하게 나누는 방식이었다. 금융권도 2013년 대규모 전산장애ㆍ해킹 사고 이후 물리적 망분리 중심의 규제가 강화되었다. 그러나 클라우드, SaaS, 생성형 AI, API 연계, 원격근무, 모바일 단말이 일반화되면서 모든 업무를 단순히 “내부망”과 “외부망”으로만 나누기 어려워졌다.</p>
+          <p>이 변화의 핵심은 기술 편의가 아니라 위험의 성격 변화다. 데이터는 SaaS에 저장될 수 있고, AI API는 외부 모델로 요청을 보낼 수 있으며, 클라우드는 물리 장비가 아니라 계정ㆍVPCㆍ서브넷ㆍIAMㆍKMSㆍ로그로 경계를 만든다. 따라서 보안도 “장비 위치”만으로 판단할 수 없고, 누가 어떤 단말로 어떤 데이터에 어떤 경로로 접근하는지를 봐야 한다.</p>
+
+          <div class="timeline">
+            <div class="timeitem"><strong>2013년 이후</strong><br>금융권 대규모 전산장애ㆍ해킹 사고를 계기로 망분리 의무화 조치가 강화됨.</div>
+            <div class="timeitem"><strong>2024년</strong><br>금융분야 망분리 개선 로드맵이 원칙 기반ㆍ위험 기반 보안규제로의 전환을 제시.</div>
+            <div class="timeitem"><strong>2025년</strong><br>N2SF 보안가이드라인 1.0, 금융분야 클라우드 이용 가이드, 전자금융감독규정 해설서가 실무 기준을 보강.</div>
+            <div class="timeitem"><strong>2026년</strong><br>N2SF 실증 사례집, 금융권 제로트러스트 안내서, 내부 업무망 SaaS 보안가이드, AI 활용 보안성 확보 논의가 맞물림.</div>
+          </div>
+          <span class="source">출처: 금융분야 망분리 개선 로드맵(2024-08-13), N2SF 보안가이드라인 1.0(2025-09-30), N2SF 실증 사례집(2026-04-13), 금융권 AI 활용 보안성 확보 및 망분리 규제개선 발표(2026-05-26).</span>
+        </section>
+
+        <section id="concept">
+          <span class="kicker">Concept</span>
+          <h2>3. N2SF의 기본 개념</h2>
+          <p>N2SF는 “국가 망 보안체계”로, 국가ㆍ공공기관 업무환경에서 망과 서비스를 일괄 분리하는 방식의 한계를 보완하기 위해 등장한 체계다. 보고서에서는 N2SF를 다음 다섯 요소로 이해한다.</p>
+
+          <div class="three-col">
+            <div class="card">
+              <h4>1. 정보서비스 식별</h4>
+              <p>어떤 업무 시스템인지, 어떤 기관 업무와 연결되는지, 외부 연계가 있는지를 먼저 식별한다.</p>
+            </div>
+            <div class="card">
+              <h4>2. 데이터 등급화</h4>
+              <p>공개 가능 정보, 내부 업무자료, 개인정보, 중요정보 등 데이터 민감도를 나눈다.</p>
+            </div>
+            <div class="card">
+              <h4>3. 접속 경로 분석</h4>
+              <p>내부 단말, 외부 단말, 모바일, 원격, SaaS, 클라우드, API 등 경로를 구분한다.</p>
+            </div>
+            <div class="card">
+              <h4>4. 차등 보안통제</h4>
+              <p>등급이 낮은 업무와 높은 업무에 같은 통제를 적용하지 않고 위험에 맞춰 다르게 적용한다.</p>
+            </div>
+            <div class="card">
+              <h4>5. 지속 검증</h4>
+              <p>한 번 로그인했다고 계속 신뢰하지 않고, 단말 상태ㆍ권한ㆍ세션ㆍ행위를 계속 확인한다.</p>
+            </div>
+            <div class="card">
+              <h4>6. 감사 가능성</h4>
+              <p>접근 허용ㆍ차단ㆍ예외 승인ㆍ권한 변경ㆍ자료 반출 기록이 나중에 재현 가능해야 한다.</p>
+            </div>
+          </div>
+
+          <div class="note">
+            <strong>비전문가용 설명</strong>
+            <p>기존 망분리가 건물 전체를 높은 담장으로 둘러싸는 방식이라면, N2SF는 건물 안의 방마다 출입권한을 다르게 두고, 출입할 때마다 신분증ㆍ방문 목적ㆍ소지품ㆍ동행 여부를 확인하는 방식에 가깝다.</p>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>용어</th>
+                <th>쉬운 설명</th>
+                <th>보고서에서 보는 핵심</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ICAM</td>
+                <td>사람과 계정의 신원을 관리하는 체계</td>
+                <td>누가 접근하는지, 계정 권한이 적절한지 판단</td>
+              </tr>
+              <tr>
+                <td>UEM</td>
+                <td>PCㆍ모바일 등 단말 상태를 관리하는 체계</td>
+                <td>패치, 백신, 보안정책 미준수 단말 차단</td>
+              </tr>
+              <tr>
+                <td>DLP</td>
+                <td>중요자료가 밖으로 나가는 것을 막는 체계</td>
+                <td>SaaS 업로드, 외부 공유, 다운로드 제한</td>
+              </tr>
+              <tr>
+                <td>RBI</td>
+                <td>웹 접속을 격리 환경에서 처리하는 방식</td>
+                <td>외부 웹 접속 위험을 업무 단말로 직접 들이지 않음</td>
+              </tr>
+              <tr>
+                <td>SIEM</td>
+                <td>보안 로그를 모아 분석하는 체계</td>
+                <td>접근ㆍ차단ㆍ이상행위 로그를 감사 가능하게 보존</td>
+              </tr>
+            </tbody>
+          </table>
+          <span class="source">출처: N2SF 실증 사례집, p.154-157 보안통제 구현계획표 및 통제 항목 예시.</span>
+        </section>
+
+        <section id="compare">
+          <span class="kicker">Comparison</span>
+          <h2>4. 기존 망분리와 N2SF의 차이</h2>
+          <p>기존 망분리는 내부망과 외부망 사이의 경계를 강하게 두는 데 초점이 있었다. N2SF는 경계를 없애지 않고, 경계의 판단 기준을 더 세밀하게 만든다. 즉 “망이 어디에 있느냐”에서 “접근이 왜 필요하고, 어떤 위험을 만들며, 어떤 통제로 제한되는가”로 질문이 바뀐다.</p>
+
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th>구분</th>
+                <th>기존 망분리</th>
+                <th>N2SF</th>
+                <th>금융권 적용상 주의점</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>판단 기준</td>
+                <td>내부망/외부망 분리 여부</td>
+                <td>정보서비스, 데이터 등급, 접속 경로, 사용자ㆍ단말 신뢰도</td>
+                <td>전자금융감독규정 제15조 판단은 여전히 독립적으로 필요</td>
+              </tr>
+              <tr>
+                <td>통제 방식</td>
+                <td>물리적 분리, 전용 단말, 망연계</td>
+                <td>ICAM, UEM, DLP, RBI, SIEM, 세션 통제</td>
+                <td>논리분리는 통제 후보일 뿐 자동 인정은 아님</td>
+              </tr>
+              <tr>
+                <td>예외 관리</td>
+                <td>예외를 좁게 허용</td>
+                <td>등급과 위험에 따라 조건부 허용</td>
+                <td>예외 승인, 잔여위험 수용, 재검토 일정 필요</td>
+              </tr>
+              <tr>
+                <td>감사 증거</td>
+                <td>망 구성도, 방화벽 정책</td>
+                <td>접근판단 로그, 단말 상태, 권한 변경 이력, 차단 로그</td>
+                <td>보안성 심의와 CISO 보고 증적이 중요</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="figure">
+            <div class="figure-title">그림 2. 망분리 판단 질문의 변화</div>
+            <div class="two-col">
+              <div class="card">
+                <h4>기존 질문</h4>
+                <ul>
+                  <li>인터넷망과 업무망이 나뉘어 있는가?</li>
+                  <li>전용 단말을 쓰는가?</li>
+                  <li>망연계 장비가 있는가?</li>
+                </ul>
+              </div>
+              <div class="card">
+                <h4>N2SF식 질문</h4>
+                <ul>
+                  <li>어떤 정보서비스인가?</li>
+                  <li>어떤 등급의 데이터인가?</li>
+                  <li>누가 어떤 단말로 접속하는가?</li>
+                  <li>접속은 세션 단위로 검증되는가?</li>
+                  <li>위반 시 자동 차단ㆍ기록되는가?</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="sources">
+          <span class="kicker">Sources</span>
+          <h2>5. 주요 원전과 기준일</h2>
+          <p>이 보고서는 로컬에 수집된 공식자료와 법령 원문을 기준으로 작성했다. 기준일이 중요한 이유는 망분리, SaaS, AI, 클라우드 관련 해석이 최근 빠르게 바뀌고 있기 때문이다.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>문서</th>
+                <th>기관/성격</th>
+                <th>기준일</th>
+                <th>보고서 내 역할</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>국가 망 보안체계(N2SF) 보안가이드라인 1.0</td>
+                <td>국가정보원/NCSC, 공공 N2SF 기준</td>
+                <td>2025-09-30</td>
+                <td>N2SF의 기본 체계와 보안성 검토 축</td>
+              </tr>
+              <tr>
+                <td>국가 망 보안체계(N2SF) 실증 사례집</td>
+                <td>KISA, 공공 실증 사례</td>
+                <td>2026-04-13</td>
+                <td>단말, 연계체계, 문서중앙화, 접속통제 구현 사례</td>
+              </tr>
+              <tr>
+                <td>제로트러스트 가이드라인 2.0</td>
+                <td>KISA, 보안 아키텍처 가이드</td>
+                <td>2024-12-03</td>
+                <td>N2SF와 제로트러스트의 통제 원리 연결</td>
+              </tr>
+              <tr>
+                <td>금융권 제로트러스트 안내서</td>
+                <td>금융보안원, 금융권 가이드</td>
+                <td>2026-04-09</td>
+                <td>금융권 적용 시 신원ㆍ기기ㆍ세션 판단 기준</td>
+              </tr>
+              <tr>
+                <td>전자금융감독규정 제15조</td>
+                <td>금융위 규정, 망분리ㆍ외부통신망 통제</td>
+                <td>2026-02-13</td>
+                <td>금융권 직접 규정 축</td>
+              </tr>
+              <tr>
+                <td>전자금융감독규정 제14조의2</td>
+                <td>금융위 규정, 클라우드 이용절차</td>
+                <td>2026-02-13</td>
+                <td>클라우드 이용절차와 망분리 판단 분리</td>
+              </tr>
+              <tr>
+                <td>내부 업무망 SaaS 보안가이드</td>
+                <td>금융보안원, SaaS 보안 해설</td>
+                <td>2026-04-20</td>
+                <td>금융 SaaS 예외의 보완통제</td>
+              </tr>
+              <tr>
+                <td>금융권 AI 활용 보안성 확보 및 망분리 규제개선 발표</td>
+                <td>금융위, 정책 발표</td>
+                <td>2026-05-26</td>
+                <td>AI 활용과 망분리 완화 논의</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="lawbox">
+            <strong>출처 표기 원칙</strong>
+            <p>PDF 원문에서 페이지가 추출된 경우 “문서명, p.번호”로 표기했다. 웹 게시물이나 원문 위치만 수집된 경우 “게시물 원문, page_1” 또는 “추출 청크”로 표기했다. 법령은 조항 단위로 표기했다.</p>
+          </div>
+        </section>
+
+        <section id="law">
+          <span class="kicker">Legal Framework</span>
+          <h2>6. 법령ㆍ규정 체계</h2>
+          <p>금융권에서 중요한 것은 N2SF가 아니라 전자금융 법령 체계다. N2SF는 공공부문 기준이므로, 금융권 보고서에서는 직접 의무와 간접 참조를 구분해야 한다.</p>
+
+          <div class="lawbox">
+            <strong>전자금융거래법 제21조 안전성의 확보의무</strong>
+            <p>“금융회사등은 전자금융거래가 안전하게 처리될 수 있도록 선량한 관리자로서의 주의를 다하여야 한다.”</p>
+            <p>또한 금융회사 등은 전자금융거래의 안전성과 신뢰성을 확보하기 위해 정보기술부문, 전자금융업무, 인증방법에 관하여 금융위원회가 정하는 기준을 준수해야 한다.</p>
+            <span class="source">출처: 전자금융거래법 제21조, 로컬 법령 원문 보존 노드.</span>
+          </div>
+
+          <div class="lawbox">
+            <strong>전자금융거래법 제21조의2 정보보호최고책임자</strong>
+            <p>금융회사 또는 전자금융업자는 전자금융업무 및 정보기술부문 보안을 총괄하여 책임질 정보보호최고책임자를 지정해야 한다. CISO 업무에는 전자금융거래의 안정성 확보 및 이용자 보호를 위한 전략과 계획 수립이 포함된다.</p>
+            <span class="source">출처: 전자금융거래법 제21조의2, 로컬 법령 원문 보존 노드.</span>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>법령/기준</th>
+                <th>직접성</th>
+                <th>주요 의미</th>
+                <th>보고서 해석</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>전자금융거래법 제21조</td>
+                <td><span class="tag red">직접 의무</span></td>
+                <td>전자금융거래 안전성 확보</td>
+                <td>망분리, 접근통제, 클라우드 보안성 심의의 상위 근거</td>
+              </tr>
+              <tr>
+                <td>전자금융거래법 제21조의2</td>
+                <td><span class="tag red">직접 의무</span></td>
+                <td>CISO 책임</td>
+                <td>예외 승인, 반기 평가, 보안위원회 보고와 연결</td>
+              </tr>
+              <tr>
+                <td>전자금융감독규정 제15조</td>
+                <td><span class="tag red">직접 규정</span></td>
+                <td>전산실, 단말, 정보처리시스템, 외부통신망 통제</td>
+                <td>금융권 망분리 판단의 핵심 축</td>
+              </tr>
+              <tr>
+                <td>전자금융감독규정 제14조의2</td>
+                <td><span class="tag red">직접 규정</span></td>
+                <td>클라우드컴퓨팅서비스 이용절차</td>
+                <td>클라우드 이용절차와 망분리 예외는 별도 판단</td>
+              </tr>
+              <tr>
+                <td>N2SF 보안가이드라인</td>
+                <td><span class="tag amber">간접 참조</span></td>
+                <td>공공 정보서비스 차등통제</td>
+                <td>금융권 위험기반 보안 설계의 비교 기준</td>
+              </tr>
+              <tr>
+                <td>금융권 제로트러스트 안내서</td>
+                <td><span class="tag green">실무 가이드</span></td>
+                <td>신원ㆍ기기ㆍ세션 기반 접근통제</td>
+                <td>망분리 예외의 대체통제 설계에 참고</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="warning">
+            <strong>중요한 구분</strong>
+            <p>N2SF가 공공부문에서 도입된다고 해서 금융회사가 곧바로 N2SF 기준만 따르면 되는 것은 아니다. 금융권은 전자금융감독규정 제15조와 제14조의2, 시행세칙, 금융보안원 가이드, 보안성 심의 체계를 함께 적용해야 한다.</p>
+          </div>
+        </section>
+
+        <section id="architecture">
+          <span class="kicker">Architecture</span>
+          <h2>7. N2SF식 보안 설계 원리</h2>
+          <p>N2SF식 설계는 기술 제품 목록이 아니라 판단 절차다. 먼저 정보서비스를 나누고, 데이터 등급과 접속 경로를 분석한 뒤, 그 위험에 맞는 통제를 선택한다. 마지막으로 그 통제가 실제 작동했다는 로그와 증적을 남긴다.</p>
+
+          <div class="figure">
+            <div class="figure-title">그림 3. N2SF식 보안 설계 절차</div>
+            <div class="flow">
+              <div class="box"><strong>1. 식별</strong>업무ㆍ시스템ㆍ연계ㆍ사용자 식별</div>
+              <div class="box"><strong>2. 등급화</strong>데이터 민감도와 서비스 중요도 분류</div>
+              <div class="box"><strong>3. 경로화</strong>내부ㆍ외부ㆍ모바일ㆍSaaSㆍAPI 접속 경로 표시</div>
+              <div class="box"><strong>4. 통제</strong>ICAM, UEM, DLP, RBI, SIEM 적용</div>
+              <div class="box"><strong>5. 입증</strong>접근 로그, 차단 로그, 승인 기록 보존</div>
+            </div>
+          </div>
+
+          <h3>7.1 보안통제 구현계획표의 의미</h3>
+          <p>N2SF 실증 사례집은 보안성 검토 시 제출하는 문서 중 하나로 보안통제 구현계획표 예시를 제시한다. 여기에는 보안통제 항목, 적용 대상, 적용방안, 구현ㆍ운영 요건, 적용 보안 솔루션이 함께 들어간다. 이는 단순 기술 목록이 아니라 “어떤 위험을 어떤 통제로 줄이고, 어떻게 운영할 것인가”를 설명하는 문서다.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>사례집 페이지</th>
+                <th>통제 축</th>
+                <th>핵심 내용</th>
+                <th>금융권에 주는 시사점</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>p.154</td>
+                <td>단말 등록ㆍ접근</td>
+                <td>등록되지 않은 단말은 인증 단계에서 자동 차단, 접근 로그 수집ㆍ보관</td>
+                <td>금융권 SaaS/AI 접속 단말도 등록ㆍ상태검증ㆍ로그가 필요</td>
+              </tr>
+              <tr>
+                <td>p.155</td>
+                <td>단말 보안상태</td>
+                <td>비인가 단말 격리, 패치 미적용 단말 경고 또는 접속 제한</td>
+                <td>망분리 예외를 열더라도 단말 상태 기반 차단이 필요</td>
+              </tr>
+              <tr>
+                <td>p.156</td>
+                <td>논리적 분리</td>
+                <td>업무ㆍ외부 환경 간 데이터 직접 이동 차단, 환경 간 접근 시 재인증</td>
+                <td>논리분리는 인정 여부보다 데이터 이동 차단과 재인증 증적이 중요</td>
+              </tr>
+              <tr>
+                <td>p.157</td>
+                <td>계정ㆍ감사로그</td>
+                <td>계정 중앙관리, 의심 계정 조치, 감사 로그 생성ㆍ보관ㆍ위변조 방지</td>
+                <td>CISO 보고와 감사 대응의 핵심 증적</td>
+              </tr>
+            </tbody>
+          </table>
+          <span class="source">출처: KISA, 국가 망 보안체계(N2SF) 실증 사례집, p.154-157.</span>
+        </section>
+
+        <section id="zt">
+          <span class="kicker">Zero Trust</span>
+          <h2>8. N2SF와 제로트러스트의 관계</h2>
+          <p>제로트러스트는 “한 번 내부망에 들어왔으니 믿는다”는 전제를 버리고 계속 검증하는 보안 아키텍처다. N2SF는 공공 망 보안체계이고, 제로트러스트는 이를 구현할 때 쓰이는 원리와 기술 묶음으로 이해할 수 있다.</p>
+
+          <div class="two-col">
+            <div class="card">
+              <h4>N2SF가 묻는 질문</h4>
+              <ul>
+                <li>이 정보서비스의 등급은 무엇인가?</li>
+                <li>접속 경로는 내부인가 외부인가?</li>
+                <li>어떤 보안통제가 필요한가?</li>
+                <li>보안성 검토에 어떤 산출물을 제출할 것인가?</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h4>제로트러스트가 묻는 질문</h4>
+              <ul>
+                <li>사용자가 진짜 본인인가?</li>
+                <li>단말은 안전한 상태인가?</li>
+                <li>현재 세션은 정상인가?</li>
+                <li>데이터 접근은 업무상 필요한가?</li>
+              </ul>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>제로트러스트 요소</th>
+                <th>N2SF 연결</th>
+                <th>금융권 해석</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>신원 기반 접근</td>
+                <td>ICAM, 계정 생명주기, MFA</td>
+                <td>내부망 SaaS와 AI API 이용 시 계정ㆍ권한ㆍMFA 증적 필요</td>
+              </tr>
+              <tr>
+                <td>단말 상태 검증</td>
+                <td>UEM, 단말 등록, 비인가 단말 차단</td>
+                <td>예외 접속 단말은 보호대책과 상태검증이 필요</td>
+              </tr>
+              <tr>
+                <td>데이터 중심 통제</td>
+                <td>DLP, 문서중앙화, 등급 기반 접근</td>
+                <td>개인신용정보, 고유식별정보, 업무자료 반출 통제</td>
+              </tr>
+              <tr>
+                <td>세션ㆍ행위 모니터링</td>
+                <td>SIEM, 감사로그, 자동 차단</td>
+                <td>보안성 심의와 사후 검사에서 가장 중요한 증적</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="warning">
+            <strong>오해 금지</strong>
+            <p>제로트러스트를 도입했다고 해서 망분리 의무가 자동으로 사라지지는 않는다. 금융권에서는 망분리 예외 또는 클라우드/SaaS/AI 이용절차의 대체통제로서 제로트러스트 통제를 설계하고, 그 작동 증거를 제시해야 한다.</p>
+          </div>
+        </section>
+
+        <section id="cloud">
+          <span class="kicker">Cloud & SaaS</span>
+          <h2>9. 클라우드와 SaaS에 미치는 영향</h2>
+          <p>클라우드는 물리 장비를 금융회사 전산실 안에 두는 방식이 아니다. 계정, VPC, 서브넷, 보안그룹, IAM, KMS, 로그, 리전, 위탁계약으로 경계를 만든다. 따라서 금융권에서는 클라우드 이용절차와 망분리 예외 판단을 분리해서 봐야 한다.</p>
+
+          <div class="figure">
+            <div class="figure-title">그림 4. 클라우드ㆍSaaS 판단의 2단계 구조</div>
+            <div class="flow">
+              <div class="box"><strong>서비스 경로</strong>CSP, SaaS, AI API, 내부 플랫폼 구분</div>
+              <div class="box"><strong>제14조의2</strong>클라우드 이용절차 대상 여부</div>
+              <div class="box"><strong>제15조</strong>내부망ㆍ외부통신망 접점 여부</div>
+              <div class="box"><strong>예외 조건</strong>업무범위, 데이터, 보안통제</div>
+              <div class="box"><strong>증적</strong>심의, 로그, 반기평가, CISO 보고</div>
+            </div>
+          </div>
+
+          <h3>9.1 클라우드 논리분리의 한계</h3>
+          <p>금융분야 클라우드 보안관리 참고서는 클라우드 환경에서 VPC 등 네트워크 분리 기능을 통한 DMZ 구성, 내부통신망과 외부통신망 사이의 독립된 통신망 구현, 공개용 웹서버 접근통제 등을 설명한다. 그러나 이것은 “클라우드라서 자동 허용”이라는 의미가 아니다.</p>
+
+          <div class="lawbox">
+            <strong>원문성 발췌</strong>
+            <p>클라우드 환경을 통한 공개용 웹 서버 구현 시 내부통신망과 분리하여 내부통신망과 외부통신망 사이 별도의 독립된 통신망을 구현하고 접근통제를 수행해야 한다는 취지의 기준이 제시되어 있다.</p>
+            <span class="source">출처: 금융분야 상용 클라우드컴퓨팅서비스 보안 관리 참고서, 공개용 웹 서버 네트워크 분리 항목, 추출 페이지 p.69 등.</span>
+          </div>
+
+          <h3>9.2 내부 업무망 SaaS</h3>
+          <p>내부 업무망 SaaS 예외는 금융권에서 매우 중요한 변화다. 그러나 예외가 허용된다는 것은 “모든 SaaS 사용 허용”이 아니라, 업무지원ㆍ사무관리 목적, 처리 데이터 범위, 접속 단말 보호, DLP, 접근권한 관리, 로그, 반기 평가, 정보보호위원회 보고가 붙는 조건부 구조다.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>판단 항목</th>
+                <th>허용 검토 가능</th>
+                <th>위험 또는 불가</th>
+                <th>필요 증적</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>업무 성격</td>
+                <td>업무지원ㆍ사무관리</td>
+                <td>전자금융 핵심처리, 고객거래 직접 처리</td>
+                <td>SaaS 업무범위 분류표</td>
+              </tr>
+              <tr>
+                <td>데이터</td>
+                <td>금지정보 미처리, 제한된 업무자료</td>
+                <td>고유식별정보 또는 개인신용정보 처리</td>
+                <td>데이터 분류, DLP 정책, 샘플 점검</td>
+              </tr>
+              <tr>
+                <td>접속 단말</td>
+                <td>등록ㆍ보호ㆍ로그 수집 단말</td>
+                <td>비인가 단말, 모바일 정책 미흡</td>
+                <td>단말 보호대책, UEM/MDM 로그</td>
+              </tr>
+              <tr>
+                <td>관리</td>
+                <td>CISO 보고, 반기 평가</td>
+                <td>예외 승인ㆍ재검토 없음</td>
+                <td>정보보호위원회 보고ㆍ의결 기록</td>
+              </tr>
+            </tbody>
+          </table>
+          <span class="source">출처: 내부 업무망 SaaS 보안가이드(2026-04-20), SaaS 망분리 예외 관련 공식 발표 및 해설 추출 자료.</span>
+        </section>
+
+        <section id="ai">
+          <span class="kicker">AI & LLM</span>
+          <h2>10. AIㆍLLM 활용과 N2SF식 판단</h2>
+          <p>AI와 LLM은 망분리 논의에서 가장 민감한 영역이다. 외부 AI API를 호출하면 내부 정보가 외부 모델로 전달될 수 있고, 모델을 내부에 반입하면 공급망ㆍ취약점ㆍ악성코드ㆍ라이선스ㆍ운영 배포 문제가 생긴다. GPU 자원은 고가이므로 개발계와 운영계를 물리적으로 완전히 나누기 어려운 경우도 있다.</p>
+
+          <div class="risk-map">
+            <div class="cell high">
+              <strong>높은 위험</strong>
+              고객정보, 개인신용정보, 거래정보, 인증정보가 외부 AI API 또는 SaaS로 전송되는 경우
+            </div>
+            <div class="cell mid">
+              <strong>중간 위험</strong>
+              내부 업무자료를 요약ㆍ검색ㆍ분류하기 위해 AI 서비스를 사용하는 경우
+            </div>
+            <div class="cell low">
+              <strong>관리 가능</strong>
+              공개자료, 비식별 테스트 데이터, 폐쇄망 내 검증된 모델을 제한적으로 사용하는 경우
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>AI 활용 형태</th>
+                <th>주요 위험</th>
+                <th>필요 통제</th>
+                <th>금융권 결론</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>외부 LLM API</td>
+                <td>프롬프트 내 고객정보 유출, 외부통신망 접점</td>
+                <td>입력 필터링, DLP, API 접근권한, 로그, 보안성 심의</td>
+                <td>망분리 예외ㆍ보안성 심의 판단 필요 가능성이 큼</td>
+              </tr>
+              <tr>
+                <td>내부 반입 모델</td>
+                <td>모델 공급망, 악성코드, 취약점, 라이선스</td>
+                <td>출처 검증, 해시, SBOM, 취약점 점검, 반입 승인</td>
+                <td>운영 반영 전 공급망ㆍ보안성 평가 필요</td>
+              </tr>
+              <tr>
+                <td>공유 GPU</td>
+                <td>개발/운영 데이터 혼재, secret 공유, 배포권한 우회</td>
+                <td>tenant boundary, IAM, KMS, registry, CI/CD 분리와 negative test</td>
+                <td>물리 분리 자체보다 운영자료 접근 차단 증적이 핵심</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="note">
+            <strong>실무 판단</strong>
+            <p>GPU를 개발계와 운영계로 물리적으로 반드시 중복 구매해야 한다는 직접 조항은 현재 수집 자료에서 확인되지 않는다. 그러나 공유 GPU를 쓰려면 운영 DB, 운영 API, 운영 secret, 운영 로그, 운영 배포권한에 개발계가 접근할 수 없다는 증거가 필요하다.</p>
+          </div>
+          <span class="source">출처: 금융권 AI 활용 보안성 확보 및 망분리 규제개선 발표(2026-05-26), 금융권 제로트러스트 안내서(2026-04-09), N2SF 실증 사례집 p.154-157.</span>
+        </section>
+
+        <section id="cases">
+          <span class="kicker">Cases</span>
+          <h2>11. 사례 분석</h2>
+          <p>다음 사례들은 N2SF 원리와 금융권 규제를 함께 읽을 때 자주 발생하는 판단 지점이다.</p>
+
+          <h3>사례 1. 공공기관 N2SF 실증: 단말과 계정 중심 통제</h3>
+          <table>
+            <tbody>
+              <tr><th>상황</th><td>공공기관 업무환경에서 단말, 연계체계, 문서중앙화, 인터넷 연계체계를 대상으로 N2SF 보안통제를 설계한다.</td></tr>
+              <tr><th>핵심 통제</th><td>등록되지 않은 단말 차단, 단말 상태 점검, 계정 중앙관리, 감사로그 보존, 정책 위반 시 자동 차단.</td></tr>
+              <tr><th>금융권 시사점</th><td>금융권도 SaaS/AI/API 예외 접속을 허용하려면 단말ㆍ계정ㆍ세션ㆍ데이터 단위 증적이 필요하다.</td></tr>
+              <tr><th>출처</th><td>N2SF 실증 사례집 p.154-157.</td></tr>
+            </tbody>
+          </table>
+
+          <h3>사례 2. 금융권 내부 업무망 SaaS</h3>
+          <table>
+            <tbody>
+              <tr><th>상황</th><td>금융회사가 내부 업무망에서 클라우드 기반 협업도구나 업무지원 SaaS를 사용하려 한다.</td></tr>
+              <tr><th>위험</th><td>업무자료 외부 저장, 계정 탈취, 개인신용정보 업로드, 관리자 로그 부재.</td></tr>
+              <tr><th>허용 조건</th><td>업무지원ㆍ사무관리 목적, 금지정보 미처리, 접속단말 보호, DLP, 접근권한 관리, 반기 평가 및 CISO 보고.</td></tr>
+              <tr><th>잘못된 해석</th><td>“SaaS 예외가 생겼으니 모든 클라우드 SaaS가 자동 허용된다.”</td></tr>
+              <tr><th>출처</th><td>내부 업무망 SaaS 보안가이드(2026-04-20), SaaS 예외 관련 발표 추출 자료.</td></tr>
+            </tbody>
+          </table>
+
+          <h3>사례 3. Kubernetes 논리분리</h3>
+          <table>
+            <tbody>
+              <tr><th>상황</th><td>동일 Kubernetes cluster에서 개발ㆍ검증ㆍ운영 namespace를 나누고 NetworkPolicy와 RBAC를 적용한다.</td></tr>
+              <tr><th>문제</th><td>동일 control plane, cluster-admin, secret store, registry, CI/CD runner가 공유되면 운영계 접근 우회 가능성이 남는다.</td></tr>
+              <tr><th>판단</th><td>namespace만으로 금융권 망분리 충족을 단정하기 어렵다. 운영 DB/API/secret/storage/registry 접근 실패 테스트가 필요하다.</td></tr>
+              <tr><th>필요 증적</th><td>tenant boundary matrix, negative test 로그, 운영 배포 승인 로그, secret/KMS 분리 증적.</td></tr>
+              <tr><th>출처</th><td>금융분야 클라우드 보안관리 참고서(2025-10-14), 전자금융감독규정 해설서(2025-08-05), N2SF 실증 사례집 p.154-157.</td></tr>
+            </tbody>
+          </table>
+
+          <h3>사례 4. 공개용 웹서버 DMZ/VPC 분리</h3>
+          <table>
+            <tbody>
+              <tr><th>상황</th><td>클라우드에서 공개용 웹서버를 구축하고 내부 업무 시스템과 연동한다.</td></tr>
+              <tr><th>필요 통제</th><td>DMZ VPC 또는 동등한 독립 구간, 내부망과의 접근통제, 공개용 웹서버 직접 접근 제한, 중요단말기 접근 제한.</td></tr>
+              <tr><th>금융권 시사점</th><td>클라우드 VPC는 유용한 논리분리 도구지만, 내부망 접점과 관리자 접근 통제까지 같이 입증해야 한다.</td></tr>
+              <tr><th>출처</th><td>금융분야 상용 클라우드컴퓨팅서비스 보안 관리 참고서, 공개용 웹 서버 네트워크 분리 항목, 추출 p.69 등.</td></tr>
+            </tbody>
+          </table>
+
+          <h3>사례 5. AI API를 이용한 내부 업무 자동화</h3>
+          <table>
+            <tbody>
+              <tr><th>상황</th><td>금융회사가 내부 문서를 외부 AI API로 요약ㆍ분류하려 한다.</td></tr>
+              <tr><th>위험</th><td>문서 내 개인정보ㆍ신용정보ㆍ기밀정보가 프롬프트로 유출될 수 있다.</td></tr>
+              <tr><th>필요 통제</th><td>입력정보 분류, 금지정보 필터링, DLP, API 호출 로그, 모델 공급자 검토, 보안성 심의.</td></tr>
+              <tr><th>결론</th><td>N2SF식으로 보면 정보등급과 접속 경로에 따른 차등통제 대상이고, 금융권에서는 망분리 예외와 보안성 심의 판단이 필요하다.</td></tr>
+              <tr><th>출처</th><td>금융권 AI 활용 보안성 확보 및 망분리 규제개선 발표(2026-05-26), 금융권 제로트러스트 안내서(2026-04-09).</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="finance">
+          <span class="kicker">Financial Sector Impact</span>
+          <h2>12. 금융권에 미치는 영향</h2>
+          <p>금융권은 N2SF를 직접 적용받는 주체가 아니지만, 정책 방향은 분명히 영향을 받는다. 기존에는 “망분리를 했는가”가 중심이었다면, 앞으로는 “예외를 열었을 때 어떤 통제가 작동했고 어떤 로그가 남았는가”가 중요해진다.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>영향 영역</th>
+                <th>변화 방향</th>
+                <th>필요한 준비</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>거버넌스</td>
+                <td>CISO와 정보보호위원회 역할 강화</td>
+                <td>예외 승인, 반기 평가, 잔여위험 수용 기록</td>
+              </tr>
+              <tr>
+                <td>아키텍처</td>
+                <td>물리분리 일변도에서 논리분리ㆍ접근통제ㆍ로그 결합</td>
+                <td>서비스 경로 판단표, 네트워크/IAM/secret 분리 매트릭스</td>
+              </tr>
+              <tr>
+                <td>클라우드</td>
+                <td>클라우드 이용절차와 망분리 예외를 분리 판단</td>
+                <td>업무 중요도 평가, CSP 안전성 평가, 리전ㆍ하위처리자ㆍDR 검토</td>
+              </tr>
+              <tr>
+                <td>SaaS</td>
+                <td>내부 업무망 SaaS의 조건부 활용 확대</td>
+                <td>DLP, 금지정보 미처리 증적, 관리자 로그, 반기 보고</td>
+              </tr>
+              <tr>
+                <td>AI</td>
+                <td>AI 활용을 위한 제한적 예외와 보안성 평가 확대</td>
+                <td>프롬프트 통제, 모델 공급망 검증, API 로그, 운영 반영 승인</td>
+              </tr>
+              <tr>
+                <td>감사ㆍ검사</td>
+                <td>설계 주장보다 증적 제출 중심</td>
+                <td>negative test, 접근 차단 로그, 권한 변경 이력, 불변 감사로그</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="figure">
+            <div class="figure-title">그림 5. 금융권 영향도 매트릭스</div>
+            <div class="risk-map">
+              <div class="cell high">
+                <strong>즉시 영향</strong>
+                내부 업무망 SaaS, 외부 AI API, 클라우드 운영계 접점, 보안성 심의
+              </div>
+              <div class="cell mid">
+                <strong>중기 영향</strong>
+                제로트러스트 도입, 운영ㆍ개발계 경계 재설계, CISO 보고 체계
+              </div>
+              <div class="cell low">
+                <strong>간접 영향</strong>
+                공공 N2SF 사례의 금융권 벤치마크, 감사 질의 방식 변화
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="decision">
+          <span class="kicker">Decision Framework</span>
+          <h2>13. 실무 판단 프레임</h2>
+          <p>금융회사가 클라우드, SaaS, AI, API, Kubernetes를 도입할 때는 다음 순서로 판단하는 것이 안전하다.</p>
+
+          <div class="figure">
+            <div class="figure-title">그림 6. 금융권 N2SF식 실무 판단 흐름</div>
+            <div class="flow">
+              <div class="box"><strong>1. 서비스 분류</strong>업무지원, 핵심업무, 개발, 운영, AI, SaaS 구분</div>
+              <div class="box"><strong>2. 데이터 분류</strong>개인정보, 개인신용정보, 고유식별정보, 업무자료</div>
+              <div class="box"><strong>3. 접점 확인</strong>외부통신망, 내부망, 운영망, 클라우드, API</div>
+              <div class="box"><strong>4. 법령 경로</strong>제14조의2, 제15조, SaaS 예외, 보안성 심의</div>
+              <div class="box"><strong>5. 증적 패키지</strong>승인, 차단, 로그, 반기평가, 재검토</div>
+            </div>
+          </div>
+
+          <h3>13.1 필수 증적 패키지</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>증적</th>
+                <th>내용</th>
+                <th>대상 사례</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>서비스 경로 판단표</td>
+                <td>CSP/SaaS/AI API/내부 플랫폼/연구개발망/운영망 여부 구분</td>
+                <td>전체</td>
+              </tr>
+              <tr>
+                <td>데이터 분류표</td>
+                <td>개인정보, 개인신용정보, 고유식별정보, 중요정보, 업무자료 구분</td>
+                <td>SaaS, AI, 클라우드</td>
+              </tr>
+              <tr>
+                <td>접근권한 매트릭스</td>
+                <td>사용자, 관리자, CI/CD, API, service account별 권한</td>
+                <td>K8s, 클라우드, 운영계</td>
+              </tr>
+              <tr>
+                <td>Negative test</td>
+                <td>금지된 접근이 실제 실패하는 로그</td>
+                <td>개발/운영 분리, K8s, 공유 GPU</td>
+              </tr>
+              <tr>
+                <td>운영 반영 게이트</td>
+                <td>SBOM, 취약점 점검, 이미지 서명, 변경승인, rollback</td>
+                <td>AI 모델 반입, API 서비스, 컨테이너 배포</td>
+              </tr>
+              <tr>
+                <td>CISO/위원회 보고</td>
+                <td>예외 승인, 잔여위험 수용, 반기 평가, 재검토 일정</td>
+                <td>SaaS 예외, 망분리 예외</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>13.2 금지해야 할 해석</h3>
+          <div class="warning">
+            <ul>
+              <li>“클라우드는 원래 논리분리이므로 자체 논리분리도 자동으로 망분리다.”</li>
+              <li>“N2SF가 나왔으므로 금융권 망분리 규정은 약해졌다.”</li>
+              <li>“SaaS 예외가 있으므로 내부 업무망에서 모든 SaaS를 사용할 수 있다.”</li>
+              <li>“Kubernetes namespace와 RBAC가 있으면 개발계와 운영계가 분리된 것이다.”</li>
+              <li>“AI API는 업무 편의 도구이므로 보안성 심의 대상이 아니다.”</li>
+            </ul>
+          </div>
+        </section>
+
+        <section id="checklist">
+          <span class="kicker">Checklist</span>
+          <h2>14. 체크리스트</h2>
+
+          <h3>14.1 경영진ㆍCISO용</h3>
+          <div class="checkgrid">
+            <div class="check">망분리 예외 또는 SaaS 예외의 승인권자가 명확한가?</div>
+            <div class="check">잔여위험을 누가 수용했는가?</div>
+            <div class="check">정보보호위원회 보고ㆍ의결 기록이 남는가?</div>
+            <div class="check">반기 평가와 재검토 일정이 있는가?</div>
+            <div class="check">AIㆍSaaSㆍ클라우드 도입이 법무/준법/보안 공동 검토를 거쳤는가?</div>
+            <div class="check">사고 발생 시 보고ㆍ중단ㆍ복구 절차가 정해져 있는가?</div>
+          </div>
+
+          <h3>14.2 보안ㆍIT 실무자용</h3>
+          <div class="checkgrid">
+            <div class="check">서비스 경로 판단표가 있는가?</div>
+            <div class="check">운영 DB/API/secret/storage 접근 차단 테스트를 수행했는가?</div>
+            <div class="check">관리자 권한 변경 로그가 보존되는가?</div>
+            <div class="check">DLP와 외부공유 제한이 적용되는가?</div>
+            <div class="check">KMS key, registry, CI/CD runner가 환경별로 분리되는가?</div>
+            <div class="check">break-glass 사용 시 사후승인과 로그 검토가 있는가?</div>
+            <div class="check">단말 등록ㆍ상태검증ㆍ패치 미준수 차단이 가능한가?</div>
+            <div class="check">로그가 위변조 방지 저장소에 보존되는가?</div>
+          </div>
+
+          <h3>14.3 법무ㆍ준법감시용</h3>
+          <div class="checkgrid">
+            <div class="check">전자금융감독규정 제14조의2와 제15조 판단을 분리했는가?</div>
+            <div class="check">개인신용정보 또는 고유식별정보 처리 여부를 확인했는가?</div>
+            <div class="check">위탁/재위탁/하위처리자와 리전 변경 조건을 확인했는가?</div>
+            <div class="check">SaaS 이용 약관과 보안통제 책임 분담을 검토했는가?</div>
+            <div class="check">예외의 유효기간과 종료 조건이 문서화되어 있는가?</div>
+            <div class="check">감독기관 질의 시 제출 가능한 증적 목록이 준비되어 있는가?</div>
+          </div>
+        </section>
+
+        <section id="conclusion">
+          <span class="kicker">Conclusion</span>
+          <h2>15. 결론 및 권고</h2>
+          <p>N2SF는 망분리의 폐기가 아니라 망분리 판단의 정교화다. 금융권은 이를 직접 적용 기준으로 착각해서는 안 되지만, 클라우드ㆍSaaSㆍAI 시대의 위험기반 보안 설계 관점에서는 반드시 참고해야 한다.</p>
+
+          <div class="finding">
+            <strong>최종 권고</strong>
+            <ol>
+              <li>금융권 직접 근거는 전자금융거래법, 전자금융감독규정, 시행세칙, 금융보안원 가이드로 잡는다.</li>
+              <li>N2SF는 공공부문 사례와 제로트러스트 통제 구조를 이해하기 위한 비교 기준으로 사용한다.</li>
+              <li>망분리 예외, SaaS 예외, AI 활용, 클라우드 이용절차는 모두 “허용 여부”보다 “증적 패키지”가 핵심이다.</li>
+              <li>기술팀의 설계 주장만으로는 부족하다. 접근 차단 테스트, 권한 변경 로그, DLP 로그, CISO 보고 기록이 있어야 한다.</li>
+              <li>논리분리는 자동 면책이 아니다. 통제 후보이며, 법적 판단은 업무범위ㆍ데이터ㆍ접근권한ㆍ로그ㆍ승인 절차를 종합해 결정해야 한다.</li>
+            </ol>
+          </div>
+        </section>
+
+        <section id="appendix">
+          <span class="kicker">Appendix</span>
+          <h2>16. 부록: 출처와 위치</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>출처</th>
+                <th>위치</th>
+                <th>보고서 사용 내용</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>국가 망 보안체계(N2SF) 보안가이드라인 1.0</td>
+                <td>NCSC 게시자료, 기준일 2025-09-30</td>
+                <td>N2SF 기본 체계, 보안성 검토, 정보서비스 등급 기반 판단</td>
+              </tr>
+              <tr>
+                <td>국가 망 보안체계(N2SF) 실증 사례집</td>
+                <td>KISA 게시자료 page_1, PDF p.151-157</td>
+                <td>실증 사례 설명, 보안통제 구현계획표, 단말ㆍ연계체계ㆍ감사로그 통제</td>
+              </tr>
+              <tr>
+                <td>제로트러스트 가이드라인 2.0</td>
+                <td>KISA 게시자료, 기준일 2024-12-03</td>
+                <td>지속 검증, 신원ㆍ기기ㆍ세션 기반 접근통제</td>
+              </tr>
+              <tr>
+                <td>금융권 제로트러스트 안내서</td>
+                <td>금융보안원 게시자료, 기준일 2026-04-09</td>
+                <td>금융권 제로트러스트 적용 관점</td>
+              </tr>
+              <tr>
+                <td>전자금융거래법 제21조</td>
+                <td>법령 원문 보존 노드</td>
+                <td>전자금융거래 안전성 확보의무</td>
+              </tr>
+              <tr>
+                <td>전자금융거래법 제21조의2</td>
+                <td>법령 원문 보존 노드</td>
+                <td>CISO 지정 및 정보기술부문 보안 책임</td>
+              </tr>
+              <tr>
+                <td>전자금융감독규정 제15조</td>
+                <td>법령/규정 출처: law.go.kr, 기준일 2026-02-13</td>
+                <td>전산실ㆍ단말ㆍ정보처리시스템ㆍ외부통신망 통제</td>
+              </tr>
+              <tr>
+                <td>전자금융감독규정 제14조의2</td>
+                <td>법령/규정 출처: law.go.kr, 기준일 2026-02-13</td>
+                <td>클라우드컴퓨팅서비스 이용절차</td>
+              </tr>
+              <tr>
+                <td>금융분야 상용 클라우드컴퓨팅서비스 보안 관리 참고서</td>
+                <td>금융보안원, 기준일 2025-10-14, 공개용 웹 서버 네트워크 분리 p.69 등</td>
+                <td>VPC, DMZ, 계정ㆍ권한, 로그, API, 스토리지 통제</td>
+              </tr>
+              <tr>
+                <td>내부 업무망 SaaS 보안가이드</td>
+                <td>금융보안원, 기준일 2026-04-20</td>
+                <td>SaaS 예외 보완통제, DLP, 단말 보호, 반기 평가, CISO 보고</td>
+              </tr>
+              <tr>
+                <td>금융권 AI 활용 보안성 확보 및 망분리 규제개선 관련 발표</td>
+                <td>금융위, 기준일 2026-05-26</td>
+                <td>AI 활용과 망분리 완화 논의의 정책 방향</td>
+              </tr>
+              <tr>
+                <td>금융분야 망분리 개선 로드맵</td>
+                <td>금융위, 기준일 2024-08-13</td>
+                <td>원칙 기반ㆍ위험 기반 보안규제로의 전환 배경</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>부록 A. 보고서에서 반복되는 판단식</h3>
+          <div class="note">
+            <p><strong>허용 가능성 =</strong> 업무 필요성 + 데이터 등급 + 접속 경로 + 대체통제 + 승인 + 로그 + 재검토</p>
+            <p><strong>망분리 대체통제의 방어력 =</strong> 금지 접근 실패 증적 + 허용 접근 승인 이력 + 관리자 우회 제한 + 데이터 반출 통제 + 불변 감사로그</p>
+          </div>
+
+          <h3>부록 B. 약어</h3>
+          <table>
+            <thead>
+              <tr><th>약어</th><th>의미</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>N2SF</td><td>National Network Security Framework, 국가 망 보안체계</td></tr>
+              <tr><td>ZT</td><td>Zero Trust, 제로트러스트</td></tr>
+              <tr><td>ICAM</td><td>Identity, Credential and Access Management</td></tr>
+              <tr><td>UEM</td><td>Unified Endpoint Management</td></tr>
+              <tr><td>DLP</td><td>Data Loss Prevention</td></tr>
+              <tr><td>RBI</td><td>Remote Browser Isolation</td></tr>
+              <tr><td>SIEM</td><td>Security Information and Event Management</td></tr>
+              <tr><td>CSP</td><td>Cloud Service Provider</td></tr>
+              <tr><td>CSAP</td><td>Cloud Security Assurance Program</td></tr>
+            </tbody>
+          </table>
+        </section>
+      </article>
+    </main>
+  </div>
+</body>
+</html>
