@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gregory C. Allen — 미국의 AI 전략 강연 논지 정리 (SAIPCON 2026)</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --muted:#5c5c5c; --line:#e3e0d8; --paper:#faf8f3;
+    --accent:#7a2e1d; --accent2:#1f4e5f; --box:#f2efe7; --warn:#fff7e6; --warnline:#e6c478;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    line-height:1.78; font-size:17px; letter-spacing:-0.01em;
+  }
+  .wrap{max-width:820px; margin:0 auto; padding:56px 24px 120px;}
+  header.doc{border-bottom:3px solid var(--ink); padding-bottom:24px; margin-bottom:8px;}
+  .kicker{font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700;}
+  h1{font-size:32px; line-height:1.3; margin:10px 0 14px; letter-spacing:-0.02em;}
+  .subtitle{color:var(--muted); font-size:16px; margin:0;}
+  .meta{font-size:13.5px; color:var(--muted); margin-top:18px; display:flex; flex-wrap:wrap; gap:6px 22px;}
+  .meta b{color:var(--ink); font-weight:600;}
+
+  .callout{background:var(--warn); border:1px solid var(--warnline); border-radius:10px; padding:16px 20px; margin:28px 0; font-size:15px; color:#5b4a1f;}
+  .callout b{color:#7a5a12;}
+
+  h2{font-size:22px; margin:54px 0 6px; padding-top:20px; border-top:1px solid var(--line); letter-spacing:-0.02em;}
+  h2 .num{display:inline-block; min-width:1.6em; color:var(--accent); font-weight:800;}
+  h3{font-size:17.5px; margin:26px 0 4px; color:var(--accent2); font-weight:700;}
+  p{margin:12px 0;}
+  ul,ol{margin:10px 0 10px; padding-left:1.3em;}
+  li{margin:7px 0;}
+  strong{font-weight:700;}
+  em{font-style:normal; background:linear-gradient(transparent 62%, #f3dca8 62%); padding:0 1px;}
+
+  .logic{background:var(--box); border-left:4px solid var(--accent2); border-radius:0 8px 8px 0; padding:14px 20px; margin:20px 0; font-size:15.5px;}
+  .logic .lbl{font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent2); font-weight:700; display:block; margin-bottom:6px;}
+  .logic .chain{margin:0;}
+  .logic .chain b{color:var(--accent2);}
+
+  .thesis{background:#fbeee9; border:1px solid #e7c3b6; border-radius:8px; padding:14px 20px; margin:20px 0; font-size:16px;}
+  .thesis .lbl{font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); font-weight:700; display:block; margin-bottom:6px;}
+
+  .speaker{color:var(--muted); font-size:13px; font-style:italic;}
+  blockquote{margin:16px 0; padding:8px 18px; border-left:3px solid var(--line); color:#444; font-size:15.5px;}
+  .stat{font-weight:700; color:var(--accent);}
+  hr.soft{border:none; border-top:1px dashed var(--line); margin:24px 0;}
+  .qa{background:#eef2f1; border-radius:8px; padding:4px 20px 12px; margin:18px 0;}
+  .qa .q{font-weight:700; color:var(--accent2);}
+  footer{margin-top:70px; padding-top:20px; border-top:1px solid var(--line); font-size:13px; color:var(--muted);}
+  .damaged{background:#f6f3ee; border:1px dashed #c9c3b6; border-radius:8px; padding:14px 18px; color:#6b6457; font-size:14.5px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="kicker">SAIPCON 2026 · Session III · 논지 구조 정리</div>
+  <h1>Gregory C. Allen이 본<br>미국의 AI 전략 — 반도체·미중 경쟁, 그리고 한국</h1>
+  <p class="subtitle">“US policy and strategy for AI: Implications for Korea and the world” (미국의 AI 전략: 대한민국에 주는 함의) — 파이어사이드 챗 + 질의응답</p>
+  <div class="meta">
+    <span><b>연사</b> Gregory C. Allen · Decision Tree Research 창립자·대표(CEO)</span>
+    <span><b>진행</b> SAPI(서울대 AI정책 이니셔티브) 측 좌장</span>
+    <span><b>행사</b> Seoul AI Policy Conference(SAIPCON) 2026</span>
+    <span><b>일시·장소</b> 2026. 6. 16. 11:20–12:05 · The Plaza Seoul</span>
+    <span><b>세션</b> Session III — AI 주권과 국가 전략</span>
+  </div>
+</header>
+
+<section style="background:#eef2f1; border:1px solid #cfd9d6; border-radius:12px; padding:20px 24px; margin:26px 0;">
+  <div style="font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:#1f4e5f; font-weight:700; margin-bottom:10px;">발화자 프로필 — SAIPCON 2026 공식 소개</div>
+  <p style="margin:6px 0;"><strong>Gregory C. Allen (그레고리 C. 앨런)</strong> — Decision Tree Research 창립자이자 대표(CEO).</p>
+  <p style="margin:6px 0;">Decision Tree Research는 <strong>AI·반도체·국방 기술의 지정학</strong>을 분석하는 독립 연구기관입니다. <i>The Economist</i>는 그의 연구를 “현 미국 정책 수립의 핵심에 있다(<em>Very much at the center of the formulation of current U.S. policy</em>)”고 평가한 바 있습니다.</p>
+  <p style="margin:6px 0;">이전에는 <strong>미국 국방부 합동AI센터(Joint AI Center, JAIC)의 전략정책국장(Director of Strategy and Policy)</strong>을 지냈으며, AI의 전략적 함의에 관해 <strong>미국 의회에서 여러 차례 증언</strong>했습니다.</p>
+  <p style="margin:6px 0; font-size:13.5px; color:#5c5c5c;">※ 본문 중 ‘삼성 반도체 HBM 부문 MBA 인턴’ 경력은 강연 중 본인이 직접 언급한 내용이며, 위 공식 프로필에는 포함되어 있지 않습니다.</p>
+</section>
+
+<div class="callout">
+  <b>※ 정리 원칙 및 한계.</b> 본 문서는 음성인식 녹취록을 바탕으로 발화자의 <b>논지와 논리 구조</b>를 최대한 복원·정리한 것입니다.
+  원문은 영어 발화의 한글 음차·오인식이 다수 섞여 글자가 깨진 부분이 많아, 맥락상 명백한 의미는 복원하되 <b>고유명사·수치는 ‘발화자가 그렇게 말한 것으로 추정’되는 값</b>으로 표기했습니다.
+  발화자(Gregory C. Allen)와 행사(SAIPCON 2026 Session III)는 SAIPCON 공식 자료로 <b>확인</b>했습니다. 좌장의 실명은 녹취 손상으로 단정하지 않고 ‘SAPI 측 좌장’으로 표기합니다. 후반부 Q&amp;A는 손상이 커 단편적으로만 정리했습니다.
+</div>
+
+<!-- ===================== 0 ===================== -->
+<h2><span class="num">0.</span> 도입 — 이 자리의 목적</h2>
+<p class="speaker">진행자 발언</p>
+<p>좌장은 연사 <strong>Gregory C. Allen</strong>을 “AI 국가전략·거버넌스를 논할 때 인물(특정 정치인)을 빼고는 설명하기 어려운, 현 미국 AI 정책의 핵심 인사”로 소개한다(<i>The Economist</i>의 평가 인용). 이어 이 자리의 목적을 <strong>두 단계</strong>로 제시한다.</p>
+<ul>
+  <li><strong>1단계</strong> — 미국의 AI 국가전략·거버넌스가 실제로 어떻게 작동하는지, 외부에서는 정확히 이해하기 어려운 부분을 연사가 직접 설명.</li>
+  <li><strong>2단계</strong> — 그 관점에서 <em>한국은 어떻게 대응하고, 국가 전략과 AI 투자를 어떻게 가져갈 것인가</em>를 함께 모색(대담 + 청중 질의).</li>
+</ul>
+
+<!-- ===================== 1 ===================== -->
+<h2><span class="num">1.</span> “2022년 — 50년 뒤 국제관계 수업에서 가르칠 두 날”</h2>
+<p>연사는 한국이 지금 <em>AI 투자 붐</em> 한가운데 있다고 운을 뗀 뒤, 자신의 논의 전체의 출발점으로 <strong>2022년의 ‘두 날’</strong>을 제시한다.</p>
+<ul>
+  <li><strong>첫째 날 (2022. 2. 24.)</strong> — 러시아의 우크라이나 침공. 워싱턴은 전면적 대응에 나섬.</li>
+  <li><strong>둘째 날 (2022. 10.)</strong> — 바이든 행정부가 <strong>대(對)중국 반도체 수출통제</strong>를 발표한 날. 이는 <em>수십 년간 이어진 무역·기술 정책의 관성을 뒤집은 사건</em>.</li>
+</ul>
+
+<div class="logic">
+  <span class="lbl">논리 구조 — 왜 이 수출통제가 ‘이례적’인가</span>
+  <p class="chain">
+    <b>전통적 정책</b>: 신기술 자체를 제약하지 않고, 미국이 항상 <b>최전선(frontier)</b>에 머무르면서 새 기술을 수출에 내놓는 ‘속도’만 통제 → 중국이 최첨단을 따라오긴 해도 미국은 늘 한 발 앞.<br><br>
+    <b>2022년의 전환</b>: 단순히 ‘앞서 있기’가 아니라, 중국을 <b>의도적으로 후퇴시키는 것</b>을 목표로 함.
+  </p>
+</div>
+
+<p>연사는 그 ‘후퇴’의 구체적 좌표를 든다. 당시 중국 최선두 파운드리 <span class="stat">SMIC</span>의 기술 수준은 대략 2019~2020년 수준(미국과 거의 동시대)이었는데, 이 정책의 목표는 중국을 <span class="stat">2014년 무렵 수준</span>으로 되돌리는 것이었다. 즉 “따라잡기 방지”가 아니라 “수년치 후퇴”를 노린, 수십 년 관성을 깬 정책.</p>
+
+<div class="thesis">
+  <span class="lbl">핵심 논지</span>
+  미국이 이토록 큰 대가를 감수하면서까지 정책을 뒤집은 이유는 한 단어, <strong>AI</strong>다. 정책 설계자들은 “<em>홍수가 오고 있다(the flood is coming)</em>”고 봤다 — AI가 너무 빠르게 좋아져, <strong>머지않아 군사·경제의 모든 측면에서 ‘기반(foundational)’</strong>이 될 것이라는 예측.
+</div>
+
+<!-- ===================== 2 ===================== -->
+<h2><span class="num">2.</span> AI는 왜 군사의 ‘기반’인가 — 첫 실증: 최근의 전쟁</h2>
+<p>연사는 “AI가 군사의 기반”이라는 명제의 첫 실증으로 <strong>최근 (이란 관련) 전쟁</strong>을 든다. 미군 지원이 들어간, <em>의미 있는 의미에서의 ‘첫 AI 전쟁’</em>이라는 것.</p>
+
+<h3>핵심 역량 — 데이터 통합형 전장관리 시스템</h3>
+<p>이 시스템의 놀라운 점은 ‘파괴력’이 아니라 <strong>이질적 데이터의 통합 능력</strong>이다. PDF 보고서, 항공기 센서 데이터, 위성 영상 등 <em>서로 말이 통하지 않던 시스템들을 하나로 묶어</em> 분석가에게 가용한 정보로 만들어 준다.</p>
+
+<div class="logic">
+  <span class="lbl">발화자가 짚는 ‘진짜 지표’</span>
+  <p class="chain">
+    언론이 인용한 수치: <b>24시간 내 이란 내 표적 1,000개 타격</b> — 과거 분쟁 대비 <b>10배 이상</b>.<br><br>
+    그러나 발화자의 강조점은 ‘1,000개 타격’ 자체가 아님 →
+    그 지점에 도달하기까지 <b>1만~2만 건의 고품질·고위험 의사결정</b>(‘칠 것인가’ <i>그리고</i> ‘치지 말 것인가’)이 필요했고, AI의 가치는 바로 그 판단을 위한 <b>정보 통합</b>에 있다는 것.
+  </p>
+</div>
+
+<!-- ===================== 3 ===================== -->
+<h2><span class="num">3.</span> 다음 전장 — 사이버 보안</h2>
+<p>연사는 AI가 ‘기반’이 될 두 번째 영역으로 <strong>사이버 보안</strong>을 든다.</p>
+
+<div class="thesis">
+  <span class="lbl">핵심 예측</span>
+  앞으로 <strong>몇 년 안에</strong>, 인터넷이 시작된 이래 발견된 사이버 취약점의 <strong>과반</strong>이 AI(‘Mythos’ 및 그 후속 모델)에 의해 발견되게 될 것이다.
+</div>
+
+<div class="logic">
+  <span class="lbl">논리 구조 — 노동 제약의 붕괴</span>
+  <p class="chain">
+    사이버 보안은 역사적으로 <b>극도로 노동 제약적(labor-constrained)</b> 영역.<br>
+    미 정부 최고 해커 집단인 NSA조차 인력은 약 <b>1만~1.5만 명</b>, 그나마 전원이 공격 전문가도 아님.<br>
+    → ‘해킹하고 싶은 대상’ 대비 ‘숙련된 공격 전문가’가 절대적으로 부족.<br><br>
+    <b>그런데</b> ‘100만 명의 AI 사이버 전사’가 생긴다면 → <b>힘의 균형 자체가 완전히 달라진다.</b>
+  </p>
+</div>
+
+<p>요컨대 군사·사이버 두 축에서 AI가 ‘기반’이 되는 세계 — 이것이 바이든 행정부가 “자국 산업이 중국의 AI 부상을 자금 지원하지 않도록” 대중 정책을 뒤집을 만하다고 판단한 근거라는 것이다.</p>
+
+<!-- ===================== 4 ===================== -->
+<h2><span class="num">4.</span> 경제적 규모 — “아폴로 계획을 10개월마다”</h2>
+<ul>
+  <li>미국의 내년 AI 투자 규모: <span class="stat">5,000억 ~ 1조 달러</span> 규모로 전망.</li>
+  <li>비유: <strong>13년에 걸친 아폴로 달 탐사 계획 전체에 해당하는 비용을, 미국은 약 10개월마다 지출</strong>하는 셈.</li>
+</ul>
+
+<!-- ===================== 5 ===================== -->
+<h2><span class="num">5.</span> 발전 속도 — 무어의 법칙을 넘어선 ‘복수의 지수함수’</h2>
+<p>여기서 연사는 최근 모델(공개 버전이었던 ‘Fable 5’)을 언급한다 — “한 달 앞선 모델이 1~2년 앞선 것처럼 느껴질 만큼” 경이로웠다고.</p>
+
+<div class="logic">
+  <span class="lbl">논리 구조 — 왜 직선이 아니라 폭발인가</span>
+  <p class="chain">
+    <b>무어의 법칙</b>: 칩 성능/비용이 약 18~24개월마다 2배 (1960년대 이래). 그 결과 오늘의 칩은 1960년 칩보다 <b>수백만 배</b> 우수.<br><br>
+    <b>지금의 차이</b>: 단일 지수함수가 아니라 <b>여러 지수함수가 동시에 중첩</b> →
+    ① 더 좋은 칩 + ② 더 큰 학습 데이터 + ③ 더 효율적인 알고리즘.<br>
+    → 비용 대비 성능이 2배·4배·8배가 아니라 <b>10배·100배·1,000배</b>로 개선.
+  </p>
+</div>
+
+<div class="thesis">
+  <span class="lbl">함의</span>
+  지금 당신(또는 당신 정책)이 AI 대비 어떤 우위를 갖고 있다고 믿든, <strong>10년 뒤 AI는 ‘백만 배’ 똑똑해질 수도 있다.</strong> 미·중이 “누가 먼저 도달하는가”, “급변하는 국력의 원천 속에서 어떻게 안전을 확보하는가”에 그토록 매달리는 이유가 여기에 있다.
+</div>
+
+<!-- ===================== 6 ===================== -->
+<h2><span class="num">6.</span> 한국과의 인연 — 삼성 HBM</h2>
+<p class="speaker">진행자 질문에 대한 답</p>
+<p>연사는 비즈니스스쿨 시절 <strong>삼성전자 반도체 부문에서 MBA 인턴</strong>을 했고, 당시(트랜스포머·LLM 이전, 머신러닝 시대) <strong>고대역폭 메모리(HBM) 전략</strong> 업무를 맡았다고 밝힌다. 한국·미국 AI 관계에 개인적 연(緣)이 있음을 가벼운 농담과 함께 전한다.</p>
+
+<!-- ===================== 7 ===================== -->
+<h2><span class="num">7.</span> ‘Fable 5’ 접속 차단의 진실 — Mythos와 ‘프로젝트 글라스윙’</h2>
+<p class="speaker">진행자: “주말 사이 Fable 5 접속이 끊겼다. 무슨 일인가, 다시 풀리나?”</p>
+
+<h3>① 모델 간 관계</h3>
+<ul>
+  <li><strong>Mythos</strong>와 <strong>Fable 5</strong>는 <em>동일한 기반 모델</em>이다.</li>
+  <li>다만 공개 버전(Fable 5)에는 개발사(Anthropic)가 <strong>추가 안전장치</strong>를 얹어 <em>사이버 보안·바이오 보안</em> 관련 요청을 거부하도록 했다 — 악의적 행위자가 공개 모델을 오용할 위험 때문.</li>
+  <li>그래서 개발사는 <strong>Fable 5는 공개해도 안전하지만, Mythos(보호장치 미적용)는 일반 공개가 안전하지 않다</strong>고 판단했다.</li>
+</ul>
+
+<h3>② Mythos의 ‘게이트된’ 공개 — 프로젝트 글라스윙(Project Last Wind)</h3>
+<ul>
+  <li>Mythos는 일반 공개 대신 <strong>제한된 형태</strong>로, 특히 <strong>미국 정부</strong>를 통해 풀렸다.</li>
+  <li>개발사와의 협업 프로그램(‘프로젝트 글라스윙’)으로, <strong>미국 동맹국</strong>에 Mythos 접근 특권을 부여 → 이들의 <strong>사이버 방어력 향상</strong>이 목적.</li>
+  <li>Mythos는 사이버 <em>공격·방어 모두</em>에 매우 뛰어나므로, 핵심 취약 지점(노드/체인)을 식별해 빠르게 우선 접근권을 준다.</li>
+</ul>
+
+<div class="logic">
+  <span class="lbl">‘차단됐다’의 실제 의미</span>
+  <p class="chain">
+    끊긴 것은 <b>‘일반 소비자(consumer)’의 Fable 5·Mythos 접근</b>일 뿐.<br>
+    한국의 <b>정부·핵심 기업·금융기관</b>은 여전히 미국 지원하에 개발사로부터 해당 시스템을 받아 자국 사이버를 방어 중.<br>
+    → 소비자 서비스 종료는 <b>국가안보 파트너십에는 영향을 주지 않는다.</b>
+  </p>
+</div>
+
+<h3>③ 진짜 원인 — 의도적 ‘차단’이 아니라 ‘검증 절차의 공백’</h3>
+<div class="thesis">
+  <span class="lbl">핵심 정정</span>
+  이는 미국 정부가 한국을 겨냥해 끊은 것이 <strong>아니다</strong>. 수출규정상 <strong>외국 국적자에게는 Fable을 제공할 수 없는데</strong>, 개발사가 “(미국 내·외를 막론하고) 자사 이용자 중 누가 외국 국적자인지”를 <strong>견고하게 판별할 절차를 아직 갖추지 못해</strong>, 결국 <em>전원에게 일괄 제한</em>을 건 결과다. 누구도 원치 않는 상황이라는 것.
+</div>
+<p>연사는 개인적으로 Fable 5를 “정말 그립다”며 곧 돌아올 것으로 본다고 덧붙인다.</p>
+
+<!-- ===================== 8 ===================== -->
+<h2><span class="num">8.</span> ‘AI 안전(safety)’의 의미 변화와 정책의 ‘되돌림’</h2>
+<p class="speaker">진행자: “미국 AI 정책이 (안전 쪽으로) 바뀌는 것처럼 보인다, 맞나?”</p>
+<p>연사: 이를 정책 변화로 보는 건 타당하다 — 더 정확히는 <strong>바이든 시기의 우려로 일부 ‘되돌아가는’ 변화</strong>다. 다만 ‘AI 안전’이라는 말 자체가 미국 정치에서 매우 다른 뜻이 됐다는 점을 짚는다.</p>
+
+<div class="logic">
+  <span class="lbl">논리 구조 — ‘safety = 검열’이 된 경위</span>
+  <p class="chain">
+    AI 연구계에서 ‘AI safety’는 10여 년간 매우 중요한 학술 용어였다.<br>
+    그러나 <b>2021년 1·6 사태 후 트럼프가 SNS에서 퇴출</b>될 때, 그 결정을 한 트위터·페이스북의 팀 이름이 바로 <b>‘safety 팀’</b>이었다.<br>
+    → 보수 정치권에서 ‘safety’ = <b>(특히 반(反)보수) 검열의 동의어</b>로 굳어짐.<br>
+    → 그 결과 <b>영국 ‘AI Safety Institute’가 ‘AI Security Institute’로 개명</b> (‘safety’라는 단어로는 대화 자체가 안 되던 시기가 있었음).
+  </p>
+</div>
+
+<h3>그럼에도 ‘일’은 이어졌다 — 다만 ‘이름’이 바뀌었다</h3>
+<ul>
+  <li>안전 커뮤니티가 제기하던 우려(예: 향후 <strong>12~18개월</strong> 내 현실화 가능한 첨예한 사이버·바이오 위험)는 ‘safety’라는 이름으로 제기됐었다.</li>
+  <li>그 작업의 상당 부분은 <strong>국가안보 커뮤니티</strong>로 이전 — 예컨대 NSA는 오래전부터 AI×사이버를 고민해 왔고, 트럼프 행정부에서도 그 흐름은 늦춰지지 않았다.</li>
+</ul>
+
+<h3>그러나 ‘목표’와 ‘집행’ 사이의 간극</h3>
+<div class="thesis">
+  <span class="lbl">핵심 비판</span>
+  트럼프 행정부는 <strong>정책 목표와 집행 사이에 심각한 괴리</strong>가 있다. 대표 사례가 간판 정책인 <strong>‘AI 액션 플랜’</strong> — 바이오 보안 강화 섹션이 통째로 있지만 “<em>~하겠다(we will)</em>”만 잔뜩이고 실제로 집행되는 것이 없다. 정부 내 <strong>집행력 부재</strong>가 문제. Mythos가 한 일은 “계획만으론 안 된다, 집행 역량이 실제로는 없다”는 점을 부각시킨 것.
+</div>
+
+<!-- ===================== 9 ===================== -->
+<h2><span class="num">9.</span> Anthropic과 ‘선행의 처벌(punishing good behavior)’ 우려</h2>
+<p>연사가 “정말 우려된다”며 강조하는 대목.</p>
+<div class="logic">
+  <span class="lbl">딜레마의 구조</span>
+  <p class="chain">
+    개발사(Anthropic)는 이 국가안보 작업에 <b>가장 중요한 대형모델 공급자</b>인데, 일부 행정부 인사들과 격하게 갈등하며 ‘밀려나는’ 모습.<br>
+    배경: 이 회사는 미국에서 <b>정치적 좌파와 연관</b>된 것으로 인식됨(경영진엔 보수 인사도 있으나, 외부 인식이 그렇다는 것).<br><br>
+    그런데 이 회사는 세계 최고 모델을 <b>상업적으로 마음껏 수익화할 기회</b>가 있었음에도, <b>정부의 요구 없이도 자발적으로</b> Mythos의 시장 출시를 보류하고 → 정부를 위한 <b>비공개 검토(프로젝트 글라스윙)</b>를 택했다. 그 목적은 AI×사이버 보안에 초점.
+  </p>
+</div>
+<div class="thesis">
+  <span class="lbl">핵심 우려</span>
+  이런 <strong>선행이 오히려 ‘처벌’받는</strong> 모양새가 되어선 안 된다. 그렇다면 <strong>다음 위대한 모델을 가진 다음 기업</strong>에게 무슨 유인이 남겠는가? 라는 물음.
+</div>
+
+<!-- ===================== 10 ===================== -->
+<h2><span class="num">10.</span> 미·중 경쟁과 정책의 비일관성 — H20 칩 사례</h2>
+<p class="speaker">진행자: “미·중 AI 격차는 얼마나 되고, 지금(이번 주 기준) 상황은?”</p>
+<p>연사: 정책이 워낙 출렁여서 ‘일관된 서사’를 말하기 어렵다 — 정책 자체가 비일관적이었고, 주요 행위자들이 입장을 바꿨기 때문.</p>
+
+<div class="logic">
+  <span class="lbl">대중 정책의 궤적</span>
+  <p class="chain">
+    트럼프 1기(2016년 당선)는 <b>수십 년 만에 가장 큰 대중 정책 전환</b>을 단행, 미 외교·국방계를 <b>강경(hawkish)</b> 노선으로 끌고 감.<br>
+    그런데 <b>오늘날 그 트럼프가 (현 공화 행정부 내에서) 대중 가장 ‘온건(dovish)’한 인물</b>이 됨.<br>
+    그 전환의 핵심 변수 중 하나가 <b>AI 칩</b>.
+  </p>
+</div>
+
+<h3>H20 칩 — 두 개의 상반된 결정</h3>
+<ul>
+  <li><strong>① 강경</strong>: 2기 출범 초기, <strong>H20 칩 수출 금지</strong> 결정 — <em>바이든 행정부보다 더 강한</em> 대중 수출통제. 이는 <strong>부처 간(interagency) 절차</strong>를 거쳐, 모든 부처가 모여 대통령에게 올린 권고에 기반.</li>
+  <li><strong>② 온건(역전)</strong>: 이후 일부 수출(예: H200 계열) 허용은 <strong>대통령 개인의 결정</strong>으로, <em>참모진의 권고에 반(反)</em>하는 것이었다.</li>
+</ul>
+
+<h3>의회 변수 — 공화당이 트럼프를 비판하는 ‘두 영역’</h3>
+<div class="logic">
+  <span class="lbl">왜 정책이 더 흔들릴 수 있나</span>
+  <p class="chain">
+    공화당이 트럼프를 비판하는 일은 드물지만, <b>두 영역</b>에서는 의외로 비판한다:<br>
+    (1) <b>AI 규제</b> — 특히 주(州) AI 규제를 무력화·선점하는 것에 반대(아동 안전 관련 등).<br>
+    (2) <b>대중 ‘온건’</b> — 특히 AI·반도체에서의 대중 유화.<br><br>
+    <b>중간선거 이후 시나리오</b>: 민주당이 의회를 가져갈 가능성 + (그렇지 않더라도) 많은 공화 정치인이 <b>‘레임덕’ 트럼프 + 예비선거 도전자 부재</b> 상황 → 트럼프가 조직적 보복을 할 수 없게 됨.<br>
+    → 민주당 의회가 다수로 트럼프와 싸우려 하거나, 공화당이 레임덕 대통령을 더 자유롭게 공격 → <b>이 두 비판 영역(대중 온건·AI 규제)에서 압박 증가.</b>
+  </p>
+</div>
+
+<!-- ===================== 11 ===================== -->
+<h2><span class="num">11.</span> 핵심 논증 — “중국에 칩을 팔아 ‘의존’시키자”는 전략은 왜 무너지는가</h2>
+<div class="thesis">
+  <span class="lbl">결론 명제</span>
+  지금 미국이 무엇을 하든 말하든, <strong>중국이 미국 기술 의존을 ‘기꺼이 재개’할 일은 없다.</strong>
+</div>
+
+<div class="logic">
+  <span class="lbl">논증 단계</span>
+  <p class="chain">
+    <b>찬성론의 전제</b>: “엔비디아 칩을 중국에 팔아 중국을 미국 기술에 묶어 두자(hook/의존시키자).”<br><br>
+    <b>왜 무너지나 ①</b>: 중국 지도부는 순진하지 않다. <b>트럼프가 무슨 말을 하든, 향후 6개월(하물며 2년) 내 미국이 다시 강경으로 돌아설 확률이 매우 높다</b>는 걸 안다 → 의존을 재개할 이유가 없다.<br><br>
+    <b>왜 무너지나 ②</b>: 중국의 ‘자립·독립’ 노선은 수출통제 <i>이전</i>부터 있었다 — <b>「중국제조 2025」</b>(2015년 수립)에 명문화, 반도체 보조금(2014년경부터 수천억 달러 규모 보조·지분투자)이 <b>기술 독립</b>을 겨냥. 즉 <b>10년 넘게 미국·외국 공급자(한국 메모리 포함)로부터 구조적으로 디커플링하는 것이 정책</b>이었다.
+  </p>
+</div>
+
+<div class="thesis">
+  <span class="lbl">질문의 재정의</span>
+  따라서 질문은 “중국의 자립을 <em>막을</em> 수 있는가(불가능)”가 아니라 — <strong>“그 길을 쉽고 편하게 해 줄 것인가, 비싸고 복잡하게 만들 것인가”</strong>이다. 칩 판매는 다운사이드가 분명한, 의심스러운 정책이라는 결론.
+</div>
+
+<!-- ===================== 12 ===================== -->
+<h2><span class="num">12.</span> ‘AI 주권(sovereignty)’ 비판</h2>
+<p class="speaker">진행자: “한국은 ‘AI 3대 강국’을 목표로 AI 주권을 추진한다. 달성 가능한가, 조언은?”</p>
+<p>연사: 미·한 관료·기업인 수십 명에게 “AI 주권이 뭐냐”고 물었지만 <strong>같은 답을 두 번 들은 적이 없다</strong>. 즉 “사람들이 원하는 대로 갖다 붙이는 말” — 전략으로선 빈약하다. 그럼에도 두 가지 해석을 검토한다.</p>
+
+<h3>해석 A — ‘AI 자급자족(self-sufficiency)’ (중국식)</h3>
+<div class="logic">
+  <span class="lbl">왜 한국엔 부적합한가</span>
+  <p class="chain">
+    “필요한 모든 걸 자국산으로” → 그러나 한국은 <b>인구·GDP가 AI 스택의 모든 층(layer)에서 ‘규모의 경제’</b>에 도달할 만큼 크지 않다.<br>
+    → 전면 자급자족을 시도하면 <b>경쟁력 자체를 잃는다.</b>
+  </p>
+</div>
+
+<h3>해석 B — ‘미국 의존 줄이기’ (대중적 해석)</h3>
+<div class="logic">
+  <span class="lbl">발화자가 보는 ‘우스운 모순’</span>
+  <p class="chain">
+    ‘AI 주권’을 가장 큰 목소리로 권하는 이들이 누구인가? <b>엔비디아(젠슨 황)와 미국 기업들</b>.<br>
+    그들의 메시지: “더러운 미국인을 믿지 마라, 미국은 언제든 네 AI 모델을 회수할 수 있다. <b>네가 직접 학습한 로컬 모델이 있어야 안전</b>하다 → 그러니 <b>엔비디아 데이터센터를 최대한 많이 사라.</b>”<br><br>
+    <b>모순</b>: ‘소프트웨어의 대미 의존이 무서우니 → 하드웨어의 대미 의존을 <i>더 키워라</i>’는 말.<br><br>
+    같은 메시지를 <b>백악관</b>도 한다 — OSTP 국장 마이클 크라치오스가 인도 ‘AI Impact’ 정상회의에서 “AI 주권? 미국 것을 사면 된다”는 취지로 발언.<br>
+    → 결국 ‘주권’이 <b>무슨 문제를 푸는지조차 불분명</b>: 소프트웨어 대미 의존이 걱정인데, 자체 모델을 갖는다고 <b>하드웨어 의존이 해소되지 않는다.</b>
+  </p>
+</div>
+
+<!-- ===================== 13 ===================== -->
+<h2><span class="num">13.</span> 한국을 위한 대안 프레임 — ‘확보된 접근’ + ‘불가결성’</h2>
+<p>연사는 ‘주권’ 대신 <strong>두 가지 전략 목표</strong>를 제안한다.</p>
+
+<h3>목표 ① — 확보된 접근(assured access)</h3>
+<blockquote>“미국이 우리에게서 빼앗아 갈 수 없게, <em>혹시 빼앗기더라도</em> 곧바로 생산에 투입할 <strong>대안</strong>을 갖춰 둔다.”</blockquote>
+<p>모호한 ‘주권’보다 훨씬 전략적이고 매력적인 목표라는 것.</p>
+
+<h3>목표 ② — 전략적 불가결성(indispensability) = ‘무언가에서 세계 최고이자 필수’</h3>
+<div class="logic">
+  <span class="lbl">반도체 비유로 본 ‘불가결성’의 힘</span>
+  <p class="chain">
+    <b>로직 칩</b>: 대만의 집중도는 “사우디아라비아(석유) + 여러 핵심국을 합친 것”에 비유될 정도. 만약 (예: 핵전쟁으로) 대만 칩 단지가 파괴되면, <b>단일 연도 세계 GDP에 약 −10% ~ −25%</b> 타격 — <b>대공황 최악의 해보다 더 나쁘다.</b><br><br>
+    <b>메모리 칩</b>: 한국은 메모리 시장에 ‘필수적’이지만, 로직(대만)만큼 집중도가 높진 않아 충격 규모는 그보다 작음 — 그러나 <b>‘같은 종류의 불가결성’</b>이라는 점이 핵심.
+  </p>
+</div>
+
+<div class="thesis">
+  <span class="lbl">전략 결론</span>
+  한국은 <strong>모든 것에서 독립·자급할 필요가 없다.</strong> 대신 <strong>‘무언가에서 세계 최고이자 필수 불가결한 존재’</strong>가 되면 된다. 그것이 <strong>나머지 모든 것에 대한 접근을 보장</strong>하는 최고의 협상력이다.
+</div>
+
+<div class="logic">
+  <span class="lbl">협상력의 작동 방식</span>
+  <p class="chain">
+    가령 미국이 “XYZ에서 한국을 끊겠다” 하면 → 한국이 “그럼 우리는 (메모리) 칩에서 미국을 끊겠다” 할 수 있는 위치.<br>
+    (※ 발화자는 미·한 관계가 좋은 파트너십임을 전제하되, <b>‘불가결성=확신할 수 있는 접근 보장’</b>임을 보이려 극단적 예를 든 것.)<br><br>
+    모든 분야에서 세계 최고일 필요는 없다 → <b>‘몇 가지’에서 미국이 부러워할 역량</b>을 가지면 충분.
+  </p>
+</div>
+
+<blockquote>국방 관련 행사(펜타곤 등)에서, 동맹이 <strong>참신한 AI 역량 몇 가지</strong>를 들고 오면 장성·대령들이 “군침을 흘리는” 일이 흔했다. 몇몇 틈새에서 더 나은 기술을 가진 것이, 미국으로부터 좋은 것을 얻어 내는 ‘거래의 통화(通貨)’였다. — 발화자의 경험담</blockquote>
+
+<p><strong>한국을 향한 최종 조언</strong>: ‘주권’은 행동 지침으로 쓸모가 적다. <strong>‘확보된 접근’ + ‘몇 가지에서의 세계적 불가결성’</strong>을 목표로 삼아라.</p>
+
+<!-- ===================== 14 ===================== -->
+<h2><span class="num">14.</span> 질의응답 ① — ‘킬 스위치(kill switch)’와 위협 모델</h2>
+<div class="qa">
+  <p class="q">Q. (미국 대학 소속) 유럽에서 ‘소프트 킬 스위치’ 논의가 있는데, 이번 Fable 5 사태가 바로 그 우려(미국이 접근을 회수할 수 있다)의 완벽한 사례 아닌가? 어떻게 보나?</p>
+</div>
+
+<div class="logic">
+  <span class="lbl">발화자의 분석틀 — ‘위협 모델(threat model)’</span>
+  <p class="chain">
+    사이버 보안의 유용한 개념을 빌리면: 단지 ‘취약점이 있는가’가 아니라 →
+    ① <b>그 취약점이 적에게 실제로 악용될 가능성</b>은? ② <b>그 위험을 줄이는 데 드는 비용 대비 효익(ROI)</b>은 다른 위험 대비 어떤가?
+  </p>
+</div>
+
+<ul>
+  <li><strong>‘킬 스위치’는 실재하지 않는다(미디어식 프레이밍)</strong>고 본다. 다만 가정하더라도 — 이것이 <em>미국이 F-35 예비부품을 안 파는 것</em>과 본질적으로 다른가? 부품 미공급도 일종의 ‘킬 스위치’다. <strong>다만 ‘하루’가 아니라 ‘한 달’이 걸릴 뿐.</strong></li>
+  <li><strong>자급화로 해결?</strong> 설령 로컬로 다 만들어도 미국산 칩·소프트웨어 의존은 남는다 → <strong>‘한 달’이 ‘1년’으로 늘 뿐</strong>, 의존 자체는 제거되지 않는다.</li>
+  <li><strong>ROI 관점</strong>: 줄여야 할 진짜 위험은 황당한 시나리오(예: “달에서 레이저로 비서를 조종”)가 아니라 <strong>현실적 위험(대규모 자동화 사이버 공격)</strong>이다. 자원은 <em>현실적 위험</em>에 배분해야 한다.</li>
+</ul>
+
+<div class="thesis">
+  <span class="lbl">결론</span>
+  한국이 ‘홀로 가기’로 자체 모델을 고집하면, ‘킬 스위치’ 위험을 줄이는 대신 <strong>‘우리 소프트웨어가 뒤처진다’는 새로운 위험</strong>을 떠안는다 — 국방·안보·경제 전반의 손실. 자급화는 <strong>일부 핵심 하드 시스템(예: 핵 관련 등 극히 민감 영역)</strong>엔 옳을 수 있으나, <strong>‘기본 답’으로 성급히 점프하지 말 것.</strong>
+</div>
+
+<div class="logic">
+  <span class="lbl">한국 vs. 유럽 — 비유로 본 차이</span>
+  <p class="chain">
+    한국은 <b>단일·통합된 행위 주체</b> → 규모를 한데 모을 수 있음.<br>
+    유럽은 여러 나라로 나뉘어 규모의 경제 달성이 어려움. <b>국방 비유</b>: 미국은 ‘에이브럼스’ 전차 하나로 사실상 전부 커버 / 독일은 ‘레오파르트’, 프랑스는 ‘르클레르’… 각국이 국방을 중복 부담해 규모에 못 미침.<br>
+    → 역설적으로 EU(전체)는 한국에 없는 ‘규모’ 옵션을 가짐.<br>
+    그럼에도 <b>프런티어 모델 학습</b>이라면: “엔비디아에 1조 달러를 주는 것이 답인지는 의문”이라는 게 발화자의 입장.
+  </p>
+</div>
+
+<!-- ===================== 15 ===================== -->
+<h2><span class="num">15.</span> 이후 질의 — (녹취 손상으로 단편만 확인)</h2>
+<div class="damaged">
+  진행자가 “질문을 모두 받고 마지막에 일괄 답하겠다”며 추가 질문을 받았고, 한 교수와 또 다른 대학 소속 질문자가 이어졌습니다. 다만 이 구간은 음성인식 손상이 커 내용을 신뢰성 있게 복원하기 어렵습니다. 확인 가능한 마지막 질문의 취지는 대략 다음과 같습니다.
+  <br><br>
+  <span class="q" style="color:#1f4e5f;">Q.</span> 현재의 (미·중, 혹은 정책 내부의) <strong>입장 차이가 얼마나 큰 리스크</strong>라고 보는가 — 라는 취지의 질문에서 녹취가 끊깁니다. 이 질문에 대한 답변은 기록에 남아 있지 않습니다.
+</div>
+
+<!-- ===================== 종합 ===================== -->
+<h2><span class="num">★</span> 한눈에 보는 ‘논리 사슬’ 요약</h2>
+<ol>
+  <li><strong>전제</strong> — AI는 군사(데이터 통합·전장관리)와 사이버(노동 제약 붕괴)의 ‘기반’이 된다. 게다가 <em>복수의 지수함수가 중첩</em>되어 발전 속도가 폭발적이다.</li>
+  <li><strong>그래서</strong> — 미국은 2022년 수출통제로 수십 년 관성을 뒤집어 중국을 ‘후퇴’시키려 했다(자국 산업이 중국 AI 부상을 자금 대지 않도록).</li>
+  <li><strong>현재 국면</strong> — ‘안전(safety)’이 정치적으로 ‘검열’과 동의어가 되며 용어는 ‘security’로 이동했지만, 위험 작업은 국가안보 쪽으로 이어졌다. 단, <em>목표와 집행의 간극</em>이 크다.</li>
+  <li><strong>모델 거버넌스</strong> — Mythos/Fable 5는 동일 모델이며, 안전상 Mythos는 정부 게이트(프로젝트 글라스윙)로만 풀렸다. ‘접속 차단’은 의도적 봉쇄가 아니라 <em>외국 국적자 식별 절차 공백</em>에 따른 일괄 제한이다. 이런 <em>선행이 처벌받지 않도록</em> 해야 한다.</li>
+  <li><strong>미·중 칩</strong> — 중국은 10년 넘게 자립을 정책화(중국제조 2025)했고, 미국 정책이 다시 강경화될 것을 알기에 ‘의존 재개’를 하지 않는다. 따라서 ‘칩 판매로 의존시키자’는 전략은 무너진다. 질문은 ‘쉽게 해줄 것인가 vs. 비싸게 만들 것인가’이다.</li>
+  <li><strong>한국 처방</strong> — 모호한 ‘주권/자급’ 대신 ➊ <em>확보된 접근(대안 보유)</em> ➋ <em>몇 가지에서 세계 최고·불가결</em>. 불가결성이 곧 최고의 협상력이자 접근 보장이다. ‘킬 스위치’는 <em>위협 모델·ROI</em>로 따져, 핵심 하드 영역 외엔 성급한 자급화에 점프하지 말 것.</li>
+</ol>
+
+<footer>
+  발화자는 <strong>Gregory C. Allen</strong>(Decision Tree Research 대표)이며, 본 강연은 <strong>Seoul AI Policy Conference(SAIPCON) 2026</strong> Day 1(2026.6.16) Session III “AI 주권과 국가 전략” 파이어사이드 챗으로 확인되었습니다(출처: saipcon.com).
+  본 정리본은 손상된 음성인식 녹취를 바탕으로 발화자의 논지·논리 구조를 복원·재구성한 것입니다.
+  고유명사·통계 수치(예: SMIC 기술 수준 연도, 타격 표적 수, GDP 영향률, 투자 규모 등)는 <strong>발화자가 그렇게 진술한 것으로 추정되는 값</strong>이며, 녹취 품질상 원발화와 차이가 있을 수 있습니다. 정확한 인용·수치가 필요하면 원음원 대조를 권장합니다.
+</footer>
+
+</div>
+</body>
+</html>

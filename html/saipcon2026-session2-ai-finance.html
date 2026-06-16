@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAIPCON 2026 · Session II — AI &amp; 금융 브리프</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#10100E;--paper:#F7F4EC;--paper2:#EFEADD;--card:#FFFFFF;
+    --line:#DAD3C0;--line2:#C7BEA6;--text:#2A2722;--muted:#6B6356;--faint:#8C8475;
+    --accent:#A6361F;--accent2:#1C5C4E;--gold:#9A6E18;--blue:#2C5578;--plum:#5E3A6E;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--paper);color:var(--text);font-family:'Noto Sans KR',system-ui,sans-serif;font-size:15px;line-height:1.78;-webkit-font-smoothing:antialiased}
+  .serif{font-family:'Newsreader',Georgia,serif}
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  /* MASTHEAD */
+  .masthead{border-bottom:3px double var(--ink);background:var(--paper);padding:34px 24px 24px}
+  .mast-inner{max-width:960px;margin:0 auto}
+  .brandrow{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+  .brandmark{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:12px;letter-spacing:.2em;color:var(--ink);border:1.5px solid var(--ink);padding:5px 11px;border-radius:2px}
+  .brandrow .meta{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .brandrow .sep{color:var(--line2)}
+  .sess-eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:500;margin-bottom:14px}
+  .sess-eyebrow .bok{background:var(--accent);color:#FBEEEA;padding:2px 8px;border-radius:2px;font-size:9.5px}
+  h1.title{font-family:'Newsreader',Georgia,serif;font-weight:600;font-size:clamp(27px,5vw,44px);line-height:1.08;letter-spacing:-.015em;color:var(--ink);margin-bottom:12px}
+  .standfirst{font-size:15px;color:var(--muted);max-width:700px;font-weight:300;line-height:1.7}
+  .standfirst em{color:var(--accent);font-style:normal;font-weight:500}
+  .mast-meta{display:flex;flex-wrap:wrap;margin-top:22px;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+  .mm{flex:1;min-width:130px;padding:10px 15px;border-right:1px solid var(--line);background:var(--card)}
+  .mm:last-child{border-right:none}
+  .mm .l{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);margin-bottom:3px}
+  .mm .v{font-size:12.5px;color:var(--text);font-weight:500}
+
+  /* NAV */
+  nav.toc{position:sticky;top:0;z-index:50;background:rgba(247,244,236,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .toc-inner{max-width:960px;margin:0 auto;display:flex;overflow-x:auto;padding:0 12px}
+  .toc-inner::-webkit-scrollbar{display:none}
+  .toc a{padding:13px 15px;font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;font-family:'JetBrains Mono',monospace}
+  .toc a:hover{color:var(--ink)}
+  .toc a.g{border-bottom-color:var(--accent2);color:var(--accent2)}
+  .toc a.r{border-bottom-color:var(--accent);color:var(--accent)}
+
+  .wrap{max-width:960px;margin:0 auto;padding:0 24px}
+
+  /* ROSTER */
+  .roster{margin-top:34px;background:var(--card);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .roster-h{background:var(--ink);color:var(--paper);padding:11px 18px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
+  .roster-h .chk{color:#9FD4B6;font-size:10px}
+  .roster-grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  @media(max-width:640px){.roster-grid{grid-template-columns:1fr}}
+  .rp{padding:14px 18px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);display:flex;gap:11px}
+  .rp:nth-child(even){border-right:none}
+  .rp .bar{width:3px;border-radius:2px;flex-shrink:0}
+  .rp .role{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:3px}
+  .rp .nm{font-size:14px;font-weight:700;color:var(--ink);line-height:1.25}
+  .rp .nm span{font-weight:400;color:var(--muted);font-size:12.5px}
+  .rp .af{font-size:11.5px;color:var(--muted);line-height:1.35;margin-top:1px}
+  .b-green{background:var(--accent2)}.b-red{background:var(--accent)}.b-blue{background:var(--blue)}.b-plum{background:var(--plum)}.b-gold{background:var(--gold)}
+
+  /* PART HEADER */
+  .part{padding-top:50px}
+  .p-tag{display:inline-flex;align-items:center;gap:9px;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:500;padding:5px 12px;border-radius:2px;margin-bottom:16px}
+  .p-tag.one{background:var(--accent2);color:#EAF3EF}
+  .p-tag.two{background:var(--accent);color:#FBEEEA}
+  .p-num{font-family:'Newsreader',serif;font-size:13px;opacity:.7}
+  h2.p-title{font-family:'Newsreader',serif;font-weight:600;font-size:clamp(21px,3.4vw,30px);line-height:1.14;letter-spacing:-.01em;color:var(--ink);margin-bottom:5px}
+  .p-title-en{font-size:13.5px;color:var(--faint);font-weight:300;font-style:italic;font-family:'Newsreader',serif;margin-bottom:8px}
+  .p-by{font-size:12.5px;color:var(--muted);margin-bottom:24px}
+  .p-by b{color:var(--ink)}
+
+  /* TOPIC */
+  .topic{margin-bottom:40px}
+  .t-head{display:flex;align-items:baseline;gap:12px;margin-bottom:15px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+  .t-no{font-family:'Newsreader',serif;font-size:28px;font-weight:500;color:var(--accent);line-height:1;flex-shrink:0}
+  .t-head.g .t-no{color:var(--accent2)}
+  .t-txt h3{font-size:17.5px;font-weight:700;color:var(--ink);line-height:1.25}
+  .t-txt .sub{font-size:11.5px;color:var(--faint);font-family:'Newsreader',serif;font-style:italic}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:19px 22px;margin-bottom:11px}
+  .card h4{font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:9px;display:flex;align-items:center;gap:8px}
+  .card h4::before{content:"";width:14px;height:2px;background:var(--accent);flex-shrink:0}
+  .card.green h4::before{background:var(--accent2)}.card.blue h4::before{background:var(--blue)}.card.plum h4::before{background:var(--plum)}
+  .card p{font-size:13.5px;line-height:1.8;color:var(--text);margin-bottom:8px}
+  .card p:last-child{margin-bottom:0}
+  .card p strong{color:var(--ink);font-weight:700}
+  .card ul{list-style:none}
+  .card li{font-size:13.5px;line-height:1.78;padding:4px 0 4px 16px;position:relative;color:var(--text)}
+  .card li::before{content:"–";position:absolute;left:0;color:var(--accent);font-weight:700}
+  .card.green li::before{color:var(--accent2)}.card.blue li::before{color:var(--blue)}.card.plum li::before{color:var(--plum)}
+  .who{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.04em;background:var(--paper2);border:1px solid var(--line);border-radius:2px;padding:1px 7px;color:var(--muted);margin-left:6px;vertical-align:middle}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px}
+  @media(max-width:620px){.grid2{grid-template-columns:1fr}}
+
+  .pull{border-left:3px solid var(--accent);padding:5px 0 5px 20px;margin:16px 0}
+  .pull.green{border-left-color:var(--accent2)}
+  .pull .q{font-family:'Newsreader',serif;font-size:20px;line-height:1.4;color:var(--ink);font-weight:500}
+  .pull .a{font-size:11px;color:var(--muted);margin-top:7px;font-family:'JetBrains Mono',monospace}
+
+  .steps{counter-reset:s;margin-top:5px}
+  .steps li{list-style:none;display:flex;gap:13px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px;line-height:1.72}
+  .steps li:last-child{border-bottom:none}
+  .steps li::before{counter-increment:s;content:counter(s);font-family:'Newsreader',serif;font-weight:600;font-size:16px;color:var(--accent);width:22px;flex-shrink:0;text-align:center}
+  .steps.g li::before{color:var(--accent2)}
+  .steps li strong{color:var(--ink);font-weight:700}
+
+  .flow{display:flex;align-items:stretch;flex-wrap:wrap;gap:7px;margin:13px 0}
+  .fl{flex:1;min-width:110px;background:var(--paper2);border:1px solid var(--line);border-radius:4px;padding:11px 13px;text-align:center}
+  .fl b{display:block;font-size:13px;color:var(--ink);margin-bottom:2px}
+  .fl span{font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .fl-ar{display:flex;align-items:center;color:var(--accent);font-size:17px;font-family:'Newsreader',serif}
+
+  .risk{background:#FBF1EE;border:1px solid #E6C4BB;border-left:3px solid var(--accent);border-radius:4px;padding:15px 20px;margin-bottom:10px}
+  .risk .rt{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .risk p{font-size:13px;line-height:1.78;color:var(--text);margin-bottom:6px}
+  .risk p:last-child{margin-bottom:0}
+  .risk strong{color:var(--ink);font-weight:700}
+
+  .note{background:var(--paper2);border:1px dashed var(--line2);border-radius:4px;padding:13px 18px;margin-bottom:10px;font-size:12.5px;line-height:1.75;color:var(--muted)}
+  .note strong{color:var(--gold)}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:9px;margin:13px 0}
+  .st{background:var(--card);border:1px solid var(--line);border-radius:5px;padding:15px 13px;text-align:center}
+  .st .n{font-family:'Newsreader',serif;font-weight:600;font-size:29px;line-height:1;color:var(--accent);margin-bottom:5px}
+  .st .n.g{color:var(--accent2)}.st .n.b{color:var(--blue)}.st .n.p{color:var(--plum)}
+  .st .lb{font-size:11px;color:var(--muted);line-height:1.5}
+
+  .divider{display:flex;align-items:center;gap:16px;margin:48px 0 6px}
+  .divider .ln{flex:1;height:1px;background:var(--line2)}
+  .divider .dot{font-family:'Newsreader',serif;color:var(--accent);font-size:14px;letter-spacing:.3em}
+
+  footer{border-top:3px double var(--ink);margin-top:56px;padding:28px 24px 46px;background:var(--paper)}
+  .ft-inner{max-width:960px;margin:0 auto}
+  .ft-disc{font-size:12px;line-height:1.8;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:5px;padding:15px 20px;margin-bottom:14px}
+  .ft-disc strong{color:var(--accent)}
+  .ft-host{font-size:11px;color:var(--faint);line-height:1.7;margin-bottom:14px;text-align:center}
+  .ft-host b{color:var(--muted)}
+  .ft-meta{font-size:10.5px;color:var(--faint);font-family:'JetBrains Mono',monospace;letter-spacing:.04em;text-align:center}
+
+  .tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.04em;padding:2px 7px;border-radius:2px;margin:1px}
+  .tag.r{background:#F4E0DB;color:var(--accent)}.tag.g{background:#DCEAE4;color:var(--accent2)}.tag.b{background:#DCE6EF;color:var(--blue)}
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="mast-inner">
+    <div class="brandrow">
+      <span class="brandmark">SAIPCON 2026</span>
+      <span class="meta">Seoul AI Policy Conference</span>
+      <span class="sep">·</span>
+      <span class="meta">Day 1 · 06.16 TUE</span>
+      <span class="sep">·</span>
+      <span class="meta">THE PLAZA Seoul</span>
+    </div>
+    <div class="sess-eyebrow"><span class="p-num serif">SESSION II</span> AI &amp; FINANCE <span class="bok">한국은행 공동</span></div>
+    <h1 class="title serif">챗봇을 넘어:<br>금융 AI의 혜택·한계·리스크 지형</h1>
+    <p class="standfirst">SAIPCON 2026 첫째 날 <em>세션 II(AI와 금융 · 한국은행 공동 진행)</em>의 기조 강연과 패널 토론을 한 편으로 정리한 브리프. BIS의 <em>"두 AI(증강·자동화)"</em> 강연과, 챗봇 너머 금융 AI의 약속·한계·리스크를 다룬 패널이 이어진다.</p>
+    <div class="mast-meta">
+      <div class="mm"><div class="l">시간</div><div class="v">09:55 – 11:10</div></div>
+      <div class="mm"><div class="l">Address</div><div class="v">A Tale of Two AIs</div></div>
+      <div class="mm"><div class="l">Panel II</div><div class="v">Beyond the Chatbot</div></div>
+      <div class="mm"><div class="l">진행(MC)</div><div class="v">강재웅 · SAPI Fellow</div></div>
+      <div class="mm"><div class="l">통역</div><div class="v">한·영 동시통역</div></div>
+    </div>
+
+    <!-- ROSTER (공식 명단) -->
+    <div class="roster">
+      <div class="roster-h"><span>SESSION II — 참석자 (공식 프로그램 기준)</span><span class="chk">✓ saipcon.com 확인</span></div>
+      <div class="roster-grid">
+        <div class="rp"><div class="bar b-green"></div><div><div class="role">Session Address · Panelist</div><div class="nm">Fernando Pérez-Cruz</div><div class="af">BIS 수석 고문(혁신) · ETH Zürich 컴퓨터과학 겸임교수</div></div></div>
+        <div class="rp"><div class="bar b-gold"></div><div><div class="role">Moderator · 좌장</div><div class="nm">이수형 <span>Soohyung Lee</span></div><div class="af">한국은행 금융통화위원</div></div></div>
+        <div class="rp"><div class="bar b-plum"></div><div><div class="role">Panelist</div><div class="nm">정순섭 <span>Sunseop Jung</span></div><div class="af">서울대학교 교수 · 금융규제</div></div></div>
+        <div class="rp"><div class="bar b-red"></div><div><div class="role">Panelist</div><div class="nm">Lewis Z. Liu</div><div class="af">Twin-1 AI 공동창업자 겸 CEO</div></div></div>
+        <div class="rp"><div class="bar b-blue"></div><div><div class="role">Panelist</div><div class="nm">Trisha Ray</div><div class="af">Atlantic Council GeoTech 센터 부소장</div></div></div>
+        <div class="rp"><div class="bar" style="background:var(--line2)"></div><div><div class="role">Master of Ceremonies</div><div class="nm">강재웅 <span>Jaewoong Kang</span></div><div class="af">SAPI Fellow · 법무법인 최선 변호사</div></div></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="#address" class="g">강연 · 두 AI</a>
+    <a href="#a-para">정보 패러다임</a>
+    <a href="#a-two">증강 vs 자동화</a>
+    <a href="#a-agent">에이전트·직무</a>
+    <a href="#panel" class="r">패널 · Beyond Chatbot</a>
+    <a href="#p-comm">상업적 활용</a>
+    <a href="#p-law">법·규제</a>
+    <a href="#p-geo">지정학·소버린</a>
+    <a href="#p-risk">리스크</a>
+    <a href="#fig">핵심 수치</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- ════════ PART 1 — SESSION ADDRESS ════════ -->
+<section class="part" id="address">
+  <span class="p-tag one"><span class="p-num">PART 1</span> SESSION ADDRESS</span>
+  <h2 class="p-title serif">A Tale of Two AIs: Augmentation &amp; Automation in Central Banking</h2>
+  <div class="p-title-en">중앙은행과 AI: 증강과 자동화의 이야기 · 09:55–10:10</div>
+  <div class="p-by"><b>Fernando Pérez-Cruz</b> — 국제결제은행(BIS) 수석 고문 · ETH Zürich 겸임교수 (前 스위스 데이터사이언스센터 수석데이터과학자, h-index 42)</div>
+
+  <!-- A1 -->
+  <div class="topic" id="a-para">
+    <div class="t-head g"><div class="t-no serif">1</div><div class="t-txt"><h3>AI는 도구가 아니라 정보 패러다임이다</h3><div class="sub">A new way of looking for & processing information</div></div></div>
+    <div class="pull green">
+      <div class="q">"AI는 정보를 찾고 처리하는 완전히 새로운 방식이다. 업무를 돕고 돈을 벌게 해주지만 — 그게 가장 중요한 점은 아니다."</div>
+      <div class="a">— Fernando Pérez-Cruz, Session Address</div>
+    </div>
+    <div class="card green">
+      <h4>출발점</h4>
+      <p>사람들이 <strong>실제로 필요로 하는 것</strong>과 <strong>AI에 요청하는 것</strong> 사이에 단절이 있다. 모두가 이미 LLM을 쓰지만, 처음엔 어디에 쓸지 몰랐고 지금은 누구나 쓰되 활용 수준이 제각각이다.</p>
+      <ul>
+        <li>도입 초기 "어디 쓸지 모름" → 현재 "모두가 쓰고, 매우 유용"</li>
+        <li>웹 전반보다 <strong>특정 문서·데이터 접근</strong>을 부여할 때 정확도·유용성이 급상승</li>
+        <li>대학·병원 등에 챗봇이 들어오나, <strong>사용법 학습</strong>이 전제</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- A2 -->
+  <div class="topic" id="a-two">
+    <div class="t-head g"><div class="t-no serif">2</div><div class="t-txt"><h3>강연 제목 그대로 — '두 개의 AI'</h3><div class="sub">The two AIs: Augmentation & Automation</div></div></div>
+    <div class="grid2">
+      <div class="card green">
+        <h4>① 증강(Augmentation) — 첫 번째 AI</h4>
+        <p>인간 역량을 확장·보완하는 AI. 이미 광범위하게 쓰이고 즉각적 효용이 크다.</p>
+        <ul>
+          <li>정보 탐색·요약·문서 처리 속도를 끌어올림</li>
+          <li>"슈퍼바이저"처럼 AI에 정보를 요청하고 의사결정 방향을 잡음</li>
+          <li>핵심: <strong>제대로 쓰면</strong> 역량 배가, 대충 쓰면 최소한의 결과만</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h4>② 자동화(Automation) — 두 번째 AI</h4>
+        <p>역할·프로세스를 대체하는 AI. 끝없는 티켓·관계 처리 같은 업무가 대상.</p>
+        <ul>
+          <li>"모든 게 자동화될 것"이라는 통념에 선을 긋는다</li>
+          <li>"<strong>자동화는 (증강과는) 다른 종류의 장미</strong>"라는 비유 — 성격이 다른 별개 과제</li>
+          <li>증강을 충분히 이해한 다음에야 자동화를 논할 수 있음</li>
+        </ul>
+      </div>
+    </div>
+    <div class="pull">
+      <div class="q">"당신은 일을 외주화할 수 있다. 그러나 당신의 '이해(understanding)'는 외주화할 수 없다 — LLM이 당신을 대신해 이해해 주지는 않는다."</div>
+      <div class="a">— Session Address 핵심 메시지</div>
+    </div>
+    <div class="card green">
+      <h4>'제대로 쓰는 법'</h4>
+      <p>앞선 교육 세션이 경고한 환각(hallucination) 등 문제는 도구를 <strong>맹목적으로</strong> 쓸 때 발생한다. AI를 신뢰할 동료로 만들려면 인간이 결과를 해석·검증해야 하며, 이 판단은 외주화 대상이 아니다.</p>
+    </div>
+  </div>
+
+  <!-- A3 -->
+  <div class="topic" id="a-agent">
+    <div class="t-head g"><div class="t-no serif">3</div><div class="t-txt"><h3>에이전트의 스펙트럼 &amp; '직무의 변화'</h3><div class="sub">From research assistants to operational agents</div></div></div>
+    <div class="card green">
+      <h4>AI 에이전트 세 갈래</h4>
+      <ul class="steps g">
+        <li><div><strong>리서치 어시스턴트형</strong> — "이 주제 논문을 찾아 정리해줘"처럼 탐색·수집해 리포트로 회신. 지시 범위에서만 작동하며 검증은 인간 몫.</div></li>
+        <li><div><strong>실행·점검형</strong> — 돌려두고(run) 결과를 확인(check). "고용한 직원처럼" 맡기되 감독 필요.</div></li>
+        <li><div><strong>운영형(operational) 에이전트</strong> — 더 자율적으로 여러 작업 수행. 복잡한 운영에 잠재력이 크지만 설계·감독 난도 최고.</div></li>
+      </ul>
+    </div>
+    <div class="card green">
+      <h4>플레이어 지형 — 수직 통합이 답일 수 있다</h4>
+      <p>OpenAI·Google·Anthropic이 LLM을 학습시키며 경쟁하고 Microsoft·Perplexity도 솔루션을 시도했다. 발표자의 관점은 <strong>수직 통합(vertical integration)</strong>이 최선일 수 있다는 것:</p>
+      <ul>
+        <li>도메인 지식 + 실제 사용 데이터 + <strong>적절한 접근 권한</strong>을 함께 갖춘 쪽이 우위</li>
+        <li>사용자가 실제로 어떻게 일하는지(workflow)를 이해하는 쪽이 더 나은 솔루션 제공</li>
+      </ul>
+    </div>
+    <div class="pull green">
+      <div class="q">"기계가 이 일을 할 수 있느냐의 문제가 아니다 — 당신의 '일' 자체가 바뀌는 것이다."</div>
+      <div class="a">— 직무 변화에 대한 비유</div>
+    </div>
+    <div class="card green">
+      <h4>"인간 증강을 위한 AI" — 검증은 사라지지 않고 형태가 바뀐다</h4>
+      <p>은행의 점검(checking) 업무는 없어지지 않는다. AI가 1차로 수행하면 인간은 <strong>다른 차원에서</strong> 검증한다. AI가 솔루션을 내놓으면 인간은 그 품질을 판단하는 역량을 훈련해야 한다.</p>
+      <div class="note"><strong>⚡ 경고:</strong> AI는 당신에게 매우 좋은 일을, 혹은 매우 나쁜 일을 할 수 있다. 결과를 가르는 것은 인간의 이해·통제다. 게다가 이 기술은 <strong>지속적으로 변한다</strong> — 채택률은 의미 있는 활용 기준 20% 미만, 일부 영역에선 1% 미만으로 여전히 초기 국면.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><span class="ln"></span><span class="dot serif">§</span><span class="ln"></span></div>
+
+<!-- ════════ PART 2 — PANEL II ════════ -->
+<section class="part" id="panel">
+  <span class="p-tag two"><span class="p-num">PART 2</span> PANEL II</span>
+  <h2 class="p-title serif">Beyond the Chatbot: Promises, Limitations &amp; the Risk Landscape of AI in Finance</h2>
+  <div class="p-title-en">챗봇을 넘어: 금융 AI의 혜택, 리스크 및 한계 · 10:10–11:10</div>
+  <div class="p-by">좌장 <b>이수형</b>(한국은행 금통위) · 패널 <b>정순섭</b>(서울대) · <b>Lewis Z. Liu</b>(Twin-1 AI) · <b>Fernando Pérez-Cruz</b>(BIS) · <b>Trisha Ray</b>(Atlantic Council)</div>
+
+  <!-- P-A 상업적 활용 -->
+  <div class="topic" id="p-comm">
+    <div class="t-head"><div class="t-no serif">A</div><div class="t-txt"><h3>금융에서의 상업적 AI 활용 — 도입·리스크·신뢰</h3><div class="sub">Lewis Z. Liu: adoption · risk · trust</div></div></div>
+
+    <div class="card green">
+      <h4>세 가지 축 <span class="who">Lewis Z. Liu</span></h4>
+      <div class="flow">
+        <div class="fl"><b>도입·지식</b><span>Adoption</span></div><div class="fl-ar" style="color:var(--accent2)">→</div>
+        <div class="fl"><b>리스크</b><span>Risk</span></div><div class="fl-ar" style="color:var(--accent2)">→</div>
+        <div class="fl"><b>고객 신뢰</b><span>Trust</span></div>
+      </div>
+    </div>
+
+    <div class="card green">
+      <h4>① 지식 문제 — "빅쇼트"에서 출발 <span class="who">Lewis Z. Liu</span></h4>
+      <p>2008년 금융위기와 영화 <em>빅쇼트</em>를 소환한다. 헤지펀드 매니저가 방대한 법률·금융 문서를 읽어 <strong>CDO의 잘못된 가격</strong>을 찾아냈듯, 그의 전 직장은 AI로 <strong>수백만 건의 계약서</strong>를 읽었다(계약서 분석 AI 사업). 은행 하나가 수십억 건·수천억 달러 규모의 계약을 보유하지만 그 내용을 파악하지 못한다.</p>
+      <ul>
+        <li>사실 금융권은 오래전부터 AI를 써왔다 — 그 이름이 <strong>'머신러닝'</strong>이었을 뿐</li>
+        <li>본질은 데이터 문제: 계약서·이메일 등 방대한 데이터를 <strong>안전하게 활용 가능</strong>하게 만드는 것</li>
+        <li>처리되던 계약서가 실제 조직 지식의 <strong>2~5%</strong>에 불과 — 지식은 개인·부서별 사일로에 흩어짐</li>
+      </ul>
+    </div>
+
+    <div class="grid2">
+      <div class="card green">
+        <h4>② 대출 라이프사이클 <span class="who">Liu</span></h4>
+        <p>하나의 대출에 수많은 손이 닿는다.</p>
+        <ul>
+          <li>관계관리자(RM) → 여신담당 → 컴플라이언스</li>
+          <li>각 단계 정보가 사일로에 분산·미공유 → "축적이 아니라 메모" 수준</li>
+          <li>이를 안전히 통합·유통하는 것이 첫 과제</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <h4>③ AI-to-AI 협업 <span class="who">Liu</span></h4>
+        <p>인간-AI를 넘어 <strong>AI끼리의 협업</strong>이 부상.</p>
+        <ul>
+          <li>"동료에게 내 받은편지함을 뒤지게 두지 않듯" AI 간 공유에도 <strong>프라이버시 경계</strong> 필요</li>
+          <li>정보가 특정 태스크에만 쓰이도록 통제하는 것이 모든 활용의 토대</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card green">
+      <h4>④ 리스크 & 고객 신뢰 <span class="who">Liu</span></h4>
+      <p>오늘날에도 자본·여신 의사결정에 AI가 쓰인다. 리스크 모형에 필요한 데이터의 <strong>약 8%</strong>만 확보되던 현실이 AI로 보완된다. 대출 담당자·투자자는 고객 통화·외부 뉴스 확인 등 <strong>수 시간~수일의 애널리스트 작업을 자동화</strong>한다.</p>
+      <p>가장 기대되는 영역은 <strong>고객 신뢰·개인화</strong>다. 미국 커뮤니티 뱅커 콘퍼런스에서 확인한 바, AI로 RM을 스케일업하면 <strong>소액 고객도 고가의 프리미엄 응대 경험</strong>을 받을 수 있다 — 과거엔 매우 비쌌던 일이다.</p>
+    </div>
+  </div>
+
+  <!-- P-B 법규제 -->
+  <div class="topic" id="p-law">
+    <div class="t-head"><div class="t-no serif">B</div><div class="t-txt"><h3>법·규제 프레임워크의 변화</h3><div class="sub">정순섭 (SNU): from a tool to a participant in the system</div></div></div>
+
+    <div class="card plum">
+      <h4>패러다임 전환 <span class="who">정순섭</span></h4>
+      <p>금융 분야의 AI는 더 이상 단순 도구가 아니라 규제 대상이자 <strong>규제 시스템의 한 참여자</strong>로 인식되기 시작했다. 규제의 무게중심이 이동 중:</p>
+      <div class="flow">
+        <div class="fl"><b>기술적 준수</b><span>Technical</span></div><div class="fl-ar" style="color:var(--plum)">→</div>
+        <div class="fl"><b>책임성</b><span>Accountability</span></div><div class="fl-ar" style="color:var(--plum)">→</div>
+        <div class="fl"><b>설명가능성</b><span>Explainability</span></div>
+      </div>
+    </div>
+
+    <div class="card plum">
+      <h4>유념할 세 가지 포인트 <span class="who">정순섭</span></h4>
+      <ul class="steps">
+        <li><div><strong>전통 금융 규제는 '인간의 의도'를 전제로 설계</strong>됐다. 규제 정합성이 인간의 의사·판단에 기반하는데, 이제 AI가 그 자리에 들어온다.</div></li>
+        <li><div><strong>AI를 쓰더라도 금융거래의 기능·리스크의 본질은 동일</strong>하다. 기존 규제 목적(안전·공정·시장 무결성)은 그대로 적용되어야 한다.</div></li>
+        <li><div><strong>법적 책임(legal accountability)</strong>을 강조한 규제적 대응이 필요하다. AI 발전을 지원하되 책임 귀속의 틀을 분명히 해야 한다.</div></li>
+      </ul>
+    </div>
+
+    <div class="grid2">
+      <div class="card plum">
+        <h4>유스케이스 — 두 갈래</h4>
+        <p><strong>🏢 비즈니스(금융사)</strong></p>
+        <ul>
+          <li>AI 금융 어드바이저의 상품 판매·권유</li>
+          <li>고객에 대한 <strong>설명 의무</strong> — AI가 거래를 수행할 때 그 의무를 누가 이행하는지 미정립</li>
+        </ul>
+        <p style="margin-top:10px"><strong>🏛️ 규제·감독</strong></p>
+        <ul><li>규제·피규제기관이 AI를 사기 탐지·감독에 활용</li></ul>
+      </div>
+      <div class="card plum">
+        <h4>오용 시나리오 & 규제 접근</h4>
+        <p>AI가 내부자거래·시장조작·<strong>AI 워싱</strong>·시장 남용에 악용될 수 있다. 접근은 둘로 갈린다:</p>
+        <ul>
+          <li><strong>일반 AI 규제</strong>(EU·한국 등 포괄 거버넌스 논의 중)</li>
+          <li><strong>금융 특화 AI 규제</strong></li>
+          <li>금융거래를 직접 겨냥한 규제는 아직 <strong>논의 단계</strong> 또는 일반법 적용 대상</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note"><strong>정 교수 결론:</strong> 현시점에선 <strong>적극적 대화와 명확한 규제 기준 수립</strong>이 가장 현실적인 다음 단계다.</div>
+  </div>
+
+  <!-- P-C 지정학 -->
+  <div class="topic" id="p-geo">
+    <div class="t-head"><div class="t-no serif">C</div><div class="t-txt"><h3>지정학과 소버린 AI</h3><div class="sub">Trisha Ray (Atlantic Council): four motivations & the energy question</div></div></div>
+
+    <div class="card blue">
+      <h4>'정보 민주화'의 교훈 <span class="who">Trisha Ray</span></h4>
+      <p>한때 소셜미디어가 정보 접근을 민주화하고 개방사회 쪽으로 권력 균형을 옮길 것이라 기대됐으나(아랍의 봄 비유), <strong>그대로 실현되지 않았다</strong>. AI도 같은 위험을 안고, 우리가 정보를 찾고 소비하는 방식·자원 접근 의사결정을 바꾸고 있다.</p>
+    </div>
+
+    <div class="card blue">
+      <h4>각국이 소버린 AI에 투자하는 네 가지 동기 <span class="who">Trisha Ray</span></h4>
+      <ul class="steps">
+        <li><div><strong>경제적 편익</strong> — AI 개발·고용·인프라 투자의 이익이 이를 구축한 자국 경제에 귀속되어야 한다.</div></li>
+        <li><div><strong>국가 안보</strong> — AI 인프라를 핵심 자산으로 보호하고 타국 의존을 줄인다.</div></li>
+        <li><div><strong>존엄성·가치 정렬</strong> — AI가 자국의 언어·문화·규범을 반영해야 한다(EU의 지역 프레임워크 등).</div></li>
+        <li><div><strong>헌법적·규범적 정렬</strong> — 이전의 기술 주권과 다른 새 동기. AI가 헌법적 가치에 부합해야 하며, 각국은 이 네 힘 사이에서 스스로 균형을 잡아야 한다.</div></li>
+      </ul>
+      <p style="margin-top:8px">덧붙여: 소버린 AI를 '추격 과제'로만 볼지, <strong>자국 고유의 강점</strong> 위에 무엇을 세울지를 물어야 한다. 모든 국가가 스택 전부를 자체 개발할 수는 없다.</p>
+    </div>
+
+    <div class="grid2">
+      <div class="card blue">
+        <h4>에너지라는 변수 <span class="who">Ray</span></h4>
+        <ul>
+          <li><strong>학습(Training):</strong> 안정적 고출력 — '기저부하(base load)'</li>
+          <li><strong>추론(Inference):</strong> 가변적·분산형 수요</li>
+          <li>두 수요 성격이 달라 국가별 전력·그리드 여건이 AI 전략을 좌우</li>
+        </ul>
+      </div>
+      <div class="card blue">
+        <h4>관할권 차익 & 규제 충돌 <span class="who">Ray</span></h4>
+        <ul>
+          <li><strong>관할권 차익(jurisdictional arbitrage):</strong> 규제가 느슨한 곳으로 사업 이동</li>
+          <li><strong>시장 집중:</strong> 글로벌 금융권 클라우드의 <strong>75%</strong>를 3개 사업자가 차지</li>
+          <li><strong>규제 충돌:</strong> 2020년 <strong>Schrems II</strong> — EU가 美 규제의 데이터 보호 미흡을 이유로 EU-美 데이터 이전에 제동. 1년 내 해소는 기대난</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- P-D 리스크 -->
+  <div class="topic" id="p-risk">
+    <div class="t-head"><div class="t-no serif">D</div><div class="t-txt"><h3>핵심 리스크 & 우려</h3><div class="sub">Privacy · bias · liability · manipulation · cyber · concentration</div></div></div>
+
+    <div class="risk">
+      <div class="rt">🔒 프라이버시 & 정보 경계 <span class="who">Lewis Z. Liu</span></div>
+      <p>AI 에이전트는 작동에 방대한 정보가 필요하지만 <strong>그 정보가 해당 태스크에만 쓰인다는 보장이 없다</strong>. 기밀 정보·이메일을 넘길 때 다른 목적·학습에 흡수될 위험 — 정보 공유의 '경계'를 기술적으로 보장하는 것이 모든 활용의 선결 과제.</p>
+    </div>
+
+    <div class="risk">
+      <div class="rt">🏛️ 디지털 봉건제 — 권력·부의 초집중 <span class="who">Liu</span></div>
+      <p>초자본주의 구조가 <strong>우리의 지식을 데이터로 상품화</strong>해 AI를 구축했고, 이는 일종의 '디지털 봉건제(digital serfdom)'로 이어져 <strong>소수가 AI를 통해 부와 통제를 초집중</strong>하는 경로가 될 수 있다 — 매우 디스토피아적 시나리오.</p>
+    </div>
+
+    <div class="risk">
+      <div class="rt">⚖️ 알고리즘 편향 & 블랙박스 <span class="who">Liu</span></div>
+      <p>과거 단순 모델은 모델 리스크 관리·설명이 가능했으나 <strong>현대 AI 모델은 블랙박스로 훨씬 악화</strong>. 실증 연구: <strong>동일한 이력서에서 이름·인종·성별만 바꿔도 점수가 달라졌다</strong>(예: 중국식 이름 사용 시 결과 변화). 편향이 모델에 내재되면 점검이 불가능하고, 금융 전반에 확산되면 <strong>구조적 차별이 시스템 리스크</strong>로 전이된다.</p>
+    </div>
+
+    <div class="risk">
+      <div class="rt">📑 책임 귀속 — 누가 부담을 지는가 <span class="who">이수형 · 정순섭</span></div>
+      <p><strong>좌장 사례:</strong> 멜버른대 IT 담당 직원이 해킹당해 직원 SSN 등이 유출됐을 때, 미국에선 <strong>기관이 5년간 신용 모니터링 등 구제를 자동 제공</strong>했다. 반면 한국에선 명의도용 거래 발생 시 <strong>개인이 직접 "내 거래가 아님"을 입증</strong>해야 회복된다. AI 시대엔 책임 부담을 개인이 아닌 <strong>사업자·기관 쪽으로</strong> 옮겨야 한다는 문제의식.</p>
+      <p style="color:var(--muted)"><strong>정 교수 답변:</strong> 신용카드사는 탐지(FDS) 시스템 보유 의무가 있고 도난·부정사용 손실은 원칙적으로 카드사가 흡수한다. AI로 오용을 자동 탐지·차단할 수 있으나 <strong>책임 분담(liability sharing)</strong>의 윤리·법적 경계가 쟁점.</p>
+    </div>
+
+    <div class="risk">
+      <div class="rt">📈 시장조작 & 자율 에이전트 <span class="who">정순섭</span></div>
+      <p>인간이 수동으로 하던 시세조종을 <strong>AI는 극도로 효율적으로 대규모 실행</strong>할 수 있고 내부자거래도 정교해진다. 핵심은 <strong>'인간의 의도'</strong>를 전제한 전통 프레임으로 자율 에이전트를 어떻게 포착하고, AI 공급망(설계~사용) 안에서 책임을 어떻게 배분하느냐다. 대응: 예방 → 탐지(detective) → AI 감시의 다층 구조.</p>
+    </div>
+
+    <div class="risk">
+      <div class="rt">🛡️ 사이버 보안 — 공격의 비대칭성 <span class="who">Lewis Z. Liu</span></div>
+      <p>에이전트형 AI는 <strong>비밀 탐색·취약점 발굴(pentesting)에 매우 능하며</strong> "끈질긴 공격자"처럼 하네스를 갖고 모든 경로를 시도한다. 근본 비대칭: <strong>공격자는 취약점 하나만 찾으면 되지만, 방어자는 전부를 막아야 한다</strong>. 인간 속도로는 대응이 불가능해 방어 측도 AI로 역량을 증강해야 한다.</p>
+    </div>
+
+    <div class="risk">
+      <div class="rt">🌐 집중 리스크 & 동질성 리스크 <span class="who">Trisha Ray · 정순섭 · Liu</span></div>
+      <p>소수 사업자(클라우드·파운데이션 모델) 의존은 <strong>단일 장애점(single point of failure)</strong>을 만든다. 한 사업자에 장애·버그가 생기면 그 위에 시스템을 올린 다수 기업으로 <strong>연쇄효과</strong>가 번진다 — "어느 순간 거래에서 돈을 인출하지 못할 수도 있다." 설문상 <strong>약 69%</strong>가 소수 제공자에 의존.</p>
+      <p><strong>⚡ 현실화 사례:</strong> 법률 AI 스타트업 <strong>Harvey</strong>가 비용·성능을 이유로 중국 모델 <strong>Kimi(Moonshot)</strong> 전환을 발표 — 미국 로펌 기반 서비스가 중국 오픈모델을 택한 장면. 모델 집중 리스크와 지정학 리스크가 동시에 드러남.</p>
+      <p style="color:var(--muted)"><strong>정 교수:</strong> 전통 규제는 기관의 '규모·집중도'를 봤지만, AI 시대엔 <strong>다수 기관이 동일 AI를 써서 생기는 집합적 동질성(homogeneity) 리스크</strong>를 새 규제 변수로 삼는 제도 설계(건전성·리스크·DR)가 필요하다.</p>
+    </div>
+
+    <div class="note"><strong>마무리(좌장 이수형):</strong> 오늘 논의는 비즈니스 적용부터 규제 변화, 지정학 경쟁, 시스템 집중 우려까지 AI의 <strong>약속과 위험</strong>을 동시에 드러냈다. 과제는 안전장치와 나란히 혁신을 가능하게 하는 균형이다. — 이후 11:20 Session III(AI 주권·국가 전략, Gregory C. Allen)로 이어짐.</div>
+  </div>
+</section>
+
+<!-- FIGURES -->
+<div class="divider"><span class="ln"></span><span class="dot serif">§</span><span class="ln"></span></div>
+<section class="topic" id="fig" style="padding-top:6px">
+  <div class="t-head"><div class="t-no serif">#</div><div class="t-txt"><h3>세션에서 언급된 핵심 수치</h3><div class="sub">Key figures mentioned in Session II</div></div></div>
+  <div class="stats">
+    <div class="st"><div class="n g">2–5%</div><div class="lb">은행 보유 문서·계약 중 실제 활용되는 지식 비중</div></div>
+    <div class="st"><div class="n">~8%</div><div class="lb">리스크 모형 수립에 실제 확보되던 필요 데이터 비율</div></div>
+    <div class="st"><div class="n p">75%</div><div class="lb">3개 사업자가 차지하는 글로벌 금융권 클라우드 비중</div></div>
+    <div class="st"><div class="n b">69%</div><div class="lb">소수 AI 제공자에 의존하는 응답 비율(설문)</div></div>
+  </div>
+  <div class="stats">
+    <div class="st"><div class="n g">&lt;20%</div><div class="lb">조직 내 AI를 의미 있게 활용하는 비율(추정)</div></div>
+    <div class="st"><div class="n g">&lt;1%</div><div class="lb">일부 영역의 실질 활용률 — 초기 국면</div></div>
+    <div class="st"><div class="n">4</div><div class="lb">소버린 AI 동기: 경제·안보·존엄·헌법적 가치</div></div>
+    <div class="st"><div class="n">3</div><div class="lb">에이전트 유형: 리서치·실행점검·운영형</div></div>
+  </div>
+  <div style="margin-top:13px">
+    <span class="tag g">두 AI: 증강 vs 자동화</span><span class="tag g">수직 통합</span><span class="tag b">AI-to-AI 협업</span>
+    <span class="tag r">설명가능성</span><span class="tag r">알고리즘 편향</span><span class="tag r">단일 장애점</span>
+    <span class="tag b">소버린 AI</span><span class="tag b">Schrems II</span><span class="tag r">Harvey→Kimi</span>
+    <span class="tag r">디지털 봉건제</span><span class="tag b">관할권 차익</span>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft-inner">
+    <div class="ft-disc">
+      <strong>📝 참석자·재구성 안내.</strong> 참석자 정보(성명·소속·세션 구성)는 <strong>SAIPCON 2026 공식 프로그램(saipcon.com)</strong>으로 확인·교체했습니다 — 자동 음성 인식(STT)이 좌장 '이수형'을 "이수연"으로, 'Pérez-Cruz'를 "헤베레스코스"로 잘못 전사했던 부분을 바로잡았습니다. 다만 발언 <strong>내용 자체는 STT 녹취를 Claude Opus가 문맥 복원</strong>한 것으로, ① 75%/69%/8% 등 수치, ② <strong>Harvey→Kimi 전환</strong> 일화 및 그 발언자 귀속(AI 업계 패널로 추정), ③ <strong>Schrems II</strong> 등 사례, ④ 일부 발언의 패널 간 귀속은 원자료·발표 자료와 대조 확인을 권장합니다. 화자 식별(diarization)이 뒤섞여, 본문은 <strong>발언 주제 기준</strong>으로 패널에 배분했습니다.
+    </div>
+    <div class="ft-host">
+      <b>HOST</b> SAPI(서울대 AI정책 이니셔티브) · CTAI(신뢰가능한AI센터) · 법과경제연구센터(CLE) · CTIC(U.Penn) &nbsp;|&nbsp; <b>VENUE</b> THE PLAZA Seoul &nbsp;|&nbsp; <b>DATE</b> 2026.06.16–17
+    </div>
+    <div class="ft-meta">SAIPCON 2026 · DAY 1 · SESSION II — AI &amp; FINANCE (with BANK OF KOREA) · BRIEF RECONSTRUCTED 2026.06.16</div>
+  </div>
+</footer>
+
+</body>
+</html>
