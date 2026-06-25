@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>피지컬 AI · 일본의 처방전 [전편] — 상세 해설</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+  :root{
+    --bg:#fbfaf7; --ink:#23262b; --ink-soft:#4a4f57; --line:#e6e1d8;
+    --navy:#1f3b5c; --navy-2:#2c5687; --amber:#c2730a; --amber-soft:#fbf1e0;
+    --green:#1f6b4d; --green-soft:#e8f3ec; --red:#a8412f; --red-soft:#fbe9e5;
+    --violet:#5b4a86; --violet-soft:#efeaf7; --paper:#ffffff;
+    --maxw:880px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Pretendard","Pretendard Variable",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    line-height:1.85; font-size:17px; letter-spacing:-0.003em;
+    -webkit-font-smoothing:antialiased;
+  }
+  #progress{position:fixed; top:0; left:0; height:4px; width:0%;
+    background:linear-gradient(90deg,var(--navy),var(--amber)); z-index:999; transition:width .1s;}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 22px;}
+
+  /* Hero */
+  header.hero{background:linear-gradient(160deg,#16304c 0%,#1f3b5c 55%,#2c5687 100%); color:#f4f1ea;
+    padding:64px 0 50px; border-bottom:5px solid var(--amber);}
+  header.hero .wrap{max-width:var(--maxw);}
+  .kicker{display:inline-block; font-size:13px; letter-spacing:.18em; text-transform:uppercase;
+    color:#ffd9a8; border:1px solid rgba(255,217,168,.5); padding:5px 12px; border-radius:999px; margin-bottom:20px;}
+  header.hero h1{font-size:clamp(28px,4.6vw,44px); line-height:1.28; margin:.1em 0 .35em; font-weight:800; letter-spacing:-0.02em;}
+  header.hero h1 .sub{display:block; font-size:.56em; font-weight:600; color:#cfe0f2; margin-top:.5em;}
+  .byline{font-size:15px; color:#c9d6e6; margin-top:18px; line-height:1.7;}
+  .byline b{color:#fff; font-weight:700;}
+  .source-pill{margin-top:16px; font-size:13px; color:#b7c6d8;}
+
+  /* Lead / abstract */
+  .lead{background:var(--paper); border:1px solid var(--line); border-radius:16px;
+    padding:28px 30px; margin:34px 0 10px; box-shadow:0 6px 22px rgba(31,59,92,.06);}
+  .lead h2{margin:.1em 0 .5em; font-size:19px; color:var(--navy);}
+  .lead p{margin:.6em 0; color:var(--ink-soft);}
+
+  /* TOC */
+  nav.toc{background:#f3efe7; border:1px solid var(--line); border-radius:16px; padding:22px 26px; margin:26px 0 8px;}
+  nav.toc h2{margin:0 0 12px; font-size:15px; letter-spacing:.04em; color:var(--navy); text-transform:uppercase;}
+  nav.toc ol{margin:0; padding:0; counter-reset:toc; list-style:none; columns:2; column-gap:30px;}
+  nav.toc li{counter-increment:toc; margin:0 0 9px; break-inside:avoid; font-size:15px;}
+  nav.toc li a{color:var(--ink); text-decoration:none; display:flex; gap:9px; align-items:baseline;}
+  nav.toc li a:before{content:counter(toc,decimal-leading-zero); color:var(--amber); font-weight:700; font-variant-numeric:tabular-nums; font-size:13px;}
+  nav.toc li a:hover{color:var(--amber);}
+  @media(max-width:620px){nav.toc ol{columns:1;}}
+
+  main{padding:10px 0 70px;}
+  section{padding:30px 0 6px; border-top:1px solid transparent;}
+  section.part{margin-top:14px;}
+  h2.sec{font-size:clamp(22px,3.2vw,28px); color:var(--navy); font-weight:800; letter-spacing:-0.02em;
+    margin:.2em 0 .1em; padding-left:16px; border-left:6px solid var(--amber); line-height:1.35;}
+  .sec-no{display:block; font-size:13px; letter-spacing:.16em; color:var(--amber); font-weight:700; margin-bottom:6px; padding-left:16px;}
+  h3.sub{font-size:19px; color:var(--navy-2); margin:1.6em 0 .3em; font-weight:700;}
+  p{margin:.85em 0;}
+  em.term{font-style:normal; font-weight:700; color:var(--navy-2); border-bottom:2px solid #d8e2ee; padding-bottom:1px;}
+  .en{color:var(--ink-soft); font-style:italic;}
+  strong{color:#16304c;}
+  a.ref{color:var(--navy-2); text-decoration:none; border-bottom:1px dotted var(--navy-2);}
+
+  /* Callouts */
+  .box{border-radius:14px; padding:20px 24px; margin:22px 0; border:1px solid var(--line); background:var(--paper);}
+  .box .tag{display:inline-block; font-size:12px; font-weight:800; letter-spacing:.08em; padding:3px 11px; border-radius:999px; margin-bottom:10px;}
+  .box h4{margin:.1em 0 .4em; font-size:17px;}
+  .box p{margin:.5em 0;}
+  .box.summary{background:var(--green-soft); border-color:#c9e2d4;}
+  .box.summary .tag{background:var(--green); color:#fff;}
+  .box.summary h4{color:var(--green);}
+  .box.concept{background:#eef3f9; border-color:#d3e0ee;}
+  .box.concept .tag{background:var(--navy); color:#fff;}
+  .box.concept h4{color:var(--navy);}
+  .box.figure{background:#fcfbf8; border-color:#e7e0d2; border-left:5px solid var(--amber);}
+  .box.figure .tag{background:var(--amber); color:#fff;}
+  .box.figure h4{color:var(--amber);}
+  .box.figure .cap{font-size:14px; color:var(--ink-soft);}
+  .box.quote{background:#faf8f3; border-left:5px solid var(--navy-2);}
+  .box.quote .tag{background:var(--navy-2); color:#fff;}
+  .box.quote blockquote{margin:.3em 0; font-size:18px; line-height:1.7; color:#1c3450;}
+  .box.quote cite{display:block; margin-top:10px; font-style:normal; font-size:14px; color:var(--ink-soft);}
+  .box.note{background:#f6f4ef; border-color:#e3ddd0; font-size:14.5px;}
+  .box.note .tag{background:#8a7f66; color:#fff;}
+  .box.note p{color:var(--ink-soft);}
+  .box.warn{background:var(--amber-soft); border-color:#f0dcb6;}
+  .box.warn .tag{background:var(--amber); color:#fff;}
+
+  /* data figures */
+  .stat-row{display:flex; gap:16px; flex-wrap:wrap; margin:18px 0;}
+  .stat{flex:1 1 150px; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:18px 20px; text-align:center;}
+  .stat .n{font-size:28px; font-weight:800; color:var(--navy); letter-spacing:-0.02em;}
+  .stat .n small{font-size:15px; color:var(--amber); font-weight:700;}
+  .stat .l{font-size:13.5px; color:var(--ink-soft); margin-top:4px;}
+
+  table.tbl{width:100%; border-collapse:collapse; margin:20px 0; font-size:15px; background:var(--paper); border-radius:12px; overflow:hidden;}
+  table.tbl th, table.tbl td{border:1px solid var(--line); padding:11px 14px; text-align:left; vertical-align:top;}
+  table.tbl th{background:var(--navy); color:#fff; font-weight:700; font-size:14px;}
+  table.tbl tr:nth-child(even) td{background:#f8f6f1;}
+
+  /* misconception cards */
+  .myth{border:1px solid var(--line); border-radius:14px; overflow:hidden; margin:20px 0; background:var(--paper);}
+  .myth .head{display:flex; align-items:flex-start; gap:12px; padding:16px 20px; background:var(--red-soft); border-bottom:1px solid #f0d4cd;}
+  .myth .head .num{flex:0 0 auto; width:30px; height:30px; border-radius:50%; background:var(--red); color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; font-size:15px;}
+  .myth .head .q{font-weight:700; color:var(--red); font-size:16.5px; line-height:1.5;}
+  .myth .body{padding:16px 20px 6px;}
+  .myth .body .truth{font-size:13px; font-weight:800; color:var(--green); letter-spacing:.06em; margin-bottom:2px;}
+
+  .divider{height:1px; background:var(--line); margin:40px 0 6px;}
+  .pageref{font-size:12.5px; color:#a99f8a; font-weight:600; letter-spacing:.04em;}
+
+  /* glossary */
+  dl.gloss{margin:14px 0;}
+  dl.gloss dt{font-weight:800; color:var(--navy); margin-top:16px; font-size:16px;}
+  dl.gloss dd{margin:.2em 0 .2em; color:var(--ink-soft); font-size:15.5px;}
+
+  footer.foot{background:#16304c; color:#c9d6e6; padding:40px 0; font-size:14px;}
+  footer.foot .wrap{max-width:var(--maxw);}
+  footer.foot a{color:#ffd9a8; text-decoration:none;}
+  footer.foot h3{color:#fff; margin:0 0 10px; font-size:16px;}
+  footer.foot ol{padding-left:20px; line-height:1.7; color:#9fb2c7;}
+  .toplink{display:inline-block; margin-top:8px; color:var(--navy-2); font-size:14px; text-decoration:none; font-weight:600;}
+
+  ::selection{background:#ffe2b3;}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="kicker">닛케이 로보틱스 · 심층 해설</span>
+    <h1>피지컬 AI, 일본의 처방전 〔전편〕
+      <span class="sub">온 나라가 논의에 휩싸이다 — 지금 무엇에 매달려야 하는가</span>
+    </h1>
+    <div class="byline">
+      원저: <b>신도 토모노리(進藤 智則)</b> · 닛케이 로보틱스(日経Robotics) 편집장<br>
+      게재: 2026년 6월 10일 · 닛케이 xTech / 출처: 『닛케이 로보틱스』 2026년 7월호 pp.3–25 (전 8쪽 · 약 63분 분량)
+    </div>
+    <div class="source-pill">※ 본 문서는 위 기사를 한국어로 <b>극도로 상세하게</b> 재구성·해설한 자료입니다. 원문의 논리 전개를 따라가며 각 단계마다 중간 정리를 덧붙였습니다.</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="lead">
+    <h2>한눈에 보기 — 이 기사가 던지는 핵심 명제</h2>
+    <p>최근 1년간 일본 전역에서 “피지컬 AI(Physical AI)에 어떻게 대응할 것인가”라는 논의가 격렬하게 일었다. 그 밑바탕에는 “과거 로봇 대국이던 일본이 미국·중국에 뒤처지는 것 아닌가”라는 <b>위기감</b>이 깔려 있다. 이 기사는 그 논의를 자금 측면까지 포함해 <b>부감(俯瞰)적</b>으로 정리한다.</p>
+    <p>기사의 가장 중요한 주장은 하나로 압축된다. <b>피지컬 AI의 진짜 가치는 “물리 공간에서 움직이는 AI”라는 점이 아니라, 그것이 ‘기반모델(foundation model)’이라는 점에 있다.</b> 이 본질을 놓치면 “현장 데이터가 승부수다”, “장인의 기술을 AI화하자”, “일본엔 돈이 없다” 같은 일본의 통념(誤解)들이 어디서 어긋나는지 보이지 않는다.</p>
+    <p>결론적으로 필자는 피지컬 AI를 <b>극도로 불확실한 고리스크·고리턴 기술</b>로 규정하고, 그럼에도 ‘3제곱’으로 커지는 거대한 보상 때문에 일본도 반드시 도전해야 하며, 그 자금을 댈 가장 적합한 주체는 <b>스타트업 생태계</b>라고 본다(자세한 검증은 〔후편〕으로 이어짐).</p>
+  </div>
+
+  <nav class="toc">
+    <h2>목차</h2>
+    <ol>
+      <li><a href="#s1">위기감이 소용돌이치다 — 논의의 출발점</a></li>
+      <li><a href="#s2">첫 갈림길: ‘유저’인가 ‘벤더’인가</a></li>
+      <li><a href="#s3">극도로 불확실한 기술 — 두 개의 리스크(구간 X·Y)</a></li>
+      <li><a href="#s4">그런데 왜 ‘고리턴’인가 — 기반모델이라는 근거</a></li>
+      <li><a href="#s5">피지컬 AI란 무엇인가 — 정의와 3대 기능</a></li>
+      <li><a href="#s6">가치의 원천은 ‘폭’ — 브로드밴드 대 내로밴드</a></li>
+      <li><a href="#s7">‘현장 데이터가 승부수’인가 — 신화의 해부</a></li>
+      <li><a href="#s8">유저에겐 맞고 벤더에겐 틀리다</a></li>
+      <li><a href="#s9">옛 AI 담론의 잔상과 ‘신화’의 사회학</a></li>
+      <li><a href="#s10">기반모델은 ‘3제곱’으로 효과를 낸다</a></li>
+      <li><a href="#s11">특화형을 범용형이 이긴다 — 메타의 충격</a></li>
+      <li><a href="#s12">‘현장 데이터’의 의미가 바뀌고 있다</a></li>
+      <li><a href="#s13">또다시 ‘쓰라린 교훈’인가 — 리처드 서튼</a></li>
+      <li><a href="#s14">그래서 어떻게 할 것인가 — 자금은 충분하다</a></li>
+      <li><a href="#s15">자금의 세 출처 — 정부·대기업·스타트업</a></li>
+      <li><a href="#s16">일본 피지컬 AI에 대한 ‘9가지 오해’</a></li>
+      <li><a href="#s17">전체 종합 — 기사의 논리 지도</a></li>
+      <li><a href="#s18">핵심 용어집</a></li>
+    </ol>
+  </nav>
+
+</div>
+
+<main class="wrap">
+<section id="s1" class="part">
+  <span class="sec-no">01 · 도입부</span>
+  <h2 class="sec">위기감이 소용돌이치다 — 논의가 시작된 자리</h2>
+  <p class="pageref">원문 1쪽</p>
+
+  <p>지난 반 년에서 1년 사이, 일본 국내의 거의 모든 무대에서 같은 질문이 터져 나왔다. <strong>“피지컬 AI에 어떻게 손을 대고, 어떻게 마주해야 하는가.”</strong> 이 물음은 특정 집단만의 것이 아니었다. 제조업을 중심으로 한 대기업, AI·로봇 분야의 기술자와 연구자, 업계 단체, 스타트업, 그리고 행정(정부)까지 — 서로 입장이 전혀 다른 플레이어들이 한꺼번에 휘말려든 ‘이목을 끄는 주제’가 되었다.</p>
+
+  <p>이 열기의 배경에는 미국·중국과의 격차가 있다. 미국과 중국의 피지컬 AI 스타트업은 많은 경우 <strong>수천억 엔(円) 규모</strong>의 자금을 조달해, GPU 같은 계산 자원을 포함한 막대한 리소스를 쏟아부으며 개발에 매진하고 있다. 그 결과 설립 1년이 채 안 된 스타트업이 거액을 조달하고, 일부는 <strong>시가총액 1조 엔</strong>에 이르는 기업까지 등장하기 시작했다.</p>
+
+  <div class="box figure">
+    <span class="tag">도표 1</span>
+    <h4>“수천억 엔 규모의 싸움”이 되어 가는 피지컬 AI</h4>
+    <p class="cap">설립으로부터 1년도 안 돼 거액을 조달하는 스타트업이 피지컬 AI 영역에서 늘고 있다. 시가총액 기준으로 1조 엔에 도달하는 기업도 나오기 시작했다. (원문은 1달러＝155엔으로 환산해 표기)</p>
+  </div>
+
+  <p>이런 상황에서 일본 사회에는 다양한 견해가 한꺼번에 분출했다. 대표적으로 다음과 같은 목소리들이다.</p>
+  <ul>
+    <li>“미국·중국이 피지컬 AI와 휴머노이드에서 앞서가는데, 과거의 로봇 대국 일본은 정말 괜찮은가?”</li>
+    <li>“피지컬 AI에서는 <strong>일본의 ‘현장(現場) 데이터’가 승부수</strong>가 되지 않겠는가?”</li>
+    <li>“피지컬 AI는 (일본의) 인력 부족을 타개할 해법이 될 것이다.”</li>
+    <li>“일본은 미·중만큼의 리소스가 없으니, <strong>일본 전체가 똘똘 뭉쳐</strong> 싸워야 한다.”</li>
+  </ul>
+
+  <p>이 기대의 근원에는 ‘생성 AI의 경험’이 있다. 대규모 언어모델(LLM)을 비롯한 생성 AI 기술이 <strong>로봇의 행동 생성(action generation)</strong>에도 쓰일 수 있다는 점이 드러나면서, 2022년 생성 AI에서 일어난 이른바 <em class="term">‘ChatGPT 모먼트(ChatGPT moment)’</em>가 로봇 영역에서도 머지않아 일어나리라는 전망이 퍼졌다. 로봇의 ‘두뇌’에서 돌파구가 열리면, 제조업을 비롯한 물리 세계에 막대한 충격을 주어 산업의 모습을 통째로 바꿔 놓으리라는 기대다. 이것이 일본 사회 곳곳에서 논의가 들끓은 동력이었다.</p>
+
+  <p>참고로 닛케이 로보틱스는 2015년 창간 당시부터 “로봇과 AI의 융합”, 곧 오늘날 말하는 피지컬 AI를 주제로 내걸고 로봇용 AI 기술을 적극적으로 해설·보도해 왔다. 이번 기사는 그 축적 위에서, 고조된 논의를 받아 “일본은 어떻게 대응해야 하는가”를 <strong>자금 측면까지 포함해 부감적으로</strong> 정리한 것이다. 필자는 로봇·AI 연구자에 국한하지 않고 피지컬 AI를 떠받치는 다양한 이해관계자를 취재했다.</p>
+
+  <p>편집장인 필자에게도 이 1년간 여러 기업·업계 단체로부터 이 주제의 토론 요청이 적지 않게 들어왔다. 입장은 제각각이지만 많은 이들에게 공통된 뉘앙스가 있었다 — <strong>“위기감은 느끼지만, 마땅한 ‘한 수’가 없어 곤란하다.”</strong> 최근의 피지컬 AI 논의는 한마디로 <strong>“일본은 과연 괜찮은가”라는 위기감</strong>에 떠받쳐져 있다는 것이다.</p>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ①</span>
+    <h4>도입부가 깔아 놓은 ‘판’</h4>
+    <p>① 미·중 스타트업이 <b>수천억 엔</b>을 조달하며 질주하는 가운데, 일본은 위기감에 휩싸였다. ② 기대의 근거는 “LLM의 ChatGPT 모먼트가 <b>로봇에서도 재현</b>될 것”이라는 전망. ③ 그러나 현장의 공통된 곤혹은 “위기감은 있는데 <b>유효한 수가 없다</b>”는 것. 이 기사는 그 막막함을 ‘기반모델’과 ‘자금’이라는 두 렌즈로 풀어낸다.</p>
+  </div>
+</section>
+
+<section id="s2" class="part">
+  <span class="sec-no">02 · 관여 방식의 분류</span>
+  <h2 class="sec">첫 번째 갈림길 — 당신은 ‘유저’인가 ‘벤더’인가</h2>
+  <p class="pageref">원문 2쪽</p>
+
+  <p>필자는 논의의 혼란을 풀기 위해 가장 먼저 <strong>“피지컬 AI에 어떻게 관여할 것인가”를 크게 분류</strong>한다. 이 구분에 따라 피지컬 AI를 마주하는 방식이 <strong>완전히 달라지기</strong> 때문이다. 크게 두 가지다.</p>
+
+  <div class="box concept">
+    <span class="tag">핵심 구분</span>
+    <h4>유저(User) vs 벤더(Vendor)</h4>
+    <p><b>① 유저로서의 입장:</b> 피지컬 AI를 <b>자사 업무에 쓰고 싶은</b> 쪽. 제조업 공장이나 서비스업 현장에서, 기존의 비(非)AI 로봇으로는 자동화하기 어렵던 작업을 새로운 피지컬 AI로 자동화하려는 입장.</p>
+    <p><b>② 벤더로서의 입장:</b> 피지컬 AI를 <b>자사 제품·서비스의 일부로 ‘남에게 파는’</b> 쪽. ⑴ 로봇·기계장치에 탑재해 파는 ‘하드웨어 포함 벤더’, ⑵ API 등으로 서비스 형태로 제공하는 벤더, ⑶ 모델·소프트웨어 스택으로 제공하는 벤더 등.</p>
+  </div>
+
+  <h3 class="sub">유저 입장 — “서둘러 도입하려는 자세는 다소 빗나간다”</h3>
+  <p>유저라면 지금 시점에서 <strong>피지컬 AI의 이용·도입을 성급하게 밀어붙이는 것은 다소 어긋난다</strong>. 닛케이 로보틱스가 거듭 해설해 왔듯, 피지컬 AI는 아직 <strong>연구 단계에서 수많은 과제를 안고 있어</strong>, 유저 관점에서 당장 실용이 되는 국면이 아니기 때문이다. 전호(前號)에서 다룬 미국 스타트업 <strong>제너럴리스트 AI(Generalist AI)의 ‘GEN-1’</strong>이 상징하듯, 피지컬 AI는 지금도 기존 로봇 기술로는 불가능하던 작업을 일부 가능케 하며 분명히 진보하고 있다. 그러나 <strong>“연구 단계에서 기술이 진보하는 것”과 “유저 현장에서 쓸 만한 것이 되는 것”은 전혀 다른 이야기</strong>다.</p>
+
+  <p>여기서 필자는 일본 특유의 정서를 정면으로 반박한다. 일본에서 인력 부족이 심각한 과제인 것은 사실이지만, <strong>과제가 심각하다고 해서 기초 연구 수준의 돌파구가 갑자기 열리는 것은 아니다</strong>. 연구 단계에서 과제를 안은 현재의 피지컬 AI를 유저 현장에서 시험해 보면, <strong>실용과의 간극이 얼마나 큰지 그 ‘거리’를 실감</strong>할 수는 있고, 과제가 있는 나름대로 사내에 쓸 만한 업무가 없는지 모색할 수도 있다. 하지만 <strong>유저 한 회사의 힘으로 피지컬 AI라는 ‘제품’의 부가가치를 크게 끌어올릴 수는 없다.</strong></p>
+
+  <p>비유가 날카롭다. 대규모 언어모델로 치면 <strong>‘GPT-1 시절’</strong>과 같다. 그때 어느 유저 기업이 자사 업무로 GPT-1의 PoC(개념증명)를 아무리 쌓았다 한들, 그것으로 LLM의 성능을 실용 수준으로 끌어올릴 수는 없었다. 결국 <strong>벤더 측(OpenAI)의 자조(自助) 노력을 기다릴 수밖에 없었다.</strong> 피지컬 AI도 마찬가지다.</p>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ②</span>
+    <h4>왜 이 구분이 결정적인가</h4>
+    <p>같은 ‘피지컬 AI’라도 <b>유저</b>로서 볼 때와 <b>벤더</b>로서 볼 때 전략이 정반대가 된다. 유저는 지금 ‘성급한 도입’보다 ‘간극의 측정’이 할 일이고, 성능 자체는 벤더의 기초연구 진전을 기다릴 수밖에 없다. 일본 논의가 혼란스러운 첫 번째 이유가 바로 <b>이 두 입장이 뒤섞여 있기 때문</b>이다. 이 렌즈는 기사 전체에서 반복 사용되니 꼭 기억해 두자.</p>
+  </div>
+</section>
+
+<section id="s3">
+  <span class="sec-no">03 · 리스크 구조</span>
+  <h2 class="sec">극도로 불확실한 기술 — 벤더가 떠안는 두 개의 리스크</h2>
+  <p class="pageref">원문 2쪽</p>
+
+  <p>그렇다면 <strong>벤더</strong> 입장은 어떤가. 이 경우 피지컬 AI가 <strong>극도로 ‘고리스크·고리턴’</strong>인 기술임을 충분히 감안해야 한다. 어떤 신기술이든 연구개발·사업 개척에 리스크가 있는 것은 당연하지만, 피지컬 AI는 통상의 기술 개발보다 그 정도가 한층 높다.</p>
+
+  <div class="box figure">
+    <span class="tag">도표 2</span>
+    <h4>‘고리스크’인 피지컬 AI 사업</h4>
+    <p class="cap">피지컬 AI는 기초연구 단계에서 과제가 산적해 있을 뿐 아니라, 그것이 해결된 뒤에도 시장에 제품을 투입(PMF)하기까지 안전성·신뢰성·제품 유통 등 수많은 장벽을 넘어야 한다. 기초연구 과제의 많음과 도입 시 안전성 문제 등을 감안하면, 통상의 딥테크 스타트업보다 리스크가 크다고 볼 수 있다. (산업혁신투자기구의 도표에 본지가 ‘피지컬 AI 스타트업’ 영역을 가필)</p>
+  </div>
+
+  <h3 class="sub">리스크 요인 ① — “어디까지 돈이 불어날지 아무도 모른다”(구간 X)</h3>
+  <p>벤더로서 개발에 임할 때 고리스크가 되는 요인은 두 가지다. <strong>첫째는, 막대한 투자가 필요하다는 것 자체는 알지만 그것이 최종적으로 얼마나 부풀지 ‘아무도 정확히 모른다’</strong>는 점이다.</p>
+
+  <p>현재 피지컬 AI의 핵심 기술군은 대규모 언어모델이나 화상 생성 모델(확산 모델, diffusion model) 같은 주류 생성 AI에서 많이 유래했다. 기술적으로는 상당히 가깝다. 클라우드의 GPU를 수개월 같은 장기간 돌리며 다양한 하이퍼파라미터·조건을 시험해야 비로소 적절한 모델을 얻는다는 점도 공통적이다.</p>
+
+  <p>그렇다면 필요한 투자액도 주류 생성 AI를 참고하면 될 것 같지만, <strong>그게 또 그렇지 않다.</strong> 피지컬 AI에서도 학습 데이터가 많을수록 좋다는 것은 알지만, <strong>“어떤 타입의 데이터를, 얼마만큼, 어떤 비율로, 어떤 커리큘럼·순서로 줘야 하는가”</strong> — 그 유효한 학습 레시피·정답이 <strong>피지컬 AI에서는 아직 명확히 밝혀지지 않았다.</strong> 이미 실용화 단계에 들어선 대규모 언어모델과 크게 다른 점이 바로 이 지점이다.</p>
+
+  <p>모델 크기를 보면 오해하기 쉽다. 현재 피지컬 AI 모델은 로봇 구동 시의 실시간성·지연시간을 고려해 주류 생성 AI보다 작은 <strong>수십억~수백억 파라미터</strong>가 자주 쓰인다. 이 점만 보면 투자 규모가 적게 들 것 같다. 그러나 문자(text)라는 ‘압축된 이산(離散) 기호’를 다루는 LLM과 달리, 피지컬 AI는 <strong>복잡한 현실 세계를 파악·이해한 위에서 입력·출력 양쪽에서 ‘물리 공간에 맞는 연속량’을 다뤄야</strong> 한다. 최종적으로 로봇에 실을 때는 <em class="term">증류(distillation)</em>·<em class="term">양자화(quantization)</em>를 거쳐 실시간성 있는 경량 모델을 쓰더라도, <strong>현실을 제대로 이해해 적절한 행동을 생성하는 범용 피지컬 AI를 학습·개발하는 단계에서는 수천억~수조 파라미터</strong>의 대규모 용량이 필요해, <strong>프런티어 모델급의 막대한 자금</strong>이 들 가능성도 있다. 통상의 생성 AI와 피지컬 AI가 거의 구별되지 않고 융합될 가능성마저 있다.</p>
+
+  <p>그래서 핵심은 이렇다. <strong>미국 스타트업이 조달한 ‘수천억 엔’은 어디까지나 ‘현시점까지 조달한 금액’일 뿐</strong>, 피지컬 AI를 최종적으로 상용 수준까지 끌고 가는 데 필요한 자금이 그 틀 안에 들어맞으리라는 보장은 어디에도 없다. 즉 피지컬 AI 개발은 <strong>단순히 거액이 들어 고리스크인 게 아니라, ‘어디까지 늘어날지 모른다’는 불확실성(uncertainty) 그 자체가 리스크의 본진</strong>이다.</p>
+
+  <div class="box quote">
+    <span class="tag">현장의 목소리</span>
+    <blockquote>“벽을 향해 맹렬한 속도로 돌진하는 듯한 기분이다.”</blockquote>
+    <cite>— 로봇용 피지컬 AI 개발에 종사하는 한 AI 연구자. 매달 수억~수십억 엔을 학습용 GPU 비용으로 ‘녹이며’ 질주하지만, 어디가 골인지 아무도 모르고, 향하는 곳에는 갑자기 보이지 않는 콘크리트 벽이 있을지도 모른다는 뜻.</cite>
+  </div>
+
+  <div class="box note">
+    <span class="tag">용어 주(注)</span>
+    <p><b>증류(distillation):</b> 학습을 마친 대규모 모델의 지식을 더 작은 모델로 옮기는 것. 대규모 모델로 입출력 데이터를 만들고, 그것을 소규모 모델에 지도학습으로 모방시킨다. 소규모 모델을 처음부터 학습시키면 고도의 지식을 얻기 어려운 경우가 많아, 대규모 모델로 풍부한 지식을 얻은 뒤 그 ‘윗물(上澄み)’만 옮기는 편이 성능이 좋을 때가 많다.</p>
+    <p><b>양자화(quantization):</b> 신경망 파라미터는 보통 부동소수점으로 표현되지만, 연산 부하와 데이터량을 줄이기 위해 추론 시 비트 폭을 더 좁힌(양자화한) 데이터 형식을 쓰기도 한다.</p>
+  </div>
+
+  <p>로봇 기술은 오랫동안 ‘두뇌’ 부분이 병목이었고, 수십 년간 사회의 기대에 충분히 부응할 가치를 실현하지 못했다. 그러던 것이 LLM의 등장으로 로봇 행동 생성에도 응용 가능성이 보이면서 <strong>기술 향상 속도가 종전보다 다소 빨라졌다</strong>(도표 3의 ‘구간 X’).</p>
+
+  <div class="box figure">
+    <span class="tag">도표 3</span>
+    <h4>본지가 보는 피지컬 AI의 발전 시나리오 — 시나리오 A vs B</h4>
+    <p class="cap">기존 로봇 기술은 점진적으로 진화해 왔으나, AI 영역의 혁신과 기반모델(LLM)의 등장으로 로봇 행동 생성에 응용할 길이 보였다. 현재는 실용화 수준과의 간극이 크지만, 학습 데이터량을 스케일하면 머지않아 범용 로봇을 실용화할 수 있다고 보고(<b>시나리오 A</b>) 도전하는 기업이 많이 나타났다. 일단 실용화에 필요한 기술 수준(LLM의 ChatGPT 모먼트 같은 ‘임계값’)을 넘으면 피지컬 AI는 사회에 <b>비연속적 변화</b>를 줄 수 있다. 다만 단순한 데이터량 스케일만으로는 그 수준에 닿지 못할 가능성도 있어(<b>시나리오 B</b>), 다시 긴 ‘로봇 겨울(冬の時代)’이 올 수도 있다.</p>
+  </div>
+
+  <p>여기서 결정적인 불확실성이 드러난다. 피지컬 AI 기술이 향상됐다 해도 <strong>실용 수준과는 여전히 간극이 있고, 더욱이 그 ‘실용에 필요한 기술 수준’이 얼마나 높은지 자체가 미지수</strong>다. 만약 그 수준이 도표 3의 ‘임계값 A’ 정도라면, 이대로 로봇용 학습 데이터를 계속 모으면 몇 년 뒤 ChatGPT 모먼트를 맞는 <strong>시나리오 A</strong>가 가능하다. 반대로 그 수준이 인류가 생각하는 것보다 훨씬 높은 ‘임계값 B’라면 <strong>시나리오 B</strong>, 즉 다시 긴 겨울이 올 수도 있다.</p>
+
+  <h3 class="sub">리스크 요인 ② — “두뇌가 똑똑해진 ‘다음’이 또 문제”(구간 Y)</h3>
+  <p>두 번째 고리스크 요인은 피지컬 AI가 <strong>ChatGPT 모먼트를 맞은 ‘이후’의 국면</strong>에 있다(도표 3의 오른쪽 ‘구간 Y’). 설령 피지컬 AI가 ‘로봇의 두뇌’로서 상당히 쓸 만한 수준에 도달했다 해도, 그것을 하드웨어에 실어 실세계에서 움직이는 이상 <strong>안전성 문제</strong>와 무관할 수 없다.</p>
+
+  <p>사이버 공간에서 움직이는 통상의 생성 AI도 사람에게 심리적 부담을 주거나 허위 사실을 믿게 만들 수 있다. 그러나 물리 공간에서 움직이는 피지컬 AI는 <strong>인간이나 주변 환경에 물리적 상해를 입힐 가능성</strong>이 있다. 이를 어떻게 잘 제어할지, 현시점에서도 ‘묘안’이라 할 만한 방책·틀은 아직 없다. 공장 안 같은 특정 환경이라면 사람의 공간과 격리해 안전 펜스로 둘러싸면 해결하기 쉽지만, <strong>그러면 피지컬 AI 본래의 능력을 살리지 못해 쓸 수 있는 장면·시장 규모가 제한된다.</strong></p>
+
+  <p>안전성 외에도 벤더가 넘어야 할 ‘하드웨어가 얽힌 제품으로서의 과제’는 많다. 축수(액추에이터 수)가 많은 휴머노이드 같은 범용 로봇에 피지컬 AI를 실었을 때의 <strong>신뢰성 확보·저비용화, 론칭 고객과의 PoC 축적, 예외 케이스 대응, 양산 체제 확립, 각종 인증 취득, 제품 유통·마케팅, 세계 시장 지원 체제 확립</strong> 등이다.</p>
+
+  <div class="box warn">
+    <span class="tag">피지컬 AI 특유의 양날</span>
+    <h4>“언어 장벽이 없다”는 것의 두 얼굴</h4>
+    <p>피지컬 AI는 인간의 ‘육체노동’을 대체하는 수단이므로, 일본어 같은 <b>언어 장벽이 거의 없어</b> 전 세계에 공통으로 팔 수 있다. 이는 통상의 생성 AI(일본어 등 언어의 벽이 있음)와 다른 강점이다. 그러나 뒤집으면 <b>전 세계의 벤더와 ‘레드오션’에서 싸워야 한다</b>는 뜻이기도 하다. 경쟁이 그만큼 격렬해진다.</p>
+  </div>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ③</span>
+    <h4>두 개의 리스크 구간을 한 장에</h4>
+    <p><b>구간 X(AI가 제대로 기능할 때까지):</b> 학습 레시피가 미지 → 투자가 ‘어디까지 불어날지’ 모름 → 불확실성 자체가 리스크. “벽을 향해 질주하는 기분.”<br>
+    <b>구간 Y(ChatGPT 모먼트 이후):</b> 두뇌가 똑똑해져도 안전성·신뢰성·양산·인증·유통·글로벌 지원이라는 ‘사회 실装’의 벽. 언어 장벽이 없는 만큼 전 세계와 레드오션 경쟁.<br>
+    → 피지컬 AI는 <b>X와 Y, 두 겹의 리스크</b>가 산적한 ‘통상의 딥테크를 능가하는 고리스크’ 기술이다.</p>
+  </div>
+</section>
+
+<section id="s4">
+  <span class="sec-no">04 · 고리턴의 근거</span>
+  <h2 class="sec">그런데 왜 ‘고리턴’인가 — 답은 ‘기반모델’이다</h2>
+  <p class="pageref">원문 3쪽</p>
+
+  <p>이토록 고리스크인데도 전 세계에서 피지컬 AI에 대한 주목이 높아지고, 벤더로서 개발에 뛰어드는 기업이 느는 이유는 무엇인가. <strong>답은 피지컬 AI가 ‘기반모델(foundation model)’로서의 성질</strong>을 갖추고 있어, 그 범용성 덕에 수많은 용도·분야에 쓰여 막대한 보상을 기대할 수 있기 때문이다.</p>
+
+  <p>다만 ‘막대한 보상’이라고 하면 그것이 마치 약속된 것처럼 들리지만 그렇지 않다. 앞서 보았듯 기초연구 면에서도 비즈니스 면에서도 과제가 산적해 <strong>아무것도 약속돼 있지 않다.</strong> 그럼에도 <strong>일단 ChatGPT 모먼트를 맞기만 하면 그 ‘폭의 넓음’ 덕에 ‘큰 열매’를 얻을 수 있고</strong>, 그때의 파이 크기에 주목해 전 세계의 개발 열기가 달아오르고 있다는 구도다.</p>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ④</span>
+    <h4>리스크–리턴의 비대칭이 만드는 ‘열기’</h4>
+    <p>피지컬 AI 열풍은 ‘물리 공간에서 AI가 움직여서’도, ‘휴머노이드가 춤을 춰서’도 아니다. 그것이 <b>기반모델</b>이기 때문에, 성공 시 보상이 비정상적으로 크다는 ‘기대값’ 때문이다. 다음 절(§5~§6)에서 ‘기반모델이란 무엇이며 왜 그 폭이 가치인가’를 정밀하게 풀어낸다 — 이것이 기사 전체의 이론적 심장부다.</p>
+  </div>
+</section>
+
+<section id="s5">
+  <span class="sec-no">05 · 정의</span>
+  <h2 class="sec">피지컬 AI란 무엇인가 — 정의와 로봇의 3대 기능</h2>
+  <p class="pageref">원문 3쪽</p>
+
+  <p>피지컬 AI의 ‘폭’을 구체적으로 보기 전에, 우선 그 정의를 정리해 둔다. 현재 정의가 어지럽게 난립해 있는데, 이 기사는 다음과 같이 해석한다.</p>
+
+  <div class="box concept">
+    <span class="tag">이 기사의 정의</span>
+    <h4>피지컬 AI = “현실 세계를 파악·이해한 위에서 로봇의 행동을 생성하는 기반모델”</h4>
+    <p>(도표 4) 유저의 텍스트 지시 등을 받아 어떤 로봇 행동을 생성한다. 광범위한 태스크·용도에 <b>최소한의 설정으로 범용적으로</b> 쓸 수 있는 ‘기반모델’을, 주로 로봇 상반신의 ‘매니퓰레이션’에 사용하는 것이 핵심이다.</p>
+  </div>
+
+  <p>로봇의 기능은 크게 셋으로 나뉜다.</p>
+  <ul>
+    <li><strong>매니퓰레이션(manipulation, 상반신):</strong> 손으로 물건을 잡거나 복잡한 작업을 하는 것.</li>
+    <li><strong>로코모션(locomotion, 하반신):</strong> 다리가 있는 로봇의 보행을 잘 다스리는 것.</li>
+    <li><strong>내비게이션(navigation):</strong> 로봇 전체를 특정 장소 등으로 이동시키는 것.</li>
+  </ul>
+  <p>이 가운데 <strong>현재 피지컬 AI의 병목은 상반신의 ‘매니퓰레이션’</strong>이다.</p>
+
+  <div class="box figure">
+    <span class="tag">도표 5</span>
+    <h4>피지컬 AI 최대 난관은 ‘상반신 매니퓰레이션’</h4>
+    <p class="cap">휴머노이드 같은 범용 로봇을 상정할 때, 다리 보행 등 <b>하반신 동작은 Sim-to-real 등으로 기술이 거의 확립</b>돼 이제 큰 장벽이 없다. 남은 것은 손·손가락을 쓰는 매니퓰레이션 등 상반신 동작의 획득이다. 상반신은 태스크가 다방면에 걸쳐 있어 여기에 ‘로봇 기반모델’을 쓴다. 매니퓰레이션은 <b>모방학습만으로는 전망이 막혀</b> 정체감이 있었으나, 최근 <b>강화학습을 병용</b>할 수 있게 되면서 실용 수준에 가깝게 동작을 정련할 길이 보이기 시작했다. 또 <b>VAM(video-action-model)</b>처럼 동영상 생성 모델을 기반으로 한 ‘세계 모델’ 계열 기술도 매니퓰레이션용으로 등장하고 있다.</p>
+  </div>
+
+  <p>왜 손이 어려운가. 손은 다양한 물건·도구를 다뤄야 하고, “무엇을 잡고 무엇을 할지”를 플래닝하려면 많은 지식·상식이 필요하다. 동작 자체를 성공시키는 데도 <strong>밀리미터 단위의 정교함, 미묘한 힘 조절</strong>이 필요하다. 이런 다양한 국면에 로봇이 자율적으로 대응하도록 하는 데 ‘기반모델의 범용성’이 도움이 되리라 기대되는 것이다.</p>
+
+  <p>반면 하반신 로코모션은 이미 기술이 확립돼 큰 장벽이 없다. <strong>‘보행·보용(步容)의 안정화’라는 목적이 명확·단순</strong>해, 기반모델만큼의 멀티태스크성·범용성이 필요 없고, 사람과 언어로 지시를 주고받을 필연성도 없다. 컴퓨터상의 시뮬레이터에서 강화학습으로 시행착오해 모델을 얻는 <em class="term">‘Sim-to-real’</em> 방식으로 실용 수준 모델을 만들 수 있게 됐는데, 거기 쓰이는 것은 기반모델 같은 대규모 모델이 아니라 <strong>RNN이나 ‘딥러닝이라 부르기도 민망한’ 얕은 수 개 층 MLP</strong>인 경우가 대부분이다.</p>
+
+  <p>그래서 이 기사는 다음과 같이 범위를 명확히 한다. <strong>하반신 로코모션은 (고도의 지식이 불필요하고, 이미 기술이 확립됐으며, 바퀴형 로봇에선 아예 불필요하므로) ‘피지컬 AI’에 포함하지 않고, 기본적으로 상반신 매니퓰레이션에 초점</strong>을 맞춘다.</p>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ⑤</span>
+    <h4>‘어디가 어렵고 어디가 풀렸나’ 지도</h4>
+    <p>로봇 3대 기능 중 <b>로코모션(하반신)은 사실상 해결</b>(Sim-to-real·얕은 망). 난관은 <b>매니퓰레이션(상반신)</b> — 다양한 물건·밀리미터 정교함·힘 조절·플래닝이 필요해 ‘기반모델의 범용성’이 요청된다. 그래서 이 기사에서 ‘피지컬 AI’는 곧 <b>상반신 매니퓰레이션용 기반모델</b>을 가리킨다. 최근 돌파구는 ‘모방학습+강화학습’ 병용과 ‘동영상 기반 세계 모델(VAM)’.</p>
+  </div>
+</section>
+
+<section id="s6">
+  <span class="sec-no">06 · 이론의 심장부</span>
+  <h2 class="sec">가치의 원천은 ‘폭’ — 브로드밴드 대 내로밴드</h2>
+  <p class="pageref">원문 3쪽</p>
+
+  <p>피지컬 AI에 고리턴이 기대되는 이유는 단순히 ‘시장 예측이 거대해서’가 아니다. 미래의 ‘이상적 피지컬 AI’가 <strong>기반모델로서의 성질</strong>을 갖출 것이기 때문이다. 그 이름 탓에 ‘물리 공간에서 움직이는 AI’라는 점만 주목받기 쉽지만, <strong>가치의 원천은 그 ‘범용성·폭의 넓음’에 있고, 그 기술적 근거가 ‘피지컬 AI＝기반모델’</strong>이라는 점이다.</p>
+
+  <div class="box concept">
+    <span class="tag">기반모델의 정의</span>
+    <h4>한 번 배워 ‘즉석에서’ 다양한 일에 적응하는 모델</h4>
+    <p>기반모델이란, 폭넓고 다양한 데이터로 <b>사전학습</b>을 해 두면, 이용(추론) 시에는 약간의 추가 설정·소수의 예시(<b>few-shot</b>)나 프롬프트만으로(<b>zero-shot</b>) 다양한 태스크에 <b>그 자리에서</b> 적응하는(<b>ICL: in-context learning</b>) 모델이다. LLM이 사용자의 다양한 질문·지시에 추가 개발 없이 즉석에서 대응하는 것도 기반모델이기 때문이다. 같은 것을 ‘로봇’에서 실현하려는 것이 피지컬 AI다.</p>
+  </div>
+
+  <p>여기서 결정적인 통찰이 나온다. <strong>이 기반모델의 가치는 유저 관점에서는 좀처럼 가늠하기 어렵고, 벤더 관점이 아니면 제대로 잡히지 않는다.</strong> 일본의 피지컬 AI 논의가 자주 분규하고 혼란스러운 것도 바로 이 점에 원인이 있다.</p>
+
+  <div class="box figure">
+    <span class="tag">도표 6 — 가장 중요한 그림</span>
+    <h4>피지컬 AI의 진짜 임팩트는 ‘가로폭의 넓음’에 있다</h4>
+    <p class="cap"><b>가로축</b> = 그 모델을 적용할 수 있는 ‘태스크의 넓음’. 로봇 태스크는 저수준에서 ‘환경 상태(s: state)’와 ‘그 상태에서 취하는 행동(a: action)’의 조합으로 설명할 수 있는데, 이 (s,a) 조합으로 이뤄진 태스크 공간을 가로축으로 본다(본래 다차원이지만 설명을 위해 1차원으로 그린 이미지 도식).<br>
+    <b>세로축</b> = 그 태스크 (s,a)를 ‘어느 정도 성능으로’ 해내는가(실행의 민첩함·스루풋, 성공률 등). 최근엔 성공률이 포화돼 차이를 재기 어려워, <b>스루풋</b>이 성능 지표로 자주 쓰인다.</p>
+  </div>
+
+  <h3 class="sub">브로드밴드(기반모델) vs 내로밴드(기존 로봇)</h3>
+  <p>기반모델로서의 피지컬 AI는 이 그림에서 <strong>가로폭이 극히 넓은 모델</strong>이다(도표 6의 오른쪽 절반). 스펙트럼에 비유하면 광대역의 <strong>‘브로드밴드’·‘울트라와이드밴드’</strong> 같은 이미지다. 막대한 데이터로 사전학습해 폭넓은 태스크 공간을 커버한다. 다만 현재의 피지컬 AI는, 수평 점선이 ‘실용화에 필요한 성능 수준’이라면 <strong>많은 태스크 점 (s,a)에서 그에 못 미치는 ‘간극’</strong> 상태다. 물류 현장에서 컨테이너를 들어 다른 곳에 옮기거나 물건을 분류하는 식의 제한적 태스크라면 실용되는 경우도 있지만(도표 속 짙은 녹색 영역), 기반모델 본래의 ‘광범위 태스크를 few/zero-shot으로 적응’하는 상태에는 이르지 못했다.</p>
+
+  <p>앞으로 벤더의 연구개발 노력으로 기반모델 성능이 폭넓은 영역에서 전반적으로 끌어올려지고, <strong>짙은 녹색 영역의 합계 면적이 ‘비즈니스로 성립하는 수준’까지 확대되면, 그때 비로소 피지컬 AI는 ChatGPT 모먼트를 맞는다.</strong> 점선을 넘기 전까지는 점진적 진화지만, 일단 폭넓은 영역에서 점선을 넘으면 그 분포의 ‘폭’ 때문에 <strong>사회적으로는 비연속적 임팩트가 갑자기 발생한 것처럼 보인다.</strong> 여러 태스크·업종에서 ‘로봇이 갑자기 똑똑해진’ 듯한 효과가 생긴다. (단, 분포에는 요철이 있어, 모먼트 이후에도 실용 수준에 못 미치는 태스크는 한동안 남는다.)</p>
+
+  <p>이에 비해 비AI의 전통적 로봇 기술은 이 태스크 공간 위에서 <strong>극히 좁은 ‘막대기(棒)’</strong>에 해당한다(도표 6 왼쪽). 스펙트럼으로 치면 극히 좁은 피크의 <strong>‘내로밴드(narrowband)’</strong>다. 특정 용도·태스크를 위해 기술자가 동작을 ‘전용으로 작성(작り込み)’하므로 완성 후엔 당연히 실용 수준을 만족하지만, <strong>그 좁은 (s,a)에서만 동작할 뿐 유연성이 거의 없어</strong> 다른 국면에서 쓰려면 그때마다 개발이 필요하다. 이것이 기존 로봇이 공장·물류처럼 매우 한정된 업종의 한정된 태스크에서만 실용화될 수 있던 근본 원인이다. 개별로 작성하면 이 ‘좁은 막대기’를 여러 업종에 마련하는 것이 원리적으로는 가능하지만, <strong>투자 대비 효과가 맞지 않아</strong> 사회에 널리 침투하지 못했다.</p>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ⑥ — 기사 전체의 ‘이론적 척추’</span>
+    <h4>‘세로(성능)’가 아니라 ‘가로(폭)’가 가치다</h4>
+    <p>· 기존 로봇 = <b>내로밴드</b>(좁고 높은 막대기). 특정 태스크엔 완벽하나 유연성 0, 개별 작성 필요 → 투자 대비 안 맞음.<br>
+    · 피지컬 AI = <b>브로드밴드</b>(넓은 분포). 지금은 점선(실용 수준)에 미달이지만, 벤더가 면적을 넓혀 점선을 ‘폭넓게’ 넘는 순간이 <b>ChatGPT 모먼트</b>.<br>
+    · 핵심 함정: 이 ‘폭의 가치’는 <b>유저 시점에선 안 보이고 벤더 시점에서만 보인다.</b> 일본 논의 혼란의 진짜 뿌리가 여기 있다. 이어지는 ‘현장 데이터’ 논쟁(§7~)은 전부 이 도표 6 위에서 벌어진다.</p>
+  </div>
+</section>
+
+<section id="s7">
+  <span class="sec-no">07 · 핵심 쟁점</span>
+  <h2 class="sec">‘현장 데이터가 승부수’인가 — 신화를 해부하다</h2>
+  <p class="pageref">원문 3~4쪽</p>
+
+  <p>피지컬 AI를 둘러싸고 일본에서 가장 널리 회자되는 명제가 <strong>“일본 기업이 가진 ‘현장(現場) 데이터’가 승부수가 된다”</strong>이다. 행정 문서에도 비슷한 뉘앙스의 문구가 등장하고, 대기업 간부나 정치인도 유사한 주장을 한다. 과연 사실일까. 필자는 이 명제를 정면으로 ‘해부’한다.</p>
+
+  <p>물론 피지컬 AI의 성능을 높이는 데 <strong>데이터가 필수</strong>인 것 자체는 틀림없다. 그러나 앞서 보았듯, 피지컬 AI에서는 <strong>‘어떤 타입의 데이터를, 얼마만큼, 어떤 비율로’ 준비해야 하는지 그 사전학습의 유효한 레시피가 아직 잘 밝혀지지 않았다.</strong> 정말로 현장 데이터‘만’이 ‘세계 시장에서의 승리’·‘플랫포머로서의 승리’를 뜻할 만큼의 부가가치를 갖는지에 대해서는 다시 한 번 신중해야 한다.</p>
+
+  <h3 class="sub">극단의 가능성 — Sim-to-real이 현장 데이터를 ‘불필요’하게 만든다</h3>
+  <p>극단적으로 말하면, 현재의 하반신 로코모션처럼 <strong>컴퓨터상의 Sim-to-real만으로 실용 가능한 모델을 얻게 되면, 현장 데이터 같은 번거로운 것은 일절 불필요</strong>해질 가능성도 0은 아니다. 합성 데이터만으로 모델이 실용 수준이 되는 것이다. Sim-to-real이란 대량의 GPU를 동원해 컴퓨터상에서 합성 데이터(앞의 s,a 데이터)를 만드는 것과 동의어이며, <strong>현장 데이터를 일절 불필요하게 만드는 파괴적 위력</strong>을 품고 있다.</p>
+
+  <div class="box warn">
+    <span class="tag">반례</span>
+    <h4>중국 휴머노이드의 춤·쿵후는 ‘현장 데이터’의 산물이 아니다</h4>
+    <p>중국제 휴머노이드가 화려하게 춤추고 매끄럽게 쿵후를 하게 된 것은 <b>현장 데이터가 많아서</b>가 아니라, <b>Sim-to-real로 계산 자원을 구사해 합성 데이터를 만들고, ‘라벨링이 불필요한’ 강화학습으로 로버스트한 모델</b>을 얻을 수 있게 됐기 때문이다.</p>
+  </div>
+
+  <p>다만 Sim-to-real은 현재 <strong>싱글태스크 경향</strong>이 강해, 멀티태스크가 전제인 상반신 매니퓰레이션에선 그 정도로 극단적이 되진 않을 것이다. 그렇더라도 <strong>개별 기업이 가진 현장 데이터가 ‘기반모델로서의 피지컬 AI’ 시대에 어디까지 가치를 발휘할지는 결코 자명하지 않다.</strong></p>
+
+  <h3 class="sub">‘현장’은 일본에만 있지 않다</h3>
+  <p>애초에 ‘현장’은 일본이라는 나라에만 있는 게 아니다. 미국·중국에도 산업이 많고 유럽·아시아에도 있다. <strong>그들 모두가 똑같이 현장 데이터를 갖고 있다.</strong> “현장 데이터가 승부수”라면 그것은 일본뿐 아니라 다른 나라들에도 거의 마찬가지여서, ‘승부수’라는 전략이 될 수 없다.</p>
+
+  <p>“GAFAM 같은 빅테크는 AI는 잘하지만 현장 데이터가 없다. 피지컬 AI에선 일본 기업의 현장 데이터가 빅테크에 대한 우위가 된다”는 담론도 자주 들린다. 이 역시 다소 지나치게 낙관적이다. 빅테크 중에서도 <strong>아마존(Amazon.com)은 물류 현장을 전 세계에 자사로 다수 보유</strong>한 데다 그것을 향한 로봇도 오랫동안 자체 개발해, 피지컬 AI에서 극히 유리한 위치에 있다. 또 현장이 수많은 나라에 보편적으로 있는 이상, <strong>구글(Google) 같은 AI 강자가 자국 기업의 현장 데이터를 사들이거나 기업째로 M&A로 흡수</strong>해 버리면 “빅테크는 현장 데이터를 갖지 않는다”는 전제도 쉽게 무너진다. 이처럼 쉽게 전제가 무너지는 ‘승부수론’에 지나치게 의존하는 것은 득책이 아니다.</p>
+
+  <p>단, 필자는 균형을 잃지 않는다. <strong>“일본이 제조업에 강한 것은 사실이고, 피지컬 AI 벤더에서 볼 때 ‘팔 곳(売り先)’이 풍부하다는 것은 유리한 조건이 될 수 있다”</strong>고 덧붙인다.</p>
+
+  <div class="box quote">
+    <span class="tag">전문가 인용</span>
+    <blockquote>“일본 기업의 현장 데이터가 (피지컬 AI에서) 결정적인 차이가 되기는 어렵다. 다만 일본은 산업 집적이 있어 다양한 현장 데이터를 모으기 쉽고, 데이터 수집 설계·실증처·도입처가 많아 ‘개선 루프’를 만들기 쉽다는 면에서는 (타국보다) 비교우위가 있을지 모른다.”</blockquote>
+    <cite>— 오카노하라 다이스케(岡野原 大輔), Preferred Networks 공동창업자·대표이사 사장</cite>
+  </div>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ⑦</span>
+    <h4>‘현장 데이터 승부수론’의 1차 균열</h4>
+    <p>① 데이터는 필수지만 <b>유효 레시피가 미지</b> → 현장 데이터의 가치가 ‘승리’를 보장하지 않음. ② Sim-to-real이 진전되면 현장 데이터가 <b>아예 불필요</b>해질 수도. ③ 현장은 <b>전 세계 어디에나</b> 있어 ‘일본만의 승부수’가 못 됨. ④ 빅테크도 매수·M&A로 현장 데이터를 얻을 수 있음. → 단, ‘팔 곳이 많다’는 점과 ‘개선 루프를 만들기 쉽다’는 점은 일본의 진짜 비교우위.</p>
+  </div>
+</section>
+
+<section id="s8">
+  <span class="sec-no">08 · 입장의 분리</span>
+  <h2 class="sec">유저에겐 ‘맞고’ 벤더에겐 ‘틀리다’</h2>
+  <p class="pageref">원문 4쪽</p>
+
+  <p>여기서 필자는 §2의 ‘유저/벤더’ 렌즈를 다시 꺼내 ‘현장 데이터 승부수론’을 두 동강 낸다. 결론부터 말하면 <strong>같은 명제가 유저에겐 참, 벤더에겐 거짓</strong>이다.</p>
+
+  <h3 class="sub">유저 입장 — “생산성 향상이 목적이라면 타당하다”</h3>
+  <p>‘자사가 가진 현장 데이터에 큰 가치가 있고 그것이 승부수’라는 말은, <strong>유저 입장이라면 틀리지 않다.</strong> 기반모델로서의 피지컬 AI는 ChatGPT 모먼트 이후에도 태스크 공간상의 성능 분포가 균일하지 않고 요철이 있다. 기반모델로도 실용 수준에 ‘약간’ 못 미치는 태스크가 자사 업무에 있을 때, <strong>그 기업의 현장 데이터로 그 ‘오목한 부분(凹み)’을 메워 실용 수준을 넘도록 부스트</strong>할 수 있기 때문이다. 특히 그 기업 특유의 업무, 독특한 관습에 기반한 업무라면 아무리 강력한 기반모델이라도 zero-shot으론 어려워, <strong>마지막 1%나 0.1%를 메우는 데 그 기업의 독특한 데이터가 필요</strong>해진다.</p>
+  <p>이 ‘부스트’가 반드시 재학습만은 아니다. 현장 데이터를 외부 데이터베이스로 두고 거기에 기반모델이 접근해 참조하는 <em class="term">‘RAG(retrieval-augmented generation)’</em> 형태도 가능하다. LLM에서도 단독 지식이나 zero-shot 대응이 어려울 때 RAG가 자주 쓰이는 것과 같다.</p>
+
+  <p>유저 기업은 자사 업무가 효율화되면 그만이다. ‘자사 업무의 생산성 향상으로 이익률을 개선하는 것’을 ‘승리’로 해석한다면, ‘현장 데이터가 승부수’는 옳다. 나아가 일본 곳곳의 기업 현장이 이런 ‘오목한 부분’을 만났을 때 각자의 현장 데이터를 살린다면 <strong>일본 전체의 생산성 향상</strong>에 기여할 것이다.</p>
+
+  <div class="stat-row">
+    <div class="stat"><div class="n">+1.6<small>%p</small></div><div class="l">도쿄대 마쓰오 유타카(松尾 豊) 연구실 추산 — (피지컬 AI가 아닌) 통상 AI를 일본 각 현장에 도입할 때 기대되는 <b>실질 GDP 성장률</b> 押し上げ 효과(최대)</div></div>
+  </div>
+  <p>피지컬 AI에서도 비슷한 효과를 기대할 수 있고, 그런 경제성장 효과를 ‘승리’로 본다면 “일본의 현장 데이터가 승부수”도 분명 진리이긴 하다.</p>
+
+  <div class="box note">
+    <span class="tag">주(注) — ‘디지털 적자’의 함정</span>
+    <p>해외제 AI·클라우드 서비스를 잘 활용해 자국 현장의 생산성을 높이는 것은 큰 의의가 있지만, IT가 수입 초과인 <b>‘디지털 적자’</b>라는 사실은 변하지 않는다. AI·클라우드를 자사가 통제하기 어려워, 벤더 사정으로 사양이 갑자기 바뀌거나 서비스가 종료(EOL)되면 대처할 길이 없다. 이른바 <b>벤더 록인(lock-in)</b>이 된다.</p>
+  </div>
+
+  <h3 class="sub">벤더 입장 — “같은 데이터가 ‘승부수’가 되긴 어렵다”</h3>
+  <p>그러나 <strong>벤더 관점에서는 이 ‘현장 데이터 승부수론’이 성립하는지 상당히 의심스럽다.</strong> 왜냐하면 특정 기업 한 곳이 가진 현장 데이터는, 아무리 폭넓은 사업 영역을 가진 대기업·콩글로머리트라도 태스크 공간에서 보면 결국 <strong>‘좁은 막대기’에 가까운 것이 되기 쉽기</strong> 때문이다.</p>
+
+  <p>미래의 이상적 피지컬 AI는 특정 유저 기업 한 곳의 업무를 채우는 것이 아니라, <strong>폭넓은 업종의 폭넓은 태스크를 few/zero-shot, 최소한의 추가 설정으로 적합</strong>시키는 것이다. 그런 ‘가로폭 넓은 기반모델’을 개발하려면 사전학습으로도 폭넓고 다양한 데이터가 필요하다. 유저 기업의 현장 데이터는 그 기업 내 ‘좁은 막대기’ 안에서 마지막 1%를 밀어 올리는 데는 도움이 되지만, 그런 <strong>‘내로밴드적 데이터’는 기반모델 벤더 시점에선 ‘브로드밴드적’이 되지 못해 ‘큰 가치가 있다’고 말하기 어렵다.</strong> 없는 것보단 낫지만, 어디까지나 방대한 사전학습 데이터의 ‘한 조각’일 뿐, 세계급 플랫포머가 되는 ‘필승의 데이터’라고는 하기 어렵다.</p>
+
+  <p>게다가 그 현장 데이터에 그 기업 특유의 관습·독특한 업무가 담겨 있다면, 그것이 벤더의 사전학습을 거쳐 다른 기업·업계에 도움이 되리라곤 생각하기 어렵다. 도움은커녕 <strong>그 독특함이 기반모델의 범용성을 ‘해칠’ 가능성</strong>마저 있다. 일본 전체가 이런 데이터를 집약·다발로 묶을 수 있다면 가로폭이 넓어져 가치가 생기지만, 데이터 공유에 신중한 기업이 많다.</p>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ⑧ — 이 기사의 가장 정교한 한 수</span>
+    <h4>“현장 데이터가 승부수” = 입장에 따라 참·거짓이 갈린다</h4>
+    <p><b>유저 ✔:</b> 기반모델의 ‘오목한 부분’(마지막 1%·0.1%)을 자사 데이터로 메워 생산성↑·이익률↑·일본 GDP +최대 1.6%p. → ‘승리’를 ‘자사 효율화’로 정의하면 참.<br>
+    <b>벤더 ✘:</b> 한 회사 데이터는 태스크 공간의 ‘좁은 막대기’ → 브로드밴드 기반모델엔 ‘한 조각’일 뿐. 오히려 범용성을 해칠 수도. → ‘세계 플랫포머의 필승 데이터’는 아님.<br>
+    이 한 절이 일본 통념과 기사 사이의 ‘오해’가 발생하는 정확한 좌표다.</p>
+  </div>
+</section>
+
+<section id="s9">
+  <span class="sec-no">09 · 담론의 사회학</span>
+  <h2 class="sec">옛 AI 담론의 잔상과 ‘신화’의 사회학</h2>
+  <p class="pageref">원문 4쪽</p>
+
+  <p>그렇다면 ‘현장 데이터 승부수론’은 왜 이렇게 끈질기게 출현하는가. 필자는 그 뿌리를 <strong>‘과거 AI에 관해 통용되던 담론의 잔상’</strong>에서 찾는다.</p>
+
+  <p>로봇용 피지컬 AI가 아니라 일반 AI 이야기지만, 딥러닝이 발흥하던 10년쯤 전에는 지금 같은 폭넓은 기반모델이 없었다. 그때는 <strong>“정밀도가 부족하면 자사에서 현장 데이터를 모아 어노테이션(라벨링)을 붙여 신경망을 재학습시키면 현장에서 쓸 수 있게 된다”</strong>고 했다. 주로 CNN을 쓴 화상 인식·외관 검사 등에서 그랬다. 화상 인식엔 ‘ImageNet’ 같은 사전학습 데이터가 있긴 했으나 그 폭이 매우 좁아, 지금의 기반모델과는 천양지차다. 이 <strong>딥러닝 초기의 담론이 ‘AI의 정석’ 이미지로 그대로 남아</strong>, 기반모델 전성기인 지금까지도 “자사 데이터가 있으면 실용된다”→“자사 데이터가 승부수가 된다”로 변형돼 이어졌을 수 있다는 것이다.</p>
+
+  <h3 class="sub">‘신화(myth)’는 어떻게 자라고, 왜 책임을 묻기 어려운가</h3>
+  <p>필자의 분석은 기술론을 넘어 ‘담론 사회학’으로 향한다. ‘현장 데이터 승부수론’은 <strong>“당신 회사는 희소하고 귀중한 데이터를 가졌다. 이것은 타국 기업엔 없다. 그러니 당신 회사는 세계에서 이길 수 있다”</strong>는 메시지이기도 하다. 극단으로 가면 <strong>“당신은 이미 유리하니 가만히 있어도 이길 확률이 높다. 아무것도 하지 않아도 괜찮다”</strong>는 식으로 확대 해석돼 받아들여지기 쉽다. 듣기 좋고 저항 없이 스며들기에 더 퍼진 면이 있다. 일종의 <strong>‘신화(myth)’</strong>라는 것이다.</p>
+
+  <p>이런 ‘일본 예찬’의 ‘현상 긍정파 담론’은 어제오늘 일이 아니다. 일본 산업계가 국제 경쟁력을 논할 때 거듭 출현해 온 ‘단골 담론’이다. 신화에 가까운 담론은 <strong>“모두가 말하면”, “옆이 말하면”</strong> 그것이 진실인 양 눈덩이처럼 부풀기 쉽다. 업계의 간부·중진이 그런 발신을 반복하면 정치인·미디어 같은 바깥층에도 ‘전문가의 견해’로 침투해 신화는 더욱 견고해진다.</p>
+
+  <p>그리고 정작 <strong>신화가 무너져도 “누가 처음 말했다”는 식의 담론이 아니어서 “모두가 말하던 것이니까”로 책임을 회피하기 쉽다.</strong> 감점주의(減点主義)가 강한 일본 사회에서는 누구에게나 편리하고 의문이 제기되기 어려운 담론인 것이다. 듣기 좋은 담론은 심리적 안심과 긍정적 효과를 주지만, <strong>확대 해석이 도를 넘으면 진실을 왜곡하고 전략 수립에 악영향</strong>을 줄 수 있다.</p>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ⑨</span>
+    <h4>왜 ‘틀린 담론’이 살아남는가</h4>
+    <p>‘현장 데이터 승부수론’의 끈질김은 두 뿌리에서 온다. ① <b>기술적 잔상</b>: 딥러닝 초기(CNN+ImageNet 파인튜닝) 이미지가 기반모델 시대까지 남음. ② <b>사회적 메커니즘</b>: ‘듣기 좋은 신화’ → 모두가 반복 → 정치·미디어로 확산 → 무너져도 책임 부재(‘모두가 말했으니까’) → 감점주의 사회에서 ‘편리한 담론’. 안심을 주는 효과는 있으나, 과한 확대 해석은 전략을 망친다.</p>
+  </div>
+</section>
+
+<section id="s10">
+  <span class="sec-no">10 · 보상의 구조</span>
+  <h2 class="sec">기반모델은 ‘3제곱’으로 효과를 낸다 — 태스크·분야·국가</h2>
+  <p class="pageref">원문 4쪽</p>
+
+  <p>기반모델로서 피지컬 AI가 갖는 ‘폭의 넓음(브로드밴드성)’은, 앞서 본 도표 6의 <strong>‘태스크 공간’</strong>만이 아니라 <strong>‘업종·분야’</strong>와 <strong>‘판매 지역·국가’</strong> 면에서도 보상을 키우는 데 작용한다(도표 7). 세 축이 곱해지며 ‘3제곱’으로 폭이 효과를 내는 것이다.</p>
+
+  <div class="box figure">
+    <span class="tag">도표 7</span>
+    <h4>‘아직 보지 못한 신시장’이 로봇의 주역이 된다</h4>
+    <p class="cap">현재 로봇은 AI가 거의 쓰이지 않아 매우 한정된 업종·태스크에서만 쓰여, ‘로봇＝제조업’ 이미지가 따라붙는다. 그러나 기반모델로서의 피지컬 AI가 일단 ChatGPT 모먼트를 맞으면, 공장·FA나 물류 같은 한정 업종뿐 아니라 <b>외식 산업·가정용 시장</b> 등 폭넓은 용도에 쓰일 수 있다. 그렇게 되면 기존 로봇 시장은 상대적으로 매우 작은 존재가 되고, ‘로봇＝가정용’·‘로봇＝범용 서비스 로봇’ 구도가 주류가 될 수 있다.</p>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat"><div class="n">약 790<small>조 엔</small></div><div class="l">미국 모건스탠리(Morgan Stanley)의 극단적 추산 — <b>2050년</b> 피지컬 AI 탑재 범용 로봇 시장 규모. <b>자동차 시장을 능가</b>하는 수준</div></div>
+  </div>
+
+  <p>현 기술 수준에선 상상하기 어렵지만, 만약 가정 내 조리·가사처럼 지금은 사람이 할 수밖에 없는 태스크를 기반모델로서의 피지컬 AI가 zero-shot으로 자동화하게 되면 <strong>‘1가구 1대’</strong>가 되어 불가능한 이야기가 아니다. 일본어 LLM이나 일본용 SaaS와 달리, 피지컬 AI와 그것을 탑재한 범용 로봇은 <strong>언어 제약이 거의 없어 글로벌 시장에 팔 수 있는 상품</strong>이다. ChatGPT 모먼트가 온다는 조건부이긴 하나, <strong>TAM(total addressable market)도 SAM(serviceable available market)도 극도로 커질 수 있다.</strong></p>
+
+  <div class="box concept">
+    <span class="tag">왜 ‘3제곱’인가</span>
+    <h4>① 태스크 공간 × ② 분야(업종) × ③ 국가</h4>
+    <p>비AI 기존 기술은 ‘글로벌 전개’는 가능해도 <b>태스크 공간이 좁고 분야가 한 업종</b>에 그쳤다. 반면 기반모델로서의 피지컬 AI는 세 축 모두에서 폭이 넓어, 그 곱(3제곱)만큼 스케일한다. 비AI 기술과는 ‘차원이 다른’ 스케일성을 품고 있다.</p>
+  </div>
+
+  <h3 class="sub">메인프레임 시대에서 PC·스마트폰 시대로</h3>
+  <p>현재 로봇은 화상·3차원 인식 부분을 빼면 대부분 비AI로 움직여 할 수 있는 일이 한정적이고, 도입 때도 <strong>시스템 인테그레이터(SIer)에 의뢰해 개별 시스템을 개발</strong>하지 않으면 못 쓰는 경우가 대부분이다. 비AI는 도표 6의 ‘좁은 막대기’처럼 범용성이 낮아 용도마다 작성해야 하므로 개발비가 든다. 컴퓨터 역사에 비유하면 <strong>고가여서 일부 업종·일부 기업에서만 도입하던 옛 ‘메인프레임 전성기’</strong> 같은 것이다.</p>
+  <p>반면 기반모델로서의 피지컬 AI가 완성되면 추가 개별 개발이 거의 불필요해지고, <strong>최소한의 추가 설정·현장의 few-shot 예시·혹은 프롬프트만(zero-shot)으로</strong> 원하는 태스크를 실현한다. 기반모델 그대로는 실용 수준에 1%만 부족한 국면이라도, 현장에서 강화학습으로 그 특정 태스크용 성능을 부스트하거나(이 경우 자율적 시행착오로 학습하므로 <strong>현장 데이터를 준비할 필요가 없다</strong>), RAG 외부 DB로 그 기업 독특한 업무 흐름·지식을 참조시키면 대대적 추가 개발이 많은 경우 불필요해질 수 있다. 컴퓨터 역사로 치면 <strong>싸고 누구나 손쉽게 쓰는 PC·스마트폰 시대</strong>다.</p>
+
+  <h3 class="sub">‘SIer 육성이 시급’이라는 통념의 함정</h3>
+  <p>이렇게 성질이 다른 거대 신시장을 점칠 때, <strong>개별 시스템 구축을 상식·전제로 삼아 온 비AI 로봇 업계의 지견에 지나치게 의존하는 것은 득책이 아니다.</strong> 산업용 로봇으로 대표되는 현 로봇 업계의 지견은 공장·FA 영역에 치우쳐 있다. 예컨대 “로봇 보급을 위해 SIer 육성이 시급”이라고들 한다. 그러나 <strong>기반모델의 취지·정의는 이용 시 대대적 개별 개발을 ‘불필요하게’ 하는 것</strong>이다. SIer 육성이 병목이라면 그것은 ‘기반모델’이라 부르기 어렵다. 피지컬 AI를 단지 ‘물리 공간에서 움직이는 AI’로만 보고 기반모델로서의 본질을 경시하면 이런 논의가 되기 쉽다.</p>
+  <p>물론 기반모델을 기존 업무 시스템과 잘 연계시키는 개발이나, 하드웨어 면의 일정한 치구(治具) 개발·인프라 개선 등은 구간 Y 시대에도 필요하다. 시장 파이가 커지므로 이런 부분의 SIer 업무 총량은 오히려 늘 수도 있다. 다만 ‘비AI 로봇의 현 상태’를 전제로 기반모델 시대의 SIer 위상을 논하는 것은 부자연스럽다는 것이다.</p>
+  <p>하드웨어 면에서도 쌍팔 이동 매니퓰레이터·휴머노이드 등은 <strong>인간이 쓰는 도구·장치·환경을 가능한 한 손대지 않고 그대로 쓰게 하려는 것</strong>이 취지다. ChatGPT 모먼트 이후엔 피지컬 AI 쪽이 이런 인간용 도구를 능숙히 다룰 만큼 지적·고도가 돼 있을 것이다. 역으로 말하면, <strong>그 정도 임계값은 가볍게 넘지 못하면 피지컬 AI의 ChatGPT 모먼트는 영원히 오지 않는다</strong>(곧 시나리오 B).</p>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ⑩</span>
+    <h4>보상이 ‘비정상적으로’ 큰 이유와, ‘SIer 통념’의 모순</h4>
+    <p>· 폭은 <b>태스크×분야×국가 = 3제곱</b>으로 보상을 키움. 언어 장벽이 없어 글로벌 상품 → TAM/SAM 극대(모건스탠리: 2050년 790조 엔, 자동차 초과).<br>
+    · 패러다임: <b>메인프레임(개별 개발 필수) → PC·스마트폰(zero/few-shot)</b>.<br>
+    · 함정: ‘SIer 육성이 병목’이라는 통념은 ‘기반모델 = 개별 개발 불필요’라는 정의와 모순. 비AI 업계 지견에의 과의존을 경계.</p>
+  </div>
+</section>
+
+<section id="s11">
+  <span class="sec-no">11 · 결정적 증거</span>
+  <h2 class="sec">특화형을 범용형이 이긴다 — 메타(Meta)의 충격적 실험</h2>
+  <p class="pageref">원문 4~5쪽</p>
+
+  <p>그런데 ‘기반모델의 유효한 사전학습 레시피·성질·역할’은 왜 아직 연구 단계에서 잘 밝혀지지 않았는가. 이유는 <strong>실험 비용</strong>에 있다. 로봇 행동·카메라 화상·동영상을 포함한 멀티모달 기반모델의 성질을 분석하려면, <strong>거대한 모델·거대한 데이터에 대해 조건·패턴을 조금씩 바꾼 모델을 여러 개 준비해 GPU에서 장기간 학습시키고 성능을 비교</strong>해야 한다. 실험 1건만으로도 그런 거대 모델 여러 개를 학습·비교해야 하는데, 사전학습의 성질을 규명하려면 다양한 관점에서 다수의 실험을 더 해야 해 <strong>어지간한 GPU 비용으로는 어림없다.</strong></p>
+  <p>작은 모델로 예비 실험은 할 수 있지만, 기반모델은 <strong>100억 파라미터처럼 어느 정도 대규모가 돼야 비로소 나타나는 성질</strong>이 있어 작은 모델만으론 진짜 성질을 알 수 없다. 더구나 이런 실험은 극히 기초연구적이어서 결과가 현 사업의 ROI로 직결되리란 보장이 없고, 경우에 따라 <strong>아무런 유익한 분석 결과도 안 나올 수 있다.</strong> 이 또한 피지컬 AI가 고리스크인 한 원인이다. 결국 많은 기업이 머뭇거려 진짜 모습이 좀처럼 드러나지 않았다.</p>
+  <p>필자는 여기서 근래 대규모 AI 개발의 본질을 짚는다. 통상의 생성 AI든 피지컬 AI든 <strong>다분히 ‘실험 과학’적</strong>이어서, 아무리 우수한 연구자를 모아도 <strong>“한 달 학습시켜 보기 전엔 모른다”</strong>는 측면이 있다. “왠지 이걸로 잘될 것 같다/될 것이다”라는 읽기·신념 아래 개발을 진행하는 것 자체는 가능하고 대다수 기업이 그렇게 하지만, 그것과 <strong>“사전학습의 역할이 무엇인가, 무엇이 효과를 내는가”를 과학적으로 냉철히 검증·분석하는 것은 전혀 다르다.</strong></p>
+
+  <h3 class="sub">메타 FAIR + 뉴욕대(NYU)의 2026년 3월 논문</h3>
+  <p>그런데 최근 그 일단이 어렴풋이 보이기 시작했다. 대표 사례가 <strong>미국 메타 플랫폼스(Meta Platforms)의 연구기관 ‘Meta FAIR’과 뉴욕대학교(NYU)가 2026년 3월 발표한 논문</strong>이다. 로봇 행동(action)·화상·동영상·텍스트 등 광범위한 멀티모달 데이터를 써서 기반모델 사전학습의 성질·효과를 분석한 의욕적 연구로, AI 연구자들 사이에서 화제가 됐다.</p>
+
+  <div class="box figure">
+    <span class="tag">도표 8 — “특화 데이터는 기껏해야 1%면 충분”이라는 충격</span>
+    <h4>(a) 무엇을 실험했나 — NWM(Navigation World Model)</h4>
+    <p class="cap">로봇 카메라 화상의 시계열이 있을 때, 그 상태에서 어떤 로봇 행동(action＝이동)을 실행하면 <b>다음 시각엔 어떤 카메라 화상</b>이 될지, 그 화상 프레임을 생성·예측하는 ‘세계 모델’적 태스크(로봇 이동＝내비게이션 상정). <b>특화형 데이터</b>＝이 ‘시계열 화상＋로봇 행동’ 쌍. <b>범용 데이터</b>＝이 태스크와 무관한 인터넷 일반 동영상이나, 화상＋설명 텍스트 쌍.</p>
+    <h4 style="margin-top:14px;">(b) 충격적 결과 — 범용형이 특화형을 ‘직접’ 이겼다</h4>
+    <p class="cap">특정 태스크에 <b>특화한 데이터를 대량으로</b> 준 모델보다, 그 태스크와 직접 관계없는 <b>범용 데이터</b>를 조합한 모델이 <b>바로 그 특정 태스크</b>에서 성능이 더 좋았다. 여러 실험의 ‘평균’에서 이긴 게 아니라, 도표 6의 ‘좁은 막대기(내로밴드)’ 같은 그 특정 태스크 평가에서, 더 적은 특화 데이터를 받은 범용 모델이 특화형을 <b>이겨 버렸다.</b> 통상의 직관에 반하는 결과다.</p>
+    <h4 style="margin-top:14px;">(c) 더 충격적인 정량 — 특화 데이터는 ‘1%’면 포화</h4>
+    <p class="cap">사전학습 데이터 안에서 특화형 데이터의 비율을 다양하게 바꿔 성능을 측정한 결과, <b>특화형 데이터는 전체의 단 1%만 있어도 충분</b>하고 그 이상 늘려도 성능 향상에 거의 기여하지 않고 <b>포화</b>했다. 기반모델에선 ‘특화 데이터’보다 ‘폭넓은 사전학습’에 대부분의 가치가 있음을 보여 준다.<br>(출처: S. Tong et al., “Beyond Language Modeling: An Exploration of Multimodal Pretraining,” arXiv:2603.03276, CC BY 4.0)</p>
+  </div>
+
+  <div class="box note">
+    <span class="tag">주(注) — 평가 방법</span>
+    <p>로봇 행동은 x·y 이동량과 회전각을 ‘텍스트 정보’로 주고, 이동 후 광경을 화상으로 예측하게 한다. 다만 실제 평가는 세계 모델의 기하·공간 예측 능력을 검증하기 위해, 예측된 화상으로부터 로봇 행동을 <b>CEM(cross-entropy method)</b>으로 최적화 추정하고, 그 조작을 8스텝 자기회귀적으로 실시한다. 이 8스텝 궤적이 정답과 얼마나 합치하는지 <b>ATE(궤도 오차)</b>와 <b>RPE(각도 성분 오차)</b> 두 종류로 수치 평가했다.</p>
+  </div>
+
+  <h3 class="sub">메타만의 결과가 아니다 — NVIDIA의 방증</h3>
+  <p>물론 이 실험은 환경이 ‘정적(static)’이고, 미래 피지컬 AI의 주역이 될 ‘상반신 매니퓰레이션(환경이 동적)’ 그 자체도 아니어서 결과를 곧이곧대로 받아들일 수는 없다. 그러나 매니퓰레이션에 초점을 둔 선단 연구에서도 같은 방향이 나타난다. 본지가 2026년 3월호에서 해설한 <strong>미국 엔비디아(NVIDIA)의 ‘Cosmos Policy’</strong>, 4월호의 <strong>‘DreamZero’</strong>에서도, 로봇 원격조작 데이터 같은 ‘특화형 데이터’보다 <strong>동영상 같은 ‘범용 데이터’를 늘리는 편이 성능이 좋아진다</strong>는 것이 제시됐다. 메타의 결과와 방향성이 합치한다.</p>
+
+  <div class="box concept">
+    <span class="tag">기술 지형</span>
+    <h4>VLA에서 VAM·세계 모델로</h4>
+    <p>지금까지 피지컬 AI는 LLM 기반의 <b>VLA(vision-language-action)</b> 모델이 주류였다. LLM을 ‘로봇 원격조작 데이터’로 재학습·모방학습시킨 것으로, 미국 Physical Intelligence의 ‘π*0.6’·‘π0.5’, 구글이 휴머노이드 기업에 한정 배포한 ‘Gemini Robotics’ 등이 대표다. 그런데 동영상 생성 모델 기반의 <b>VAM(video-action model)·세계 모델</b>적 접근이 유망 수법으로 대두해 성능 면에서 VLA에 육박하고 있다.</p>
+  </div>
+
+  <p>‘현장 데이터’는 흔히 어떤 업무에 ‘특화된’ 데이터일 수밖에 없다. 메타의 연구, 엔비디아의 Cosmos Policy·DreamZero 등 최근 수개월의 최신 연구는 모두 <strong>“특화형 데이터만 대량으로 있어도 유효하지 않다”</strong>는 지견을 보여 준다. ‘현장 데이터가 승부수’라는 담론은 이 점에서도 액면 그대로 받아들여선 안 된다.</p>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ⑪ — ‘승부수론’의 결정적 균열</span>
+    <h4>데이터로 증명된 ‘폭 우위’</h4>
+    <p>메타 FAIR×NYU 실험: ⑴ 범용 데이터 모델이 <b>특화 태스크에서조차</b> 특화 모델을 이김. ⑵ 특화 데이터는 <b>전체의 1%면 포화</b>. 엔비디아 Cosmos Policy·DreamZero도 같은 방향. → ‘현장(특화) 데이터 대량 보유 = 승리’라는 등식이 <b>실증적으로</b> 흔들린다. 가치의 99%는 ‘폭넓은 사전학습’에 있다.</p>
+  </div>
+</section>
+
+<section id="s12">
+  <span class="sec-no">12 · 개념의 재정의</span>
+  <h2 class="sec">‘현장 데이터’의 의미가 바뀌고 있다</h2>
+  <p class="pageref">원문 5~6쪽</p>
+
+  <p>그렇다면 애초에 ‘현장 데이터’란 무엇을 가리키는가. 흔히 일본 기업은 질 좋은 노동자에 떠받쳐 ‘좋은 현장을 가졌다’지만, 그것을 <strong>‘AI에 살릴 수 있는 형태로 데이터화하지 못했다’</strong>고들 한다.</p>
+  <p>현장 작업자의 질이 좋다면 모방학습 등으로 그들의 동작을 모아 좋은 모델을 만들 소지는 있다. 그러나 <strong>이미 그런 ‘사람의 동작 데이터’를 AI에 쓸 수 있는 형태로 보유한 경우는 드물다.</strong> ‘현장 데이터가 승부수’냐 이전에, <strong>‘현장 데이터’ 자체가 별로 존재하지 않을 가능성</strong>이 높다는 것이다.</p>
+
+  <div class="box note">
+    <span class="tag">주(注) — 트레이서빌리티 영상의 한계</span>
+    <p>최근 공장·서비스 현장에서도 작업 결과의 추적(트레이서빌리티)을 위해 작업자 머리 위 등에 카메라를 설치해 손동작까지 일정 기간 보존하는 일이 늘었다. 이런 동영상은 피지컬 AI 학습에 쓸 가능성이 높다. 다만 범용 로봇에 세밀한 작업을 시키려면 손·도구에 의한 <b>오클루전(사각)</b>을 줄이고 워크의 밀리미터 위치를 파악하기 위해, 머리 위 부감 영상뿐 아니라 <b>손끝에 수 cm로 근접한 카메라(쌍팔의 손끝 카메라 등)</b>가 필수인 경우가 많다. 현재의 부감 카메라 영상만으로 충분한 정밀도가 나오리란 보장은 없다.</p>
+  </div>
+
+  <h3 class="sub">‘설비의 가동 데이터’와 ‘피지컬 AI’의 혼동</h3>
+  <p>일본은 제조업에 강해 공작기계·플랜트 등 <strong>‘설비의 가동 데이터가 고도로 축적됐다’</strong>는 담론도 있다. 그러나 지금 기술이 뻗고 있는 피지컬 AI는 기본적으로 <strong>‘사람의 육체노동’</strong>에 뿌리를 둔다. 기존 설비·장치 주변에서 기계에 맡기지 못하는 작업은 현재 사람이 해야 하고, 그래선 자동화가 안 되니, <strong>사람의 육체노동 ‘궤적’을 수집해 피지컬 AI 모델로 만들어 범용 로봇에 시키자</strong>는 흐름이다.</p>
+  <p>즉, 설비·장치로 자동화하기 어려워 <strong>설비의 ‘바깥쪽’으로 밀려난 ‘자질구레한 이름 없는 육체노동’</strong>의 자동화로 곤란을 겪는데, ‘설비 안쪽의 가동 데이터’가 축적돼 있어도 범용 로봇용 피지컬 AI로는 쓸 길이 없다. IoT의 설비 고장 예지·예지보전이라면 ‘설비 안쪽 가동 데이터’가 유용하지만, <strong>그것이 피지컬 AI와 혼동</strong>되고 있다. ‘물리 공간에서 움직이는 AI’라는 측면만 홀로 부각돼 IoT와 뒤섞이고, “물리 공간이니 설비 가동 데이터도 관련”이라는 오해가 생기는 것이다.</p>
+
+  <div class="box concept">
+    <span class="tag">필자의 제안</span>
+    <h4>차라리 ‘가텐(ガテン) AI’·‘레이버(Labor) AI’로 부르자</h4>
+    <p>‘피지컬 AI’라는 이름은 아무래도 IoT·설비·장치가 포함되는 듯 오해를 부른다. 그래서 <b>인간의 육체노동을 직접 연상시키는 ‘가텐 AI’·‘레이버 AI’</b> 같은 이름이 더 정확할지 모른다(‘가텐’은 일본어로 막일·현장 노동을 뜻하는 속어). 참고로 예지보전이라면 기반모델 같은 거창한 도구를 꺼낼 것 없이 기존 머신러닝으로 풀면 된다.</p>
+  </div>
+
+  <h3 class="sub">데이터 수집은 ‘경량화’ 방향으로 — 데이터 수집 공장 vs UMI</h3>
+  <p>현재 피지컬 AI 학습 데이터로는 <strong>‘로봇을 사람이 원격조작한 데이터’</strong>가 자주 쓰인다(표 1). 원격조작 전용 디바이스와 로봇 본체로, 원격조작 시 손끝 자세·관절 좌표의 시계열과 로봇 카메라 동영상을 기록한다. 중국 등에선 로봇과 원격조작 오퍼레이터를 대량 배치해 가정·점포를 모의한 환경에서 데이터를 모으는 <strong>‘데이터 수집 공장’</strong>이 많이 설치됐다고 한다. 이를 받아 일본에서도 데이터 수집 공장을 만들어 따라잡아야 한다는 지적이 자주 들린다.</p>
+
+  <div class="box figure">
+    <span class="tag">표 1</span>
+    <h4>피지컬 AI의 학습 데이터 원천(源) 일람</h4>
+    <p class="cap">데이터 수집 수단·종류는 ‘무거운’ 것에서 ‘가벼운’ 것으로 이동 중이다: ① 로봇 원격조작(원격조작 디바이스＋로봇 본체, 무거움) → ② UMI 같은 핸드헬드 디바이스(로봇 본체 불필요, 가벼움) → ③ (장차) Sim-to-real 합성 데이터(실데이터 수집 자체가 거의 불필요해질 가능성).</p>
+  </div>
+
+  <p>그러나 <strong>데이터 수집 수단은 경량화 방향으로 진행 중</strong>이다. 대표가 본지 전호에서 소개한 제너럴리스트 AI의 ‘GEN-1’이다. <strong>‘UMI(universal manipulation interface)’</strong>라는 핸드헬드 디바이스를 주체로 데이터를 모았다. 로봇 손목부와 손끝 카메라만 떼어 낸 듯한 장치로, 사람이 그것을 들고 태스크를 수행·기록한다. 고가의 로봇 본체나 원격조작 디바이스가 불필요해 <strong>수집 효율이 높고, 같은 리소스·자금으로 더 많은 데이터</strong>를 만들 수 있어, GEN-1이 높은 성능을 낸 한 요인이 됐다.</p>
+  <p>제너럴리스트 AI의 입장을 대변하면 <strong>“데이터 수집 공장에서 로봇 원격조작으로 데이터를 만드는 것은 시대에 뒤떨어졌고 난센스”</strong>로 보일 것이다. 일본은 아무래도 데이터 수집 공장 같은 <strong>‘눈에 보이는 상자(箱物)·인프라’에 주목이 쏠리고, AI의 본질인 ‘눈에 보이지 않는 소프트적 기술’에는 눈이 가기 어렵다.</strong></p>
+
+  <h3 class="sub">극단의 미래 — Sim-to-real이 ‘1만 년 치 시행착오’를 돌린다</h3>
+  <p>앞서 말한 Sim-to-real이 상반신 매니퓰레이션에서도 실용 수준이 되면, 원격조작·UMI로 모은 데이터조차 거의 불필요해질 가능성도 0은 아니다(표 1). 현재는 접촉력의 모의 정밀도 등에 난점이 있으나 해결될 가능성이 없다고 할 수 없다. 그렇게 되면 사람의 동작을 아날로그적 수단·실시간으로 일부러 수고스럽게 모을 것 없이, <strong>GPU상의 강화학습 탐색으로 사람이 떠올리지 못할 우수한 동작·암묵지(暗黙知)마저 자동 발견</strong>될 수 있다. GPU 시뮬레이션은 동시 병렬로, 실시간보다 빠르게 시간을 진행할 수 있어 <strong>‘1만 년 단위’의 시행착오</strong>도 돌릴 수 있다.</p>
+
+  <div class="box warn">
+    <span class="tag">불편한 진실</span>
+    <h4>현장 데이터 보유 여부가 ‘무관’해지는 세계</h4>
+    <p>그렇게 되면 현장 데이터를 가졌는지 따위는 더 이상 관계없고, <b>대량의 계산 자원을 돌릴 수 있는 기업이야말로 유리</b>해진다. “현장 데이터가 강점”이라고 믿는 측에는 실로 받아들이기 어렵고 불편한 사태다.</p>
+  </div>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ⑫</span>
+    <h4>‘현장 데이터’ 개념의 3중 해체</h4>
+    <p>① <b>존재론적</b>: AI에 쓸 형태의 현장 데이터는 ‘애초에 별로 없다’(손끝 카메라 등 요건도 까다로움). ② <b>범주 오류</b>: ‘설비 안쪽 가동 데이터(IoT·예지보전)’와 ‘사람 육체노동(피지컬 AI)’의 혼동 → 차라리 ‘가텐/레이버 AI’. ③ <b>수단의 경량화</b>: 데이터 수집 공장(무거움) → UMI(가벼움) → Sim-to-real(데이터 불필요). 일본은 ‘보이는 상자’에 끌리고 ‘보이지 않는 소프트’를 놓친다.</p>
+  </div>
+</section>
+
+<section id="s13">
+  <span class="sec-no">13 · 경고</span>
+  <h2 class="sec">또다시 ‘쓰라린 교훈’인가 — 리처드 서튼</h2>
+  <p class="pageref">원문 6쪽</p>
+
+  <p>인간은 아무래도 자신들이 오랜 세월 갈고닦은 창의·지혜, 전문가의 고도 지식이 ‘쓸모 있을 것이다, 쓸모없을 리 없다’고 믿기 쉽다. 그러나 AI·머신러닝 영역에서는 그런 <strong>‘전문가의 지견’이 계산 자원의 스케일·탐색에 ‘져 버리는’ 사태</strong>가 몇 번이고 일어났고, 그 현상엔 이미 이름까지 붙어 있다.</p>
+
+  <div class="box figure">
+    <span class="tag">도표 9</span>
+    <h4>‘쓰라린 교훈(bitter lesson)’을 제창한 강화학습의 거장 리처드 서튼(Richard Sutton)</h4>
+    <p class="cap">LLM의 RLHF나 휴머노이드 로코모션(Sim-to-real) 등에서 활약하는 ‘강화학습’ 영역을 일으킨 대가. AI 연구자에게 매우 저명한 경구의 주인공.</p>
+  </div>
+
+  <div class="box quote">
+    <span class="tag">The Bitter Lesson</span>
+    <blockquote>“인간이 자의적으로 ‘작성한’ 수법은, 결국 대량의 데이터에서 계산 자원을 구사해 도출한 수법에 진다.”</blockquote>
+    <cite>— 리처드 서튼의 ‘쓰라린 교훈’ 취지. 연구자 입장에서 ‘분하다(悔しい)’는 뜻에서 ‘쓰라린(bitter)’이라 명명됐다.</cite>
+  </div>
+
+  <p>연구자로서는 자신의 고도 지견을 살려 우수한 알고리즘·수법·특징량을 고안하려 하지만, 최종적으로 인간이 손으로 빚은 수법은 데이터＋계산 자원이 도출한 수법에 패배하는 일이 거듭됐다. <strong>“인간의 동작을 수집하는 게 좋다”·“특정 태스크의 데이터가 도움이 된다”는 현재 피지컬 AI의 레시피도, 어쩌면 인간 측의 자의적 ‘믿음’일 수 있고, ‘쓰라린 교훈’의 한 사례가 돼 버릴 사태가 없다고 할 수 없다.</strong></p>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ⑬</span>
+    <h4>‘현장 데이터·인간 노하우’ 신앙에 대한 최종 경고</h4>
+    <p>AI 역사에서 ‘인간의 솜씨’는 거듭 ‘계산 스케일+탐색’에 패배했다(=쓰라린 교훈). “사람 동작을 모으자”, “특화 데이터가 답”이라는 피지컬 AI의 현재 레시피마저 인간의 자의적 가정일 수 있다. §7~§12의 모든 논증이 이 한 문장으로 수렴한다 — <b>데이터·노하우보다 ‘스케일과 탐색’에 베팅하라.</b></p>
+  </div>
+</section>
+
+<section id="s14">
+  <span class="sec-no">14 · 처방의 시작</span>
+  <h2 class="sec">그래서 어떻게 할 것인가 — “일본엔 돈이 없다”는 거짓이다</h2>
+  <p class="pageref">원문 6~7쪽</p>
+
+  <p>여기까지 피지컬 AI의 현재 성질을 보았다. 그렇다면 일본은 이 주제에 어떻게 임해야 하는가. 필자의 답은 명료하다. <strong>‘3제곱’으로 효과를 내는 고리턴을 감안하면, 설령 고리스크라도 도전해야 한다.</strong> 그러지 않으면 미래의 거대 시장 한 귀퉁이에도 끼어들 수 없다.</p>
+  <p>물론 ‘구간 Y 시기가 된 뒤 따라잡으면 된다’는 전략도 있을 수 있다. 그러나 <strong>나라 안에서 전략을 하나로 좁힐 게 아니라 몇 가지 선택지를 갖고 있어야</strong> 하며, ‘일찌감치 이 경쟁에 몸을 던지는’ 전략도 함께 실행해 둬야 한다.</p>
+
+  <h3 class="sub">통념 깨기 — “자금이 없다”와 “자금이 안 돈다”는 다르다</h3>
+  <p>그렇다면 이 고리스크·고리턴 투자 주제를 감당할 자금은 무엇인가. 여기서 흔히 나오는 담론이 <strong>“일본엔 돈이 없다”</strong>이다. 확실히 일본 연구자·기술자 개개의 현장에선 개발 자금이 부족한 일이 많아, 기술자의 ‘미시적 실감’으로 그렇게 느끼는 것은 어쩔 수 없다. <strong>그러나 그것과 “일본에 자금이 없다”는 전혀 별개의 문제다.</strong></p>
+
+  <div class="stat-row">
+    <div class="stat"><div class="n">약 2,350<small>조 엔</small></div><div class="l">일본 <b>개인 금융자산</b> 총액 (도표 10)</div></div>
+    <div class="stat"><div class="n">약 630<small>조 엔</small></div><div class="l">일본 기업 <b>내부유보</b> 총계 (도표 10)</div></div>
+    <div class="stat"><div class="n">약 50<small>%</small></div><div class="l">개인 금융자산 중 <b>저리 은행예금·현금</b> 비중 (일본은행 자금순환통계)</div></div>
+  </div>
+
+  <p>일본은 한때 세계 2위 경제 대국이었고, 그 과거의 영광도 있어 지금도 <strong>개인 금융자산 약 2,350조 엔, 기업 내부유보 총계 630조 엔</strong>에 이른다. 세계에서도 손꼽히는 규모다. 거시(macro) 차원에서 “일본에 자금이 없다”고는 도저히 말할 수 없고, 막대한 자금이 있다.</p>
+  <p>문제는 <strong>이 자금의 대부분이 저(低)이율에 고정돼, ‘산업의 혈액’인 ‘리스크 머니’로 적절히 돌지 않는다</strong>는 점이다. 개인 금융자산의 약 5할이 저리 은행예금·현금이고, 그 다수가 대기업 융자나 국채로 향한다. <strong>‘안심·안전’이 미덕</strong>이고 그것을 한결같이 좇는 경향이 강한 일본에서는, 고리턴을 좇아 고리스크를 지는 자세가 “탐욕스럽다”·“실패하면 어쩌나”·“무모하다”고 비난받기 쉽다. 결과적으로 사회의 이해관계자들이 <strong>‘감점’·‘규탄’을 두려워해 의사결정이 ‘저이율적’</strong>이 되기 쉬웠다.</p>
+
+  <div class="box concept">
+    <span class="tag">필자의 낙관 근거</span>
+    <h4>‘홈런 한 방’이 조류를 바꾼다</h4>
+    <p>피지컬 AI 같은 큰 기회가 있다면 이런 풍조를 일부라도 고쳐야 한다. 비록 소수라도 주위 풍조에 맞서 도전하는 이들이 있다면, 그 성공을 계기로 조류가 바뀐다. <b>홈런급 성과가 하나라도 나오면</b> 그것을 롤모델로 사회도 변할 수 있다. 피지컬 AI에서 <b>‘미래의 엔비디아’가 일본發로</b> 나오지 말란 법도 없다.</p>
+  </div>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ⑭</span>
+    <h4>‘돈 없다’ 통념의 전복</h4>
+    <p>미시(개별 연구자) 차원의 ‘자금난’ 실감을 거시로 외삽한 “일본엔 돈이 없다”는 거짓. 실제론 <b>2,350조 엔(개인)+630조 엔(기업)</b>으로 세계 유수. 문제는 ‘양’이 아니라 ‘<b>순환</b>’ — 안심·안전·감점주의가 자금을 저이율에 묶어 ‘리스크 머니’로 흐르지 못하게 한다. 처방은 ‘돈을 만드는 것’이 아니라 ‘돈을 돌리는 것’.</p>
+  </div>
+</section>
+
+<section id="s15">
+  <span class="sec-no">15 · 자금의 출처</span>
+  <h2 class="sec">수천억~수조 엔을 댈 세 주체 — 정부·대기업·스타트업</h2>
+  <p class="pageref">원문 7쪽</p>
+
+  <p>피지컬 AI에 필요한 <strong>수천억~수조 엔</strong>의 자금을 댈 주체는 셋이다(표 2). ① 일본 정부(일반회계·특별회계 등), ② 대기업의 R&D 투자, ③ 스타트업 에코시스템.</p>
+
+  <table class="tbl">
+    <thead><tr><th>출처</th><th>강점</th><th>약점·한계</th></tr></thead>
+    <tbody>
+      <tr><td><b>① 정부</b><br>(일반·특별회계)</td><td>자금 규모가 크다. 적극재정 전환으로 AI 예산 확충(2026년도 3,873억 엔)</td><td>공평성 배려·다수 이해관계자 참여로 조정·의사결정 속도 저하 우려</td></tr>
+      <tr><td><b>② 대기업</b><br>R&D 투자</td><td>630조 엔의 내부유보. 자금 여력은 충분</td><td>이노베이션의 딜레마. 기존 사업과 시너지 설명이 어려운 고불확실 안건엔 소극적. ‘유저 시점’에 갇히기 쉬움</td></tr>
+      <tr><td><b>③ 스타트업</b><br>에코시스템</td><td>리스크 머니 공급에 특화. 기존 사업의 굴레가 없어 ‘기반모델의 폭’을 최대로 살림. <b>가장 적합</b></td><td>(후편의 주제) 일본은 그간 충분한 리스크 머니·인재가 흘러오지 않았다</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">① 정부 — ‘AI 로보틱스 전략’과 3,873억 엔</h3>
+  <p><strong>다카이치 정권(高市政権)</strong>이 들어서 <strong>적극재정</strong>으로 키를 틀면서 AI 관련 예산이 확충됐다. 2026년 3월에는 정부가 <strong>‘AI 로보틱스 전략’</strong>을 내놓고, 피지컬 AI에 2026년도 예산으로 <strong>3,873억 엔</strong>을 거출하기로 했다(정식 사업명: ‘AI 로봇·피지컬 AI를 내다본 멀티모달 기반모델 개발 사업’). 이 사업에는 <strong>소프트뱅크·NEC·혼다 등이 출자한 ‘일본 AI 기반모델 개발’이라는 기업</strong>이 응모 예정이라 한다.</p>
+  <p>자금 규모도 커 기대되는 시도지만, 필자는 단서를 단다. 피지컬 AI의 장래 시장 규모를 감안하면 <strong>국가 프로젝트 지원 기업에 국한하지 말고 더 많은 도전자가 나와야</strong> 한다. 국가 프로젝트는 정부 자금을 쓰는 데 따른 <strong>공평성 배려</strong>, 다수 이해관계자 참여에 따른 <strong>조정·의사결정 속도의 열후(劣後)</strong> 같은 단점이 생길 수 있다.</p>
+
+  <div class="box note">
+    <span class="tag">주(注) — 재원은 ‘GX 이행채(GX債)’</span>
+    <p>이 사업의 재원은 <b>‘GX 경제이행채(GX債, 탈탄소 성장형 경제구조 이행채)’</b>라는 유형의 국채다. GX채는 ‘기후 트랜지션 이표부 국채(CT債)’로 발행되는 것이 주체로, <b>카본 프라이싱</b>(화석연료 부과금 등 탄소 과금)으로 상환하는 점이 통상 국채와 다르다. 용도는 탈탄소 이행에 이바지하는 것 등으로 한정된다. GX채는 2023년부터 10년간, 약 20조 엔 규모 발행 예정이며, 피지컬 AI 사업은 이 GX채를 토대로 <b>NEDO</b> 경유로 집행된다. ‘목적이 붙은 재원’에 뒷받침된다는 점이 통상 지출과 다르다.</p>
+  </div>
+
+  <h3 class="sub">② 대기업 — ‘이노베이션의 딜레마’</h3>
+  <p>대기업은 <strong>이노베이션의 딜레마</strong>로 고리스크·고리턴 신규 사업에 투자하기 어렵다. 내부유보가 630조 엔이나 된다는 것은, 뒤집으면 그만큼 오랫동안 리스크 머니 투자에 소극적이고 <strong>자본 효율이 낮은 상태</strong>라는 뜻이기도 하다. 일본의 ‘잃어버린 20년’이 그 방증이다. 공장 건설처럼 투자 대비 효과를 설명하기 쉬운 안건은 큰 규모라도 내딛기 쉽지만, 피지컬 AI처럼 불확실성이 높고 기존 사업과의 시너지도 설명하기 어려운 안건은 허들이 더 높다. 특히 기존 사업을 안은 대기업은 시점이 특정 사업·도메인의 <strong>‘유저적 입장’에 치우치기 쉬워, 기반모델 본래의 폭·범용성을 충분히 끌어내기 어렵다.</strong></p>
+
+  <h3 class="sub">③ 스타트업 — “가장 적합한 주체”</h3>
+  <p>이런 상황을 감안하면, 피지컬 AI에 리스크 머니를 공급하기에 가장 적합한 것은 <strong>③ 스타트업 에코시스템</strong>이다. 스타트업 에코시스템은 본래 <strong>리스크 머니 공급에 특화된 구조</strong>로, 피지컬 AI 같은 고리스크·고리턴·고불확실 투자 안건에 가장 알맞다. 기존 사업의 굴레가 일절 없어 <strong>기반모델로서의 폭을 마음껏 살릴 수 있다.</strong></p>
+
+  <div class="box concept">
+    <span class="tag">전편 → 후편 연결</span>
+    <h4>그런데, 일본의 스타트업 생태계는 이를 ‘떠받칠 수 있는가’?</h4>
+    <p>그렇다면 일본의 스타트업 에코시스템은 이 ‘긴급한 투자 주제’를 과연 떠받칠 수 있는가. <b>〔후편〕</b>에서는 바로 이 점을 자세히 들여다본다(후편 부제: “일본의 스타트업 에코시스템은 거액이 필요한 피지컬 AI를 떠받칠 수 있는가”).</p>
+  </div>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ⑮</span>
+    <h4>‘누가 돈을 댈 것인가’의 결론</h4>
+    <p>· <b>정부</b>: 규모는 크나(3,873억 엔, GX채·NEDO) 공평성·속도 한계. ‘국가 PJ’ 밖의 도전자도 필요.<br>
+    · <b>대기업</b>: 630조 엔이 있어도 ‘이노베이션의 딜레마’+‘유저 시점’ → 폭을 못 살림.<br>
+    · <b>스타트업</b>: 리스크 머니 특화+굴레 없음 → <b>가장 적합</b>. 다만 일본 생태계가 받쳐 줄지가 관건(→ 후편).</p>
+  </div>
+</section>
+
+<section id="s16">
+  <span class="sec-no">16 · 부록 칼럼</span>
+  <h2 class="sec">일본 피지컬 AI에 대한 ‘9가지 오해’</h2>
+  <p class="pageref">원문 7~8쪽</p>
+  <p>기사 본문과 별도로, 필자는 일본에서 널리 퍼진 통념을 <strong>‘9가지 오해(誤解)’</strong>로 정리해 하나씩 반박한다. 본문 논지의 ‘응축판’이라 할 수 있다.</p>
+
+  <div class="myth">
+    <div class="head"><div class="num">1</div><div class="q">“GAFAM이 갖지 못한 현장 데이터가 일본의 승부수가 된다”</div></div>
+    <div class="body">
+      <div class="truth">▶ 실제</div>
+      <p>현장은 일본에만 있지 않다. 패스트푸드 주방도, 화장실 청소도, 물류도, 농작업도 <b>전 세계에</b> 있다. ‘일본은 특수하다’는 전제는 일단 버리는 게 좋다. 설령 일본에 강한 현장이 있어도 <b>피지컬 AI에 쓸 형태로 디지털화</b>하지 못하면 의미가 없다. 소극적인 일본 대기업에 ‘용기’를 주는 슬로건으로는 빼어나지만, 내용 자체는 과도하게 낙관적으로 단순화돼 있다.</p>
+    </div>
+  </div>
+
+  <div class="myth">
+    <div class="head"><div class="num">2</div><div class="q">“장인의 기술·직인예(職人芸)를 피지컬 AI로 만드는 것이 일본의 승부수다”</div></div>
+    <div class="body">
+      <div class="truth">▶ 실제 — “순서가 거꾸로다”</div>
+      <p>실용화 순서는 <b>먼저 ‘누구나 할 수 있는 저난도 태스크’</b>가 사업화·보급되고, 기술이 상당히 진화한 ‘훨씬 뒤’에야 ‘장인의 기술’이 AI화된다. 메타 FAIR 논문을 보면, 사람의 1인칭(egocentric) 동영상 등 폭넓은 멀티모달로 사전학습한 피지컬 AI는 ‘일본 강점의 현장 데이터’ 없이도 장차 ‘누구나 할 수 있는 태스크’를 zero/few-shot으로 해낼 수 있다. 노동시장엔 ‘미경험자 OK’ 일이 넘치는데(요즘 유행어로 ‘타이미(タイミー)’가 하는 일), ChatGPT 모먼트가 오면 직인기 같은 니치보다 <b>먼저 이런 아르바이트적 태스크가 로봇화</b>되고(볼륨도 이쪽이 큼), 거기서 점유율을 쥔 벤더가 번 자금을 무기로 장인기로 진출한다. 통념은 순서가 거꾸로다.</p>
+    </div>
+  </div>
+
+  <div class="myth">
+    <div class="head"><div class="num">3</div><div class="q">“피지컬 AI의 파급은 서서히 진행된다”</div></div>
+    <div class="body">
+      <div class="truth">▶ 실제 — “기술은 점진적, 사회 임팩트는 비연속”</div>
+      <p>연구 수준에선 점진적 개선이 맞다. 그러나 기반모델의 <b>사회적 임팩트는 기술 수준이 어떤 임계값을 넘는 순간 갑자기 증대</b>한다. 기술 진화는 점진적이어도 사회 임팩트는 비연속으로 발생한 것처럼 보이는 것이 기반모델의 성질이다(LLM의 ChatGPT 모먼트가 그러했다). 딥러닝 초기(CNN+ImageNet 파인튜닝)의 옛 이미지에서 한 번 벗어나야 한다. ‘우리 회사 자랑의 현장 데이터’로 파인튜닝해야 쓸 만하다면 그건 AI일지언정 ‘기반모델’이 아니다. 세계가 주목하는 것은 ‘물리 공간에서 쓸 수 있는 AI’가 아니라 <b>‘기반모델의 성질을 가진 AI가 물리 공간에서도 쓰인다’</b>는 기대다.</p>
+    </div>
+  </div>
+
+  <div class="myth">
+    <div class="head"><div class="num">4</div><div class="q">“피지컬 AI는 이제 연구 과제는 해결됐다. 남은 건 사회 실装뿐”</div></div>
+    <div class="body">
+      <div class="truth">▶ 실제</div>
+      <p>현시점에도 기초연구 과제가 많다. 사전학습의 효과·레시피 등 <b>인류 전체에게 미지</b>인 요소가 아직 많다. 이를 돌파하려면 머신러닝에 고도 지견을 가진 연구자들이 전 세계에서 칼을 갈며 암중모색하는 수밖에 없다. 인력난의 유저 기업이 현장에서 아무리 ‘쓸 곳’을 궁리해도 이런 <b>기초연구 과제 돌파에 직접 기여할 수는 없다.</b> 정말 돌파하려면 GAFAM·세계 스타트업처럼 고급 연구자를 다수 거느리고 <b>수백~수천억 엔의 고리스크 투자</b>를 각오해 세계전(戦)에 참전하는 수밖에 없다.</p>
+    </div>
+  </div>
+
+  <div class="myth">
+    <div class="head"><div class="num">5</div><div class="q">“피지컬 AI는 인력 부족의 구세주가 된다”</div></div>
+    <div class="body">
+      <div class="truth">▶ 실제 — “장기적으론 그럴 수 있으나, 시기가 불확실”</div>
+      <p>ChatGPT 모먼트를 무사히 맞는다는 조건부로 장기적으론 그럴 수 있다. 다만 그 시기 예측이 극히 어렵다. 수년 내일 수도, <b>10년 뒤</b>일 수도 있다. <b>자율주행</b>이 10여 년 전 크게 주목받고도 이후 10년을 실용화에 고전한 것과 같은 일이 피지컬 AI에서도 일어날 수 있다. 전형적 ‘고리스크·고리턴’이되, 리스크 정도(자금 규모)도 성공 시 범용성(리턴)도 <b>통상 기술과 비교가 안 될 만큼 ‘자릿수’가 다르다</b>는 점에 유의해야 한다.</p>
+    </div>
+  </div>
+
+  <div class="myth">
+    <div class="head"><div class="num">6</div><div class="q">“일본엔 자금이 없다. 그래서 미·중과의 정면승부는 어렵다”</div></div>
+    <div class="body">
+      <div class="truth">▶ 실제</div>
+      <p>연구자·기술자가 개별 안건에서 만성적 자금난에 시달리는 현장 감각을 거시로 외삽한 ‘넋두리’일 뿐, 옳지 않다. 일본은 개인 금융자산 약 <b>2,350조 엔</b>, 기업 내부유보 합계 약 <b>630조 엔</b>으로 세계 유수다. ‘자금이 없는’ 게 아니라 그것이 <b>‘산업의 혈액’으로 돌지 않을</b> 뿐이다. 개인 금융자산의 약 5할이 저리 예금·현금으로 대기업 융자·국채에 묶여 있다. 리스크를 두려워하는 보수성과 ‘실패한 자를 비웃는’ 감점주의가 자금을 저이율에 고정한다. <b>“자금 자체는 있다”</b>이니, 돌리는 구조·동기만 고치면 일본은 바뀔 수 있다. 남은 시간은 많지 않다. 지금이 움직일 때다.</p>
+    </div>
+  </div>
+
+  <div class="myth">
+    <div class="head"><div class="num">7</div><div class="q">“일본은 미국제 피지컬 AI를 ‘쓰면’ 된다”</div></div>
+    <div class="body">
+      <div class="truth">▶ 실제 — “‘로봇의 두뇌’를 남에게 의존하는 건 위험”</div>
+      <p>경제안보·보안 맥락을 떠나, 피지컬 AI를 ‘벤더로서’ 다루는 개별 기업 관점에서도 ‘로봇의 두뇌’를 타사에 의존하는 것은 바람직한 전략이 아니다(단순 ‘유저’는 별개). 로봇·로봇 서비스의 부가가치에서 <b>소프트웨어(AI·백엔드)의 비중</b>이 커질수록, 그 핵심인 피지컬 AI는 내부에서 통제할 수 있어야 자유도가 높다. 현재 오픈 모델도 일부 배포되지만 언제까지 이어질 보장은 없고, ChatGPT 모먼트 이후엔 프런티어 모델처럼 <b>클로즈드</b>로 갈 공산이 크다(그때 옛 오픈 모델은 낡아 못 씀). 실시간성 때문에 엣지(로컬) 실행도 필요한데, 모델 파라미터를 숨기는 <b>TEE·Confidential Computing</b>이 엣지 GPU로도 확산될 수 있다. 결국 통상 생성 AI처럼 로봇 행동 생성도 <b>플랫포머에 종량 과금</b>(로컬 실행이라도) 구조가 돼, 하드웨어만 다뤄선 ‘재미(うま味)’가 옅어진다. 따라서 <b>프런티어 모델급을 자사가 만들 수 있게</b> 해 두는 편이 바람직하다.</p>
+    </div>
+  </div>
+
+  <div class="myth">
+    <div class="head"><div class="num">8</div><div class="q">“산업용 로봇보다 휴머노이드는 느리다. 그래서 공장·FA엔 못 쓴다”</div></div>
+    <div class="body">
+      <div class="truth">▶ 실제 — “속도가 아니라 ‘폭’이 가치”</div>
+      <p>속도가 불필요한 작업은 공장 안에도 많다. 그래서 공정에 따라 완전 무인이 안 돼 사람이 많고, 그들이 산업용 로봇처럼 ‘쌩쌩’ 움직이는 것도 아니다. ChatGPT 모먼트 때 임팩트는 이런 <b>‘이름 없는 잡다한 태스크’의 집합</b>을 해내는 것. 가치는 ‘특정 태스크의 절대 속도’가 아니라 <b>특단의 개발 없이 할 수 있는 태스크의 폭</b>이다. 산업용 로봇조차 절대 생산성만 따지면 ‘전용기’에 지고, 그럼에도 ‘프로그래머빌리티(폭)’ 때문에 쓰인다 — 산업용 로봇은 이미 ‘전용기보다 느림’을 받아들였다. 산업용 vs 범용(휴머노이드)도 같은 구도. 게다가 안전 펜스 없이 사람과 같은 공간에서 운용하려면 <b>오히려 사람 이상으로 빠르면 위험</b>하다. 최종 주전장은 공장·FA가 아니라 ‘사람이 할 수밖에 없는 폭넓은 태스크’, 나아가 ‘일반 가정’이다.</p>
+    </div>
+  </div>
+
+  <div class="myth">
+    <div class="head"><div class="num">9</div><div class="q">“물리 공간을 파악·인식하는 것도 피지컬 AI다”</div></div>
+    <div class="body">
+      <div class="truth">▶ 실제 — “인식만으론 피지컬 AI가 아니다”</div>
+      <p>그런 요소는 필요하지만, ‘물리 공간을 파악·인식’하는 것‘만’으론 피지컬 AI가 성립하지 않는다. 인식에만 초점을 둔 영역은 오히려 <b>‘Spatial AI’·‘Spatial Intelligence’</b>로 불린다. 단순한 3차원 재구축이나 <b>가우시안 스플래팅(Gaussian splatting)</b>을 ‘물리 공간을 다루니까’라는 이유만으로 피지컬 AI로 보는 것은 확대 해석이 지나치다. 옴니버스 3D 환경이나 <b>디지털 트윈</b> 구축도 그것만으론 피지컬 AI라 하기 어렵다(정확한 3D는 Sim-to-real·행동 플래닝을 돕는 ‘환경 모델링’의 일종일 뿐). 단순 디지털 트윈·IoT를 피지컬 AI로 보는 것은 물리적 측면만 강조하고 <b>기반모델로서의 본질을 왜소화</b>하는 것. VLA든 VAM이든 세계 모델이든, 인식에 그치지 않고 <b>행동(action) 등 ‘생성’을 동반하는 지점</b>이야말로 지금 기술이 진화하고 세계가 기대하는 영역이다.</p>
+    </div>
+  </div>
+
+  <div class="box summary">
+    <span class="tag">중간 정리 ⑯</span>
+    <h4>‘9가지 오해’를 관통하는 단 하나의 축</h4>
+    <p>아홉 오해는 결국 같은 실수의 변주다 — <b>피지컬 AI를 ‘물리 공간의 AI’로만 보고 ‘기반모델’이라는 본질을 놓치는 것.</b> 그래서 ① 현장 데이터를 과대평가하고(오해 1·2), ② 점진적 보급을 가정하고(오해 3), ③ 연구 과제를 과소평가하고(오해 4·5), ④ 자금을 핑계 삼고(오해 6), ⑤ 두뇌 의존의 위험과 ‘폭의 가치’를 놓치고(오해 7·8), ⑥ 인식과 생성을 혼동한다(오해 9). 본문 §1~§15가 ‘논증’이라면, 이 칼럼은 그 ‘체크리스트’다.</p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section id="s17">
+  <span class="sec-no">17 · 종합</span>
+  <h2 class="sec">전체 종합 — 이 기사의 ‘논리 지도’</h2>
+
+  <p>이 기사는 흩어진 통념을 하나의 <strong>인과 사슬</strong>로 꿰어 낸다. 전체 논리는 다음 일곱 단계로 압축된다.</p>
+
+  <table class="tbl">
+    <thead><tr><th>단계</th><th>핵심 주장</th><th>그래서 따라오는 결론</th></tr></thead>
+    <tbody>
+      <tr><td><b>1. 분류</b></td><td>유저인가 벤더인가에 따라 모든 게 달라진다</td><td>일본 논의 혼란의 1차 원인</td></tr>
+      <tr><td><b>2. 본질</b></td><td>피지컬 AI의 정체는 ‘물리 AI’가 아니라 <b>기반모델</b></td><td>가치는 ‘세로(성능)’가 아니라 ‘가로(폭)’에 있다</td></tr>
+      <tr><td><b>3. 리스크</b></td><td>구간 X(레시피 미지)+구간 Y(사회 실装)의 이중 고리스크</td><td>“벽을 향해 질주” — 불확실성 자체가 리스크</td></tr>
+      <tr><td><b>4. 리턴</b></td><td>폭은 <b>태스크×분야×국가=3제곱</b>으로 보상을 키운다</td><td>2050년 790조 엔(자동차 초과)이라는 기대값</td></tr>
+      <tr><td><b>5. 반증</b></td><td>‘현장(특화) 데이터 승부수론’은 벤더 관점에서 거짓</td><td>메타 실험: 특화 데이터는 1%면 포화, 범용형이 이김</td></tr>
+      <tr><td><b>6. 경고</b></td><td>데이터·노하우보다 ‘스케일+탐색’ (쓰라린 교훈)</td><td>Sim-to-real이 현장 데이터를 무의미화할 수도</td></tr>
+      <tr><td><b>7. 처방</b></td><td>돈은 있다(2,350+630조 엔), ‘순환’이 문제</td><td>리스크 머니에 가장 적합한 주체＝<b>스타트업</b>(→후편)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box concept">
+    <span class="tag">기사가 독자에게 남기는 단 하나의 메시지</span>
+    <h4>“폭(기반모델)을 보라. 그러면 모든 통념이 다시 보인다.”</h4>
+    <p>피지컬 AI를 <b>기반모델</b>로 인식하는 순간, ① ‘현장 데이터 승부수’는 유저에겐 참·벤더에겐 거짓으로 분리되고, ② ‘점진적 보급’은 ‘비연속 임팩트’로 교정되며, ③ ‘장인기 먼저’는 ‘저난도 먼저’로 순서가 뒤집히고, ④ ‘돈이 없다’는 ‘안 돈다’로, ⑤ ‘미국제를 쓰자’는 ‘두뇌는 자사가’로 바뀐다. 본질을 놓친 ‘듣기 좋은 신화’가 전략을 망치기 전에, 일본은 고리스크를 감수하고 ‘일찌감치 참전’하는 선택지를 반드시 쥐어야 한다.</p>
+  </div>
+
+  <div class="box summary">
+    <span class="tag">한 문장 요약</span>
+    <h4>The One-Liner</h4>
+    <p><b>“피지컬 AI의 가치는 ‘물리 공간에서 움직인다’가 아니라 ‘기반모델이라 폭이 넓다’에 있으며, 그 폭이 3제곱의 거대 보상을 약속하기에 — 고리스크·고불확실에도 불구하고 — 일본은 풍부한 자금을 ‘리스크 머니’로 돌려 스타트업 중심으로 지금 당장 도전해야 한다.”</b></p>
+  </div>
+</section>
+
+<section id="s18">
+  <span class="sec-no">18 · 레퍼런스</span>
+  <h2 class="sec">핵심 수치·고유명사 &amp; 용어집</h2>
+
+  <h3 class="sub">기억해 둘 핵심 수치</h3>
+  <table class="tbl">
+    <thead><tr><th>수치</th><th>의미</th></tr></thead>
+    <tbody>
+      <tr><td>수천억 엔</td><td>미·중 피지컬 AI 스타트업의 (현시점) 조달 규모</td></tr>
+      <tr><td>수십억~수백억 파라미터</td><td>현재 로봇 탑재용 피지컬 AI 모델 크기(실시간성 고려)</td></tr>
+      <tr><td>수천억~수조 파라미터</td><td>‘범용 피지컬 AI’ 학습에 필요할 수 있는 모델 용량(프런티어급)</td></tr>
+      <tr><td>1%</td><td>메타 실험 — 사전학습 중 ‘특화 데이터’가 차지하면 충분한 비율(이상은 포화)</td></tr>
+      <tr><td>+1.6%p</td><td>마쓰오 연구실 추산 — 통상 AI 도입 시 일본 실질 GDP 성장률 압상 효과(최대)</td></tr>
+      <tr><td>790조 엔</td><td>모건스탠리 추산 — 2050년 피지컬 AI 범용 로봇 시장(자동차 초과)</td></tr>
+      <tr><td>2,350조 엔 / 630조 엔</td><td>일본 개인 금융자산 / 기업 내부유보</td></tr>
+      <tr><td>3,873억 엔</td><td>2026년도 일본 정부 피지컬 AI 예산(GX채 재원, NEDO 집행)</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">등장 인물·기업·연구</h3>
+  <dl class="gloss">
+    <dt>신도 토모노리(進藤 智則)</dt><dd>이 기사의 필자. 닛케이 로보틱스 편집장.</dd>
+    <dt>오카노하라 다이스케(岡野原 大輔)</dt><dd>Preferred Networks 공동창업자·대표이사 사장. “현장 데이터가 결정적 차이가 되긴 어렵다”면서도 일본의 ‘산업 집적·개선 루프’ 비교우위를 지적.</dd>
+    <dt>마쓰오 유타카(松尾 豊)</dt><dd>도쿄대 대학원 교수. 연구실에서 통상 AI 도입의 일본 GDP +최대 1.6%p 효과를 추산.</dd>
+    <dt>리처드 서튼(Richard Sutton)</dt><dd>강화학습의 거장. ‘쓰라린 교훈(The Bitter Lesson)’ 제창자.</dd>
+    <dt>Generalist AI / GEN-1 / UMI</dt><dd>미국 스타트업과 그 모델. 핸드헬드 ‘UMI’로 데이터 수집을 경량화해 고성능 달성.</dd>
+    <dt>Meta FAIR + NYU</dt><dd>‘Beyond Language Modeling’(2026.3, arXiv:2603.03276) — 특화 데이터 1% 포화·범용형 우위를 실증.</dd>
+    <dt>NVIDIA Cosmos Policy / DreamZero</dt><dd>매니퓰레이션용 VAM(세계 모델) 계열. 범용(동영상) 데이터 우위를 방증.</dd>
+    <dt>Physical Intelligence / Google Gemini Robotics</dt><dd>LLM 기반 VLA 모델의 대표 사례(π*0.6·π0.5 / 휴머노이드 기업 한정 배포).</dd>
+  </dl>
+
+  <h3 class="sub">핵심 용어</h3>
+  <dl class="gloss">
+    <dt>기반모델(Foundation Model)</dt><dd>폭넓은 데이터로 사전학습해, 추론 시 few-shot/zero-shot·최소 설정만으로 다양한 태스크에 즉석 적응(ICL)하는 모델. 이 기사의 ‘열쇠 개념’.</dd>
+    <dt>ChatGPT 모먼트</dt><dd>기술 수준이 임계값을 넘어 사회적 임팩트가 ‘비연속적으로’ 폭발하는 순간. 피지컬 AI에 올지/언제 올지가 최대 불확실성.</dd>
+    <dt>매니퓰레이션 / 로코모션 / 내비게이션</dt><dd>로봇 3대 기능(상반신 조작 / 보행 / 이동). 현재 병목은 매니퓰레이션, 로코모션은 사실상 해결.</dd>
+    <dt>Sim-to-real</dt><dd>시뮬레이터상 강화학습으로 ‘합성 데이터’를 만들어 실기로 옮기는 기법. 현장 데이터를 불필요화할 ‘파괴적 위력’.</dd>
+    <dt>VLA / VAM / 세계 모델</dt><dd>VLA=vision-language-action(LLM 기반, 그간 주류). VAM=video-action model(동영상 생성 기반, 대두 중). 둘 다 ‘인식’이 아닌 ‘행동 생성’이 핵심.</dd>
+    <dt>구간 X / 구간 Y</dt><dd>X=AI가 제대로 기능할 때까지의 기초연구 리스크. Y=ChatGPT 모먼트 이후 사회 실装(안전·양산·인증·유통) 리스크.</dd>
+    <dt>브로드밴드 / 내로밴드</dt><dd>(도표 6) 기반모델=폭넓은 분포(브로드밴드), 기존 로봇=좁은 막대기(내로밴드)에 비유.</dd>
+    <dt>RAG</dt><dd>retrieval-augmented generation. 외부 DB를 참조해 모델을 보완. 현장 데이터의 ‘부스트’ 수단 중 하나(재학습 아님).</dd>
+    <dt>쓰라린 교훈(Bitter Lesson)</dt><dd>인간이 손으로 빚은 수법이 ‘데이터+계산 스케일’에 거듭 패배해 온 AI사의 경구.</dd>
+    <dt>TAM / SAM</dt><dd>총 시장 / 실제 공략 가능 시장. 피지컬 AI는 언어 장벽이 없어 둘 다 극대화 가능.</dd>
+    <dt>이노베이션의 딜레마</dt><dd>기존 사업을 가진 대기업이 고리스크 신규 사업에 투자하기 어려운 구조적 함정.</dd>
+    <dt>GX채 / NEDO</dt><dd>탈탄소 이행 목적의 국채(카본 프라이싱으로 상환) / 일본의 공적 연구개발 집행 기관. 정부 피지컬 AI 예산의 재원·집행 경로.</dd>
+    <dt>증류 / 양자화</dt><dd>대형 모델 지식을 소형으로 이전(증류) / 추론 시 비트 폭을 줄여 경량화(양자화). 실시간 로봇 탑재용 경량화 수단.</dd>
+    <dt>Spatial AI / 디지털 트윈 / 가우시안 스플래팅</dt><dd>‘물리 공간 인식’ 영역. 그 자체만으론 피지컬 AI가 아니다(오해 9).</dd>
+  </dl>
+
+  <a class="toplink" href="#">↑ 맨 위로 돌아가기</a>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <h3>원문 출처 및 참고문헌</h3>
+    <p>進藤 智則, 「フィジカルAI　日本の処方箋〔前編〕国を挙げて議論渦巻く、今何に取り組むべきか」, 日経Robotics(日経xTech), 2026.06.10 / 『日経Robotics』 2026年7月号 pp.3–25.</p>
+    <p style="margin-top:6px;">원문 링크: <a href="https://xtech.nikkei.com/atcl/nxt/mag/rob/18/00003/00130/">xtech.nikkei.com/atcl/nxt/mag/rob/18/00003/00130</a> (전 8쪽)</p>
+    <a class="toplink" href="#" style="color:#ffd9a8;">↑ 맨 위로</a>
+  </div>
+</footer>
+
+<script>
+  // reading progress bar
+  const bar=document.getElementById('progress');
+  function upd(){const h=document.documentElement; const s=h.scrollTop||document.body.scrollTop;
+    const max=(h.scrollHeight-h.clientHeight); bar.style.width=(max>0?(s/max*100):0)+'%';}
+  document.addEventListener('scroll',upd,{passive:true}); upd();
+</script>
+</body>
+</html>
