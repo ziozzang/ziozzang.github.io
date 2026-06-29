@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>promptfoo 기술 평가 보고서 — LLM 평가·레드티밍 도구</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0a1120;          /* 가장 깊은 배경 */
+  --ink-2:#0e1726;        /* 패널 */
+  --ink-3:#111d31;        /* 카드 */
+  --line:#1d2c45;         /* 하이라인 */
+  --line-2:#27395a;
+  --fg:#e8eef8;           /* 본문 */
+  --fg-dim:#9fb0cc;       /* 보조 */
+  --fg-faint:#64769a;
+  --cyan:#4ad6e6;         /* 구조/링크/스키매틱 시안 */
+  --cyan-deep:#1d8c9a;
+  --pass:#54d18a;         /* 통과(녹색) */
+  --warn:#f3b14c;         /* 경고(앰버) */
+  --crit:#f06a76;         /* 치명(레드) */
+  --violet:#8b9bf2;       /* 보조 강조 */
+  --radius:4px;
+  --maxw:1080px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(74,214,230,.06), transparent 60%),
+    radial-gradient(900px 500px at -10% 20%, rgba(139,155,242,.05), transparent 55%),
+    var(--ink);
+  color:var(--fg);
+  font-family:"IBM Plex Sans KR","Space Grotesk",system-ui,-apple-system,sans-serif;
+  font-weight:300;
+  line-height:1.72;
+  font-size:16px;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+
+/* ============ 스키매틱 격자 배경 ============ */
+.grid-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(var(--line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:46px 46px;
+  opacity:.12;
+  mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent);
+}
+main{position:relative;z-index:1}
+
+/* ============ 분류 배너 ============ */
+.classbar{
+  position:sticky;top:0;z-index:50;
+  background:rgba(10,17,32,.85);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+  font-family:"IBM Plex Mono",monospace;
+  font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--fg-dim);
+}
+.classbar .wrap{display:flex;justify-content:space-between;align-items:center;height:38px;gap:16px}
+.classbar b{color:var(--cyan);font-weight:600}
+.classbar .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--pass);margin-right:7px;box-shadow:0 0 8px var(--pass);vertical-align:middle}
+@media(max-width:720px){.classbar .hide-sm{display:none}}
+
+/* ============ 히어로 ============ */
+.hero{padding:64px 0 40px;border-bottom:1px solid var(--line)}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--cyan);margin:0 0 22px;
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.eyebrow::before{content:"";width:40px;height:1px;background:var(--cyan);display:inline-block}
+h1.title{
+  font-family:"Space Grotesk",sans-serif;font-weight:700;
+  font-size:clamp(38px,7vw,76px);line-height:.98;letter-spacing:-.02em;
+  margin:0 0 8px;color:var(--fg);
+}
+h1.title .foo{color:var(--cyan)}
+.subtitle{
+  font-size:clamp(17px,2.4vw,22px);color:var(--fg-dim);font-weight:300;
+  max-width:760px;margin:18px 0 0;line-height:1.55;
+}
+.hero-meta{
+  display:flex;gap:28px;flex-wrap:wrap;margin-top:34px;
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--fg-faint);
+}
+.hero-meta div b{color:var(--fg-dim);font-weight:500;display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.hero-meta div span{color:var(--fg)}
+
+/* ============ eval 매트릭스 시그니처 ============ */
+.matrix-panel{
+  margin-top:46px;border:1px solid var(--line-2);border-radius:var(--radius);
+  background:linear-gradient(180deg,var(--ink-2),var(--ink));
+  overflow:hidden;
+}
+.matrix-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:13px 18px;border-bottom:1px solid var(--line);
+  font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--fg-dim);
+}
+.matrix-head .tt{color:var(--cyan)}
+.dots{display:flex;gap:6px}
+.dots i{width:9px;height:9px;border-radius:50%;display:block;opacity:.55}
+.dots i:nth-child(1){background:var(--crit)}
+.dots i:nth-child(2){background:var(--warn)}
+.dots i:nth-child(3){background:var(--pass)}
+.matrix-body{padding:20px 18px;display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.matrix-grid{display:grid;grid-template-columns:repeat(16,1fr);gap:5px;flex:1}
+.cell{aspect-ratio:1;border-radius:2px;background:var(--ink-3);border:1px solid var(--line);transition:background .4s ease,transform .4s ease}
+.cell.pass{background:rgba(84,209,138,.85);border-color:transparent}
+.cell.fail{background:rgba(240,106,118,.85);border-color:transparent}
+.cell.warn{background:rgba(243,177,76,.8);border-color:transparent}
+.matrix-legend{display:flex;flex-direction:column;gap:9px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--fg-dim);white-space:nowrap}
+.matrix-legend span{display:flex;align-items:center;gap:8px}
+.matrix-legend i{width:11px;height:11px;border-radius:2px;display:block}
+.lg-pass{background:var(--pass)}.lg-warn{background:var(--warn)}.lg-fail{background:var(--crit)}
+@media(max-width:680px){
+  .matrix-body{grid-template-columns:1fr}
+  .matrix-grid{grid-template-columns:repeat(12,1fr)}
+  .matrix-legend{flex-direction:row;flex-wrap:wrap}
+}
+
+/* ============ 인수 알림 ============ */
+.notice{
+  margin:38px 0 0;border:1px solid var(--line-2);border-left:3px solid var(--violet);
+  background:linear-gradient(90deg,rgba(139,155,242,.08),transparent);
+  border-radius:var(--radius);padding:18px 22px;
+}
+.notice .lab{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--violet);margin-bottom:6px}
+.notice p{margin:0;font-size:14.5px;color:var(--fg-dim)}
+.notice b{color:var(--fg);font-weight:500}
+
+/* ============ 섹션 공통 ============ */
+section{padding:66px 0;border-bottom:1px solid var(--line)}
+.sec-num{
+  font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.2em;
+  color:var(--cyan);display:flex;align-items:center;gap:14px;margin-bottom:18px;
+}
+.sec-num .bar{height:1px;width:46px;background:var(--cyan);opacity:.6}
+h2{
+  font-family:"Space Grotesk",sans-serif;font-weight:700;
+  font-size:clamp(28px,4.6vw,46px);line-height:1.04;letter-spacing:-.015em;
+  margin:0 0 14px;color:var(--fg);
+}
+h3{
+  font-family:"Space Grotesk",sans-serif;font-weight:600;
+  font-size:clamp(20px,2.8vw,27px);letter-spacing:-.01em;
+  margin:46px 0 14px;color:var(--fg);scroll-margin-top:64px;
+}
+h4{
+  font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:17.5px;
+  margin:30px 0 10px;color:var(--cyan);letter-spacing:.005em;
+}
+.lead{font-size:18.5px;color:var(--fg-dim);max-width:760px;font-weight:300;line-height:1.65}
+p{margin:0 0 16px;max-width:780px}
+p.wide,ul.wide,.table-wrap{max-width:none}
+a{color:var(--cyan);text-decoration:none;border-bottom:1px solid rgba(74,214,230,.3)}
+a:hover{border-bottom-color:var(--cyan)}
+strong{color:var(--fg);font-weight:600}
+em{color:var(--cyan);font-style:normal;font-weight:500}
+ul,ol{max-width:780px;padding-left:0;margin:0 0 18px;list-style:none}
+ul li,ol li{position:relative;padding-left:26px;margin-bottom:11px;color:var(--fg-dim)}
+ul li::before{content:"▸";position:absolute;left:4px;color:var(--cyan);font-size:13px;top:1px}
+ol{counter-reset:li}
+ol li::before{counter-increment:li;content:counter(li,decimal-leading-zero);position:absolute;left:0;color:var(--cyan);font-family:"IBM Plex Mono",monospace;font-size:12px;top:4px}
+ol li{padding-left:32px}
+li b,li strong{color:var(--fg)}
+
+/* ============ 목차 ============ */
+.toc{background:var(--ink-2);border:1px solid var(--line);border-radius:var(--radius);padding:30px 32px;margin:18px 0 0}
+.toc h4{margin:0 0 18px;color:var(--cyan)}
+.toc-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:4px 36px;max-width:none}
+.toc-list a{
+  display:flex;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line);
+  border-left:none;color:var(--fg-dim);font-size:14.5px;
+}
+.toc-list a:hover{color:var(--fg)}
+.toc-list a .n{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--cyan);min-width:26px}
+
+/* ============ 콜아웃 카드 ============ */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin:26px 0;max-width:none}
+.card{
+  background:var(--ink-2);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px 22px;position:relative;overflow:hidden;
+}
+.card::before{content:"";position:absolute;top:0;left:0;width:100%;height:2px;background:var(--cyan);opacity:.6}
+.card.green::before{background:var(--pass)}
+.card.amber::before{background:var(--warn)}
+.card.violet::before{background:var(--violet)}
+.card .ic{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-faint);margin-bottom:9px}
+.card h5{font-family:"Space Grotesk",sans-serif;font-size:17px;font-weight:600;margin:0 0 8px;color:var(--fg)}
+.card p{font-size:13.8px;color:var(--fg-dim);margin:0;max-width:none}
+
+/* ============ 통계 스트립 ============ */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin:30px 0;max-width:none}
+.stat{background:var(--ink-2);padding:24px 20px;text-align:center}
+.stat .v{font-family:"Space Grotesk",sans-serif;font-size:34px;font-weight:700;color:var(--cyan);line-height:1}
+.stat .v.g{color:var(--pass)}.stat .v.a{color:var(--warn)}.stat .v.vi{color:var(--violet)}
+.stat .l{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg-faint);margin-top:9px}
+
+/* ============ 코드 블록 ============ */
+.code{
+  background:#070d18;border:1px solid var(--line-2);border-radius:var(--radius);
+  margin:20px 0;overflow:hidden;max-width:none;
+}
+.code-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 16px;border-bottom:1px solid var(--line);background:var(--ink-2);
+  font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--fg-faint);letter-spacing:.05em;
+}
+.code-head .fname{color:var(--cyan)}
+.code pre{margin:0;padding:18px 18px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;font-size:13px;line-height:1.7;color:#c9d6ea}
+.code pre .c{color:#5b6b88}      /* 주석 */
+.code pre .k{color:var(--cyan)}   /* 키 */
+.code pre .s{color:var(--pass)}   /* 문자열 */
+.code pre .v{color:var(--warn)}   /* 값/플래그 */
+.code pre .d{color:var(--violet)} /* 강조 */
+
+/* ============ 테이블 ============ */
+.table-wrap{overflow-x:auto;margin:24px 0;border:1px solid var(--line);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:13.6px}
+thead th{
+  background:var(--ink-2);text-align:left;padding:14px 16px;
+  font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:13px;color:var(--fg);
+  border-bottom:1px solid var(--line-2);position:sticky;top:0;white-space:nowrap;
+}
+tbody td{padding:13px 16px;border-bottom:1px solid var(--line);color:var(--fg-dim);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(74,214,230,.03)}
+td b,td strong{color:var(--fg)}
+.tool-name{font-family:"Space Grotesk",sans-serif;font-weight:600;color:var(--fg);white-space:nowrap}
+.tag{display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:10.5px;padding:2px 8px;border-radius:20px;letter-spacing:.04em;white-space:nowrap}
+.t-pass{background:rgba(84,209,138,.14);color:var(--pass);border:1px solid rgba(84,209,138,.3)}
+.t-warn{background:rgba(243,177,76,.14);color:var(--warn);border:1px solid rgba(243,177,76,.3)}
+.t-crit{background:rgba(240,106,118,.14);color:var(--crit);border:1px solid rgba(240,106,118,.3)}
+.t-cyan{background:rgba(74,214,230,.12);color:var(--cyan);border:1px solid rgba(74,214,230,.3)}
+.t-mute{background:rgba(100,118,154,.12);color:var(--fg-faint);border:1px solid var(--line-2)}
+
+/* ============ 심각도 / 파이프라인 표시 ============ */
+.sev{display:inline-flex;align-items:center;gap:7px;font-family:"IBM Plex Mono",monospace;font-size:12px}
+.sev::before{content:"";width:8px;height:8px;border-radius:2px;display:block}
+.sev.c::before{background:var(--crit)}.sev.h::before{background:var(--warn)}.sev.m::before{background:var(--cyan)}.sev.l::before{background:var(--fg-faint)}
+
+/* 단계 다이어그램 */
+.flow{display:flex;flex-wrap:wrap;gap:0;margin:26px 0;max-width:none;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.flow .step{flex:1 1 160px;padding:20px 18px;border-right:1px solid var(--line);background:var(--ink-2);position:relative;min-width:160px}
+.flow .step:last-child{border-right:none}
+.flow .step .sn{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--cyan);letter-spacing:.1em}
+.flow .step h5{font-family:"Space Grotesk",sans-serif;font-size:15.5px;margin:8px 0 6px;color:var(--fg);font-weight:600}
+.flow .step p{font-size:12.8px;color:var(--fg-dim);margin:0;max-width:none}
+
+/* 알림 박스 */
+.box{border:1px solid var(--line-2);border-radius:var(--radius);padding:20px 24px;margin:24px 0;max-width:none;background:var(--ink-2)}
+.box.tip{border-left:3px solid var(--pass)}
+.box.warn{border-left:3px solid var(--warn);background:linear-gradient(90deg,rgba(243,177,76,.06),transparent)}
+.box.crit{border-left:3px solid var(--crit);background:linear-gradient(90deg,rgba(240,106,118,.06),transparent)}
+.box .bt{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:9px;display:flex;align-items:center;gap:8px}
+.box.tip .bt{color:var(--pass)}.box.warn .bt{color:var(--warn)}.box.crit .bt{color:var(--crit)}
+.box p:last-child{margin-bottom:0}
+.box p{max-width:none}
+
+/* 정의 리스트 */
+.deflist{margin:22px 0;max-width:none}
+.deflist .row{display:grid;grid-template-columns:200px 1fr;gap:20px;padding:15px 0;border-bottom:1px solid var(--line)}
+.deflist .row:last-child{border-bottom:none}
+.deflist dt{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--cyan);font-weight:500}
+.deflist dd{margin:0;color:var(--fg-dim);font-size:14.5px}
+.deflist dd b{color:var(--fg)}
+@media(max-width:640px){.deflist .row{grid-template-columns:1fr;gap:5px}}
+
+/* footer */
+footer{padding:60px 0 80px;color:var(--fg-faint)}
+footer h4{color:var(--cyan)}
+.src{font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:2;max-width:none}
+.src a{color:var(--fg-dim);border:none;word-break:break-all}
+.src a:hover{color:var(--cyan)}
+.foot-meta{margin-top:34px;padding-top:24px;border-top:1px solid var(--line);font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.05em;color:var(--fg-faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+
+/* 스크롤 진행 바 */
+.progress{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--violet));width:0;z-index:60;transition:width .1s}
+
+::selection{background:rgba(74,214,230,.25);color:#fff}
+.kbd{font-family:"IBM Plex Mono",monospace;font-size:12px;background:var(--ink-3);border:1px solid var(--line-2);border-radius:3px;padding:1px 7px;color:var(--cyan)}
+.divlabel{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--fg-faint);margin:40px 0 0;display:flex;align-items:center;gap:14px}
+.divlabel::after{content:"";flex:1;height:1px;background:var(--line)}
+</style>
+</head>
+<body>
+<div class="grid-bg" aria-hidden="true"></div>
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<div class="classbar">
+  <div class="wrap">
+    <span><span class="dot"></span><b>TECHNICAL ASSESSMENT</b> &nbsp;promptfoo</span>
+    <span class="hide-sm mono">OSS · MIT · CLI-FIRST · LLM EVAL + RED TEAM</span>
+  </div>
+</div>
+
+<main>
+<!-- ===================== 히어로 ===================== -->
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">기술 조사 보고서 · LLM 평가 &amp; AI 레드티밍</p>
+    <h1 class="title">prompt<span class="foo">foo</span></h1>
+    <p class="subtitle">프롬프트·RAG·에이전트를 “감으로(vibe check)” 검증하던 시대를 끝내는 오픈소스 도구. 선언적 YAML로 평가(eval)를 자동화하고, 적대적 입력으로 AI를 공격(red team)해 배포 전에 취약점을 잡아낸다.</p>
+
+    <div class="hero-meta">
+      <div><b>유형</b><span>CLI + 라이브러리</span></div>
+      <div><b>라이선스</b><span>MIT (오픈소스)</span></div>
+      <div><b>런타임</b><span>Node.js 20.20+/22.22+</span></div>
+      <div><b>지원 프로바이더</b><span>50+ (로컬 포함)</span></div>
+      <div><b>소유</b><span>OpenAI (2026.03 인수)</span></div>
+    </div>
+
+    <!-- 시그니처: eval 매트릭스 -->
+    <div class="matrix-panel" aria-hidden="true">
+      <div class="matrix-head">
+        <span class="mono"><span class="tt">$</span> promptfoo eval —— prompts × providers × tests</span>
+        <span class="dots"><i></i><i></i><i></i></span>
+      </div>
+      <div class="matrix-body">
+        <div class="matrix-grid" id="matrix"></div>
+        <div class="matrix-legend">
+          <span><i class="lg-pass"></i> PASS · 어설션 충족</span>
+          <span><i class="lg-warn"></i> WARN · 임계값 근접</span>
+          <span><i class="lg-fail"></i> FAIL · 회귀/취약점</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="notice">
+      <div class="lab">⚑ 2026 중요 맥락</div>
+      <p><b>OpenAI가 2026년 3월 9일 promptfoo를 인수</b>했다(Series A 기준 약 8,600만 달러 가치평가, 약 2,300만 달러 조달). 기술은 엔터프라이즈 플랫폼 <b>OpenAI Frontier</b>에 통합되지만, <b>오픈소스 CLI는 MIT 라이선스로 그대로 유지</b>되고 공개 저장소도 계속된다. 다만 “평가받는 주체(OpenAI)가 평가 도구를 소유한다”는 이해상충 논의가 생겨, 보안 감사 독립성을 중시하는 팀은 이를 고려해야 한다(2장 참고).</p>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== 목차 ===================== -->
+<section style="padding-top:48px;padding-bottom:48px">
+  <div class="wrap">
+    <div class="toc">
+      <h4>이 보고서의 구성</h4>
+      <div class="toc-list">
+        <a href="#s0"><span class="n">00</span> promptfoo란 무엇인가 (개요·아키텍처·설치)</a>
+        <a href="#s1"><span class="n">01</span> 왜 쓰고, 어디에 쓰는가</a>
+        <a href="#s1b"><span class="n">★</span> 현업 인사이트 — 범용 테스트 하니스</a>
+        <a href="#s2"><span class="n">02</span> 다른 솔루션과의 비교</a>
+        <a href="#s2b"><span class="n">★</span> 전략 분석 — OpenAI 인수의 의미</a>
+        <a href="#s3"><span class="n">03</span> 오프라인·에어갭으로 쓰는 방법</a>
+        <a href="#s4"><span class="n">04</span> 실무 도입 체크리스트 &amp; FAQ</a>
+        <a href="#a1"><span class="n">A1</span> 부록 — 환경변수 레퍼런스</a>
+        <a href="#a2"><span class="n">A2</span> 부록 — 레드팀 플러그인·전략 카탈로그</a>
+        <a href="#a3"><span class="n">A3</span> 부록 — 용어집 &amp; 출처</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 00 개요 ===================== -->
+<section id="s0">
+  <div class="wrap">
+    <div class="sec-num"><span>SECTION 00</span><span class="bar"></span><span>OVERVIEW</span></div>
+    <h2>promptfoo란 무엇인가</h2>
+    <p class="lead">promptfoo(“프롬프트 푸”)는 LLM 애플리케이션을 <em>체계적으로 테스트</em>하기 위한 오픈소스 CLI이자 Node.js/Python 라이브러리다. 2024년 Ian Webster와 Michael D’Angelo가 창업했고, 출시 후 350,000명 이상의 개발자가 사용했으며 월 활성 사용자 13만 명, 포춘 500대 기업의 25% 이상이 도입한 사실상 이 분야의 표준 도구다. OpenAI와 Anthropic이 내부에서 사용해 왔다.</p>
+
+    <p>핵심 발상은 단순하다. 일반 소프트웨어는 입력과 출력이 결정적(deterministic)이라 단위 테스트가 쉽지만, LLM은 <strong>같은 입력에도 매번 다른 출력</strong>을 내는 확률적 시스템이다. 그래서 개발자들은 보통 프롬프트를 바꾼 뒤 두세 개 입력을 손으로 넣어 보고 “괜찮아 보이네(looks good to me)” 하고 넘어간다. promptfoo는 이 비과학적인 검수를, 코드의 단위 테스트처럼 <strong>반복 가능하고 정량적인 평가</strong>로 바꿔 준다.</p>
+
+    <p>promptfoo는 크게 두 가지 일을 한다. 하나는 <em>평가(eval)</em> — 프롬프트·모델·테스트케이스를 조합해 자동 채점하고 모델 간 성능을 벤치마킹하는 것. 다른 하나는 <em>레드티밍(red teaming)</em> — 적대적 입력을 자동 생성해 탈옥(jailbreak), 프롬프트 인젝션, 개인정보 유출 같은 보안 취약점을 배포 전에 스캔하는 것이다.</p>
+
+    <h3>핵심 개념 5가지</h3>
+    <p>promptfoo를 이해하는 가장 빠른 길은 평가를 구성하는 다섯 단어를 익히는 것이다. 전체 워크플로는 결국 “<strong>프롬프트 × 프로바이더 × 테스트케이스</strong>”의 매트릭스를 만들고, 각 칸을 어설션으로 채점하는 일이다.</p>
+
+    <div class="deflist">
+      <div class="row"><dt>Provider</dt><dd>테스트 대상 모델 또는 엔드포인트. <b>GPT·Claude·Gemini</b> 같은 상용 API부터 Ollama로 돌리는 <b>로컬 모델</b>, 직접 만든 HTTP API까지 모두 프로바이더가 된다.</dd></div>
+      <div class="row"><dt>Prompt</dt><dd>모델에 보내는 프롬프트 템플릿. <span class="mono">{{변수}}</span> 자리표시자로 테스트케이스마다 다른 입력을 끼워 넣는다. 여러 버전을 나란히 비교할 수 있다.</dd></div>
+      <div class="row"><dt>Test case</dt><dd>하나의 입력과, 그 출력에 기대하는 동작을 묶은 단위. 변수 값과 어설션 묶음으로 구성된다.</dd></div>
+      <div class="row"><dt>Assertion</dt><dd>출력이 통과해야 할 한 개의 규칙. “‘campus’라는 단어를 포함하라”, “30초 안에 응답하라” 같은 것. 이게 없으면 다시 “looks good to me”로 돌아간다.</dd></div>
+      <div class="row"><dt>Rubric</dt><dd>문자열 매칭으로 판정하기엔 너무 주관적인 기준(예: “이 이메일이 실제로 캐주얼하게 들리는가”)을 다른 LLM에게 평어로 채점시키는 “LLM-as-judge” 채점 지시문.</dd></div>
+    </div>
+
+    <h3>아키텍처 한눈에 보기</h3>
+    <p>promptfoo의 평가는 다음 5단계 루프로 돈다. 이 흐름은 CI/CD에 넣어 PR마다 자동 실행할 수 있다.</p>
+    <div class="flow">
+      <div class="step"><div class="sn">01</div><h5>테스트케이스 정의</h5><p>핵심 유스케이스와 실패 모드를 식별해 입력·기대 동작을 작성한다.</p></div>
+      <div class="step"><div class="sn">02</div><h5>평가 설정</h5><p><span class="mono">promptfooconfig.yaml</span>에 프롬프트·프로바이더·어설션을 선언한다.</p></div>
+      <div class="step"><div class="sn">03</div><h5>실행</h5><p><span class="mono">promptfoo eval</span>로 모든 조합을 돌려 출력을 기록한다.</p></div>
+      <div class="step"><div class="sn">04</div><h5>분석</h5><p><span class="mono">promptfoo view</span>로 웹 UI 매트릭스에서 pass/fail을 검토한다.</p></div>
+      <div class="step"><div class="sn">05</div><h5>반복</h5><p>사용자 피드백으로 테스트케이스를 늘리며 회귀를 잡는다.</p></div>
+    </div>
+
+    <h3>설치 (60초)</h3>
+    <p>npm 전역 설치가 가장 일반적이지만, Homebrew·pip·npx도 지원한다. CLI는 Node.js 프로젝트가 없어도 아무 디렉터리에서 바로 쓸 수 있다.</p>
+    <div class="code">
+      <div class="code-head"><span class="fname">terminal</span><span>bash</span></div>
+<pre><span class="c"># 전역 설치 (npm)</span>
+npm install -g promptfoo
+
+<span class="c"># 또는 설치 없이 즉시 실행</span>
+npx promptfoo@latest init
+
+<span class="c"># 그 외 경로</span>
+brew install promptfoo      <span class="c"># Homebrew</span>
+pip install promptfoo       <span class="c"># PyPI</span>
+
+<span class="c"># 예제 스캐폴딩 → 평가 → 결과 보기</span>
+promptfoo init --example getting-started
+promptfoo eval
+promptfoo view</pre>
+    </div>
+
+    <div class="box tip">
+      <div class="bt">버전 요구사항</div>
+      <p>npm/npx 사용 시 <strong>Node.js ^20.20.0 또는 ≥22.22.0</strong>이 필요하다. 대부분의 상용 프로바이더는 API 키를 환경변수(<span class="mono">OPENAI_API_KEY</span>, <span class="mono">ANTHROPIC_API_KEY</span> 등)로 읽는다. 로컬 모델만 쓰면 API 키도, 인터넷도 필요 없다(3장).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 01 왜 / 어디에 ===================== -->
+<section id="s1">
+  <div class="wrap">
+    <div class="sec-num"><span>SECTION 01</span><span class="bar"></span><span>WHY &amp; WHERE</span></div>
+    <h2>왜 쓰고,<br>어디에 쓰는가</h2>
+    <p class="lead">한 줄 요약: <em>LLM에 “단위 테스트의 규율”을 가져오기 위해서.</em> promptfoo는 대부분의 AI 팀이 “프로덕션에서 뭔가 터지기 전까지는 있는 줄도 모르는” 공백을 메운다. 비결정적 출력을 다루는 모델 선택, RAG 품질, 보안 — 이 세 가지 문제 영역에서 특히 강력하다.</p>
+
+    <h3>1.1 promptfoo가 해결하는 문제</h3>
+    <p>전통적 테스트는 “알려진 정답”으로 코드를 검증한다. 그러나 LLM 애플리케이션은 본질적으로 다른 도전 과제를 안고 있다. promptfoo는 이 각각에 대응한다.</p>
+
+    <div class="cards">
+      <div class="card"><div class="ic">문제 / 비결정성</div><h5>“운 좋게 통과”를 걸러낸다</h5><p>같은 프롬프트가 실행마다 다른 결과를 낸다. <span class="mono">--repeat 3</span> 플래그로 각 케이스를 여러 번 돌려, 두 번 통과하고 한 번 실패하는 신뢰성 문제를 한 번의 검수로는 놓치지 않게 한다.</p></div>
+      <div class="card"><div class="ic">문제 / 모델 선택</div><h5>GPT vs Claude vs Llama</h5><p>같은 테스트 스위트를 모든 프로바이더에 동시에 돌려 정확도·지연시간·비용을 한 표에 나란히 보여 준다. “어느 모델이 이 작업에 가장 좋은가”를 감이 아니라 데이터로 답한다.</p></div>
+      <div class="card green"><div class="ic">문제 / RAG 품질</div><h5>환각·맥락 충실도</h5><p>검색 정확도, 답변 충실도(faithfulness), 맥락 관련성을 측정하는 전용 어설션으로 RAG 파이프라인이 “지어내지” 않는지 검증한다.</p></div>
+      <div class="card amber"><div class="ic">문제 / 보안</div><h5>적대적 사용자</h5><p>프롬프트 인젝션, 탈옥, PII 추출 시도를 레드팀 모듈이 자동으로 수백 가지 변형으로 생성해 모델이 얼마나 자주 무너지는지 점수화한다.</p></div>
+    </div>
+
+    <h3>1.2 어설션(채점) 종류 — 무료·즉시부터 LLM 판정까지</h3>
+    <p>promptfoo의 채점은 비용·속도에 따라 3개 층위로 나뉜다. 결정적(deterministic) 어설션은 <strong>공짜이고 즉각적</strong>이며, 모델 보조(model-assisted) 어설션은 다른 LLM을 호출하므로 비용이 든다. 이 계층 구조 덕분에 “싼 검사를 먼저, 비싼 LLM 판정은 꼭 필요할 때만” 설계할 수 있다.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>계층</th><th>대표 어설션</th><th>판정 방식</th><th>비용</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag t-pass">결정적</span></td><td class="mono">equals · contains · icontains · not-contains · regex · starts-with</td><td>문자열·패턴 매칭</td><td><span class="tag t-pass">무료·즉시</span></td></tr>
+          <tr><td><span class="tag t-pass">결정적</span></td><td class="mono">is-json · contains-json · javascript · python</td><td>구조 검증 / 커스텀 함수</td><td><span class="tag t-pass">무료·즉시</span></td></tr>
+          <tr><td><span class="tag t-pass">결정적</span></td><td class="mono">latency · cost · perplexity</td><td>성능·예산 임계값</td><td><span class="tag t-pass">무료·즉시</span></td></tr>
+          <tr><td><span class="tag t-cyan">모델 보조</span></td><td class="mono">llm-rubric</td><td>범용 “LLM-as-judge” 평어 채점(기본 GPT-4o급)</td><td><span class="tag t-warn">LLM 호출</span></td></tr>
+          <tr><td><span class="tag t-cyan">모델 보조</span></td><td class="mono">factuality · answer-relevance</td><td>참조 답변 대비 사실성·관련성</td><td><span class="tag t-warn">LLM 호출</span></td></tr>
+          <tr><td><span class="tag t-cyan">모델 보조</span></td><td class="mono">similar (semantic)</td><td>임베딩 기반 의미 유사도</td><td><span class="tag t-warn">임베딩 호출</span></td></tr>
+          <tr><td><span class="tag t-cyan">RAG 전용</span></td><td class="mono">context-faithfulness · context-relevance · context-recall</td><td>검색 맥락에 충실한지 / 맥락이 적절한지</td><td><span class="tag t-warn">LLM 호출</span></td></tr>
+          <tr><td><span class="tag t-mute">제어</span></td><td class="mono">weight · threshold · metric</td><td>어설션 가중 평균·합격선·태깅</td><td><span class="tag t-mute">메타</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>여러 어설션은 <span class="mono">weight</span>로 가중치를 줄 수 있고, 테스트케이스의 <span class="mono">threshold</span>로 “가중 합산 점수가 X를 넘으면 통과”라는 합격선을 정한다. 예컨대 <span class="mono">equals</span>의 가중치를 2로 두면 <span class="mono">contains</span>보다 두 배 중요해진다. YAML로 정의되지만, 표현하기 어려운 로직은 <strong>JavaScript·Python 훅</strong>으로 빠져나갈 수 있다.</p>
+
+    <h4>최소 설정 예시</h4>
+    <p>아래는 같은 프롬프트를 세 모델에 돌리고, 모든 테스트에 공통 규칙을 적용하면서 케이스별 어설션을 더하는 전형적인 구성이다.</p>
+    <div class="code">
+      <div class="code-head"><span class="fname">promptfooconfig.yaml</span><span>eval</span></div>
+<pre><span class="k">prompts</span>:
+  - <span class="s">"입학 안내 챗봇입니다. 질문에 답하세요: {{question}}"</span>
+
+<span class="k">providers</span>:
+  - <span class="v">openai:gpt-4.1-mini</span>
+  - <span class="v">anthropic:claude-opus-4-6</span>
+  - <span class="v">ollama:chat:llama3.3</span>          <span class="c"># 로컬 모델</span>
+
+<span class="k">defaultTest</span>:                          <span class="c"># 모든 케이스 공통</span>
+  <span class="k">assert</span>:
+    - <span class="k">type</span>: <span class="d">llm-rubric</span>
+      <span class="k">value</span>: <span class="s">AI나 챗봇이라고 밝히지 말 것</span>
+
+<span class="k">tests</span>:
+  - <span class="k">vars</span>: {<span class="k">question</span>: <span class="s">"지원 마감일은 언제인가요?"</span>}
+    <span class="k">assert</span>:
+      - {<span class="k">type</span>: <span class="d">icontains</span>, <span class="k">value</span>: <span class="s">마감</span>}
+      - {<span class="k">type</span>: <span class="d">latency</span>, <span class="k">threshold</span>: <span class="v">5000</span>}   <span class="c"># 5초 이내</span>
+  - <span class="k">vars</span>: {<span class="k">question</span>: <span class="s">"등록금은 얼마인가요?"</span>}
+    <span class="k">assert</span>:
+      - {<span class="k">type</span>: <span class="d">llm-rubric</span>, <span class="k">value</span>: <span class="s">출력이 숫자 금액을 포함하는지 확인</span>}
+      - {<span class="k">type</span>: <span class="d">cost</span>, <span class="k">threshold</span>: <span class="v">0.01</span>}      <span class="c"># 케이스당 1센트 이하</span></pre>
+    </div>
+
+    <h3>1.3 레드티밍 — promptfoo의 “킬러 기능”</h3>
+    <p>2026년 기준 promptfoo를 가장 차별화하는 것은 레드팀 모듈이다. 구조는 세 부품이 맞물린다: <em>플러그인</em>이 특정 취약점 유형의 적대적 입력을 생성하고, <em>전략(strategy)</em>이 그 입력을 어떻게 전달할지(인코딩·다중 턴 등) 정하며, <em>LLM 심판</em>이 공격 성공 여부를 채점한다. 50개 이상의 플러그인이 6개 범주를 커버한다.</p>
+
+    <div class="cards">
+      <div class="card amber"><div class="ic">범주 1</div><h5>보안 &amp; 접근통제</h5><p>프롬프트 인젝션(직접/간접), SQL·셸 인젝션, SSRF, BOLA/BFLA(객체·기능 수준 인가 결함), RBAC 우회, 디버그 접근, 시스템 프롬프트 추출.</p></div>
+      <div class="card amber"><div class="ic">범주 2</div><h5>데이터 프라이버시</h5><p>직접 PII 노출(<span class="mono">pii:direct</span>), 세션 간 데이터 유출(<span class="mono">pii:session</span>), 사회공학(<span class="mono">pii:social</span>), DB/API 경유 유출, COPPA·FERPA 컴플라이언스 점검.</p></div>
+      <div class="card amber"><div class="ic">범주 3</div><h5>과도한 자율성</h5><p>에이전트 고유 리스크. 의도된 범위를 넘는 행동, 권한 밖 도구 호출, 목표 하이재킹(goal hijack), 권한 상승으로 유도될 수 있는지.</p></div>
+      <div class="card"><div class="ic">범주 4</div><h5>유해성 &amp; 편향</h5><p>혐오·자해 유도(<span class="mono">harmful:hate</span>, <span class="mono">harmful:self-harm</span>), 정치·종교 편향, 차별적 판단(성별·인종·지역) 등 사회·기술적 피해.</p></div>
+      <div class="card"><div class="ic">범주 5</div><h5>오정보</h5><p>환각(hallucination), 거짓 주장, 과의존(overreliance), 경쟁사 비방, 계약·법적 약속 위반(contracts), 사칭(imitation).</p></div>
+      <div class="card violet"><div class="ic">범주 6</div><h5>산업별 컴플라이언스</h5><p>의료·금융·보험 등 도메인 맞춤 점검과, 법무·브랜드·AI 거버넌스 팀이 정의하는 <strong>커스텀 정책 플러그인</strong>.</p></div>
+    </div>
+
+    <h4>전달 전략(strategy) — 같은 공격, 다른 포장</h4>
+    <p>플러그인이 “무엇을 묻는가”라면 전략은 “어떻게 우회하는가”다. 같은 악성 의도를 base64·rot13·leetspeak로 인코딩하거나, 다중 턴으로 서서히 끌어올리는(crescendo) 식으로 콘텐츠 필터를 뚫는다.</p>
+    <ul class="wide">
+      <li><span class="mono">basic · prompt-injection</span> — 페이로드를 인젝션 프레임에 감싼다.</li>
+      <li><span class="mono">jailbreak · jailbreak:composite · jailbreak:tree</span> — DAN류 가드레일 우회, 조합·트리 탐색.</li>
+      <li><span class="mono">base64 · rot13 · leetspeak</span> — 인코딩으로 필터를 회피.</li>
+      <li><span class="mono">multilingual</span> — 저자원 언어(벵골어·스와힐리어·자바어 등)로 번역. 연구상 비영어권에서 안전장치가 더 약해 취약점이 잘 드러난다.</li>
+      <li><span class="mono">crescendo</span> — 메시지마다 수위를 높이는 다중 턴 점진 공격.</li>
+    </ul>
+
+    <h4>프레임워크 프리셋 — 한 줄로 컴플라이언스 한 벌</h4>
+    <p>개별 플러그인을 일일이 고르지 않고, 표준 프레임워크를 한 줄로 켤 수 있다. 웹 UI는 그 결과를 OWASP·NIST·MITRE 통제 항목에 매핑한 “컴플라이언스 성적표”로 출력한다 — 심각도 등급과 증거 추적까지 포함해 비개발자도 읽을 수 있다.</p>
+    <div class="code">
+      <div class="code-head"><span class="fname">promptfooconfig.yaml</span><span>red team</span></div>
+<pre><span class="k">targets</span>:
+  - <span class="k">id</span>: <span class="s">'https://api.yourapp.com/chat'</span>     <span class="c"># 자체 엔드포인트도 대상</span>
+    <span class="k">config</span>:
+      <span class="k">method</span>: <span class="s">POST</span>
+      <span class="k">body</span>: {<span class="k">message</span>: <span class="s">'{{prompt}}'</span>}
+      <span class="k">transformResponse</span>: <span class="s">'json.response'</span>
+
+<span class="k">redteam</span>:
+  <span class="k">purpose</span>: <span class="s">></span>                              <span class="c"># 맥락 → 더 정교한 공격 생성</span>
+    <span class="s">항공사 고객지원 챗봇. 항공편 조회·예약·예약변경 지원.</span>
+  <span class="k">numTests</span>: <span class="v">50</span>
+  <span class="k">plugins</span>:
+    - <span class="d">owasp:llm</span>          <span class="c"># OWASP LLM Top 10 전체</span>
+    - <span class="d">pii</span>
+    - <span class="d">ssrf</span>
+    - <span class="d">excessive-agency</span>
+  <span class="k">strategies</span>:
+    - <span class="d">jailbreak</span>
+    - <span class="d">prompt-injection</span>
+    - <span class="d">crescendo</span></pre>
+    </div>
+    <p>지원 프레임워크는 <span class="mono">owasp:llm</span>(LLM Top 10), <span class="mono">owasp:api</span>(API Top 10), <span class="mono">owasp:agentic</span>(에이전트 Top 10 — Black Hat Europe 2025 발표), <span class="mono">mitre:atlas</span>(MITRE ATLAS), 그리고 NIST AI RMF·EU AI Act 매핑을 포함한다. 프로덕션 팀은 보통 PII 유출·탈옥 같은 치명 공격에서 <strong>95% 이상 통과율</strong>을 확보한 뒤 배포한다.</p>
+
+    <h3>1.4 어디에 쓰는가 — 대표 유스케이스</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>유스케이스</th><th>무엇을 하나</th><th>핵심 기능</th></tr></thead>
+        <tbody>
+          <tr><td><b>프롬프트 엔지니어링</b></td><td>프롬프트 여러 버전을 같은 케이스로 비교해 회귀를 잡는다</td><td><span class="tag t-cyan">eval 매트릭스</span></td></tr>
+          <tr><td><b>모델 선택·벤치마킹</b></td><td>GPT·Claude·Gemini·로컬 모델을 정확도·지연·비용으로 나란히 평가</td><td><span class="tag t-cyan">멀티-프로바이더</span></td></tr>
+          <tr><td><b>RAG 평가</b></td><td>검색 정확도·답변 충실도·맥락 관련성 측정, 환각 탐지</td><td><span class="tag t-cyan">RAG 어설션</span></td></tr>
+          <tr><td><b>에이전트 평가</b></td><td>도구 사용·다중 턴 궤적·작업 완수 여부 검증</td><td><span class="tag t-cyan">trajectory</span></td></tr>
+          <tr><td><b>CI/CD 품질 게이트</b></td><td>PR마다 평가 실행, 통과율이 임계값 밑이면 빌드 실패</td><td><span class="tag t-pass">GitHub Action</span></td></tr>
+          <tr><td><b>배포 전 보안 감사</b></td><td>인젝션·탈옥·PII·도구 오용을 자동 레드팀으로 스캔</td><td><span class="tag t-warn">red team</span></td></tr>
+          <tr><td><b>컴플라이언스 리포팅</b></td><td>OWASP·NIST·MITRE 매핑 성적표를 경영진·감사용으로 생성</td><td><span class="tag t-warn">report card</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>CI/CD에 넣기 (GitHub Actions)</h4>
+    <p>로컬 평가는 “프롬프트를 바꾼 사람이 평가를 기억해서 돌리는지”에 의존한다. 공식 GitHub Action을 쓰면 이 의존을 없애고 모든 PR에서 자동 실행해 결과를 코멘트로 단다.</p>
+    <div class="code">
+      <div class="code-head"><span class="fname">.github/workflows/eval.yml</span><span>ci</span></div>
+<pre><span class="k">on</span>: [<span class="v">pull_request</span>]
+<span class="k">jobs</span>:
+  <span class="k">test</span>:
+    <span class="k">runs-on</span>: <span class="v">ubuntu-latest</span>
+    <span class="k">steps</span>:
+      - <span class="k">uses</span>: <span class="s">actions/checkout@v4</span>
+      - <span class="k">uses</span>: <span class="s">actions/setup-node@v4</span>
+      - <span class="k">run</span>: <span class="s">npm install -g promptfoo</span>
+      - <span class="k">run</span>: <span class="s">promptfoo eval</span>
+        <span class="k">env</span>: {<span class="k">OPENAI_API_KEY</span>: <span class="s">'${{ secrets.OPENAI_API_KEY }}'</span>}
+      - <span class="k">run</span>: <span class="s">promptfoo eval --assert</span>   <span class="c"># 실패 시 빌드 중단</span></pre>
+    </div>
+
+    <div class="box tip">
+      <div class="bt">보조 데이터 소스</div>
+      <p>테스트케이스를 YAML에 직접 쓰는 것 외에도 <strong>CSV·Google Sheets·HuggingFace 데이터셋</strong>에서 불러올 수 있다(<span class="mono">tests: huggingface://datasets/...</span>). 합성 테스트 데이터 생성 기능도 있어, 케이스를 손으로 다 쓰지 않아도 된다.</p>
+    </div>
+
+    <h3>1.5 누가, 왜 — 도입의 핵심 이유</h3>
+    <div class="stats">
+      <div class="stat"><div class="v">350K+</div><div class="l">누적 개발자</div></div>
+      <div class="stat"><div class="v g">130K</div><div class="l">월 활성 사용자</div></div>
+      <div class="stat"><div class="v a">25%+</div><div class="l">포춘 500 도입</div></div>
+      <div class="stat"><div class="v vi">50+</div><div class="l">지원 프로바이더</div></div>
+      <div class="stat"><div class="v">10.4K</div><div class="l">GitHub 스타</div></div>
+    </div>
+    <ul class="wide">
+      <li><b>개발자 친화적</b> — 라이브 리로드·캐싱·동시성으로 빠른 반복.</li>
+      <li><b>선언적·코드리스</b> — 복잡한 노트북 없이 YAML로 수백 개 케이스를 정의·공유.</li>
+      <li><b>언어 무관·모델 무관</b> — Python/JavaScript 어디서든, 어떤 프로바이더든.</li>
+      <li><b>로컬 우선·프라이빗</b> — 기본적으로 사용자 머신에서 돌고, 모델과 직접 통신한다(데이터가 promptfoo 서버로 가지 않음).</li>
+      <li><b>실전 검증</b> — Microsoft·Discord·Doordash 등 고트래픽 프로덕션에서 사용. OpenAI·Anthropic도 내부 사용.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===================== 1B 범용 하니스 (FIELD INSIGHT) ===================== -->
+<section id="s1b" style="background:linear-gradient(180deg,rgba(139,155,242,.05),transparent)">
+  <div class="wrap">
+    <div class="sec-num" style="color:var(--violet)"><span>★ FIELD INSIGHT</span><span class="bar" style="background:var(--violet)"></span><span>UNIVERSAL HARNESS</span></div>
+    <h2>promptfoo는 사실<br>“LLM 도구”가 아니다</h2>
+    <p class="lead">현업에서 가장 크게 드러나는 강점: promptfoo의 엔진은 <em>“임의 입력 × 임의 프로바이더(코드) → 어설션 채점 → pass/fail·0~1 점수 + 머신리더블 리포트”</em>를 <strong>반복적으로</strong> 돌리는 것이다. 이 세 축 중 어느 것도 LLM에 묶여 있지 않다. 즉 promptfoo는 LLM 전용 도구가 아니라, <strong>아무 데이터·아무 코드를 스크립트 베이스로 평가하는 범용 테스트/회귀 하니스</strong>이며, 일반 ML에도 그대로 쓸 수 있다.</p>
+
+    <div class="box" style="border-left:3px solid var(--violet);background:linear-gradient(90deg,rgba(139,155,242,.08),transparent)">
+      <div class="bt" style="color:var(--violet)">한 문장 재정의</div>
+      <p>“프롬프트 × 프로바이더 × 테스트케이스” 매트릭스에서 <strong>프롬프트를 ‘입력 데이터’로, 프로바이더를 ‘실행할 코드’로, 어설션을 ‘pass/fail·확률값 산출 함수’로</strong> 일반화하면, LLM 평가는 이 범용 엔진의 한 가지 특수 사례일 뿐이다. parquet·json·jsonl·csv 어떤 데이터든 → python·CLI·API 어떤 코드든 → 결국 pass/fail 또는 0~1 점수로 환원해 반복 산출한다.</p>
+    </div>
+
+    <h3>1B.1 세 축 모두 “LLM 무관”으로 일반화된다</h3>
+    <div class="cards">
+      <div class="card violet"><div class="ic">축 1 · 프로바이더</div><h5>실행 대상 = 임의 코드</h5><p>모델 API가 아니라 <strong>아무 코드/스크립트</strong>여도 된다. Python provider(<span class="mono">call_api</span>), exec/스크립트 provider(임의 실행파일), JS·Go provider, HTTP API. 분류기·피처 파이프라인·CLI 바이너리·마이크로서비스가 모두 “테스트 대상”이 된다.</p></div>
+      <div class="card violet"><div class="ic">축 2 · 데이터</div><h5>입력 = 임의 데이터셋</h5><p>CSV·JSON·JSONL·YAML·<strong>Excel(XLSX)</strong>이 네이티브. HuggingFace·Google Sheets·Azure Blob도. <strong>parquet</strong> 등은 Python/JS 테스트 생성기로 pandas·pyarrow로 읽어 케이스를 만들면 그대로 흘러든다. 벡터 DB에서 vars를 끌어올 수도 있다.</p></div>
+      <div class="card violet"><div class="ic">축 3 · 어설션</div><h5>판정 = pass/fail·0~1 점수</h5><p>Python/JS 어설션은 <span class="mono">bool</span>(통과/실패)·<span class="mono">float</span>(0~1 점수)·<span class="mono">GradingResult</span>를 반환한다. <span class="mono">threshold</span>로 점수 합격선을 정하고, <strong>derived metric</strong>으로 F1·정밀도·재현율·MAPE 같은 집계 지표까지 산출한다.</p></div>
+    </div>
+
+    <h3>1B.2 결과는 반복 가능하고 기계가 읽는다</h3>
+    <p>이게 “스크립트 베이스로 반복 산출”의 핵심이다. 동일 설정을 몇 번 돌려도 같은 매트릭스가 나오고, 결과는 사람이 보는 HTML뿐 아니라 <strong>JSON·CSV·JSONL·JUnit XML</strong>로 빠진다 — 즉 GitLab·Jenkins·Azure Pipelines 같은 일반 CI 리포트로 바로 들어간다. 비결정 신뢰성은 <span class="mono">--repeat</span>로, 비용·속도는 캐싱으로 관리한다.</p>
+    <div class="box tip">
+      <div class="bt">결정적 기능 — standalone 어설션 모드</div>
+      <p>이미 산출해 둔 출력(예: ML 모델의 예측 결과)을 <span class="mono">output.json</span> 배열로 넣고 <strong>프로바이더 재실행 없이 어설션만</strong> 돌릴 수 있다. 즉 promptfoo를 “채점·집계·리포팅 레이어”로만 떼어 써서, 외부에서 돌린 임의 파이프라인의 결과를 pass/fail·점수·CI 리포트로 환원하는 용도가 된다.</p>
+    </div>
+
+    <h3>1B.3 일반 ML 회귀 테스트 — 실제 구성 예</h3>
+    <p>아래는 LLM을 한 줄도 쓰지 않고, <strong>parquet 데이터셋 + 로컬 분류기 + 커스텀 채점 + F1 집계</strong>로 회귀 게이트를 만드는 전형적 구성이다. Python provider는 워커 프로세스로 한 번만 로드되므로(무거운 ML 임포트에 유리) 모델을 매 케이스마다 다시 적재하지 않는다.</p>
+    <div class="code">
+      <div class="code-head"><span class="fname">promptfooconfig.yaml</span><span>ML regression</span></div>
+<pre><span class="c"># 프로바이더 = 우리 분류기(LLM 아님). 워커가 모델을 1회만 로드</span>
+<span class="k">providers</span>:
+  - <span class="k">id</span>: <span class="s">file://classifier_provider.py</span>
+    <span class="k">label</span>: <span class="s">sklearn-v3</span>
+  - <span class="k">id</span>: <span class="s">file://classifier_provider.py</span>      <span class="c"># 두 버전 A/B 비교</span>
+    <span class="k">label</span>: <span class="s">sklearn-v4-candidate</span>
+    <span class="k">config</span>: {<span class="k">model_path</span>: <span class="s">./models/v4.pkl</span>}
+
+<span class="c"># 데이터 = parquet → 파이썬 생성기가 케이스로 변환</span>
+<span class="k">tests</span>: <span class="s">file://load_parquet_tests.py</span>
+
+<span class="k">defaultTest</span>:
+  <span class="k">threshold</span>: <span class="v">0.5</span>                            <span class="c"># 점수 합격선(0~1 정규화)</span>
+  <span class="k">assert</span>:
+    - <span class="k">type</span>: <span class="d">python</span>
+      <span class="k">value</span>: <span class="s">file://score_prediction.py</span>     <span class="c"># 행별 정오 → 0/1</span>
+
+<span class="c"># 집계 지표 = 전체 셋에 대한 F1 (eval 후 계산)</span>
+<span class="k">derivedMetrics</span>:
+  - <span class="k">name</span>: <span class="s">f1</span>
+    <span class="k">value</span>: <span class="s">(2*precision*recall)/(precision+recall)</span>
+
+<span class="k">outputPath</span>: <span class="s">results.xml</span>                   <span class="c"># JUnit → CI 게이트</span></pre>
+    </div>
+    <div class="code">
+      <div class="code-head"><span class="fname">classifier_provider.py</span><span>provider</span></div>
+<pre><span class="k">import</span> joblib
+_model = joblib.load(<span class="s">"./models/v3.pkl"</span>)     <span class="c"># 워커 시작 시 1회 로드</span>
+
+<span class="k">def</span> <span class="d">call_api</span>(prompt, options, context):
+    row = context[<span class="s">"vars"</span>]                    <span class="c"># 입력 한 건(feature들)</span>
+    pred = _model.predict_one(row)
+    <span class="k">return</span> {<span class="s">"output"</span>: str(pred)}            <span class="c"># 문자열로 반환</span></pre>
+    </div>
+    <div class="code">
+      <div class="code-head"><span class="fname">score_prediction.py</span><span>assertion</span></div>
+<pre><span class="k">def</span> <span class="d">get_assert</span>(output, context):
+    expected = context[<span class="s">"vars"</span>][<span class="s">"label"</span>]
+    ok = (output == str(expected))
+    <span class="k">return</span> {                                  <span class="c"># GradingResult</span>
+      <span class="s">"pass"</span>: ok,
+      <span class="s">"score"</span>: <span class="v">1.0</span> <span class="k">if</span> ok <span class="k">else</span> <span class="v">0.0</span>,    <span class="c"># 0~1 점수</span>
+      <span class="s">"reason"</span>: <span class="s">"hit"</span> <span class="k">if</span> ok <span class="k">else</span> <span class="s">"miss"</span>,
+      <span class="s">"named_scores"</span>: {<span class="s">"precision"</span>: ..., <span class="s">"recall"</span>: ...},  <span class="c"># 지표로 표시</span>
+    }</pre>
+    </div>
+    <p>같은 패턴으로 <strong>데이터 검증(스키마·결측·범위), ETL 파이프라인 회귀, API 계약 테스트, 규칙 엔진, 임베딩 검색 품질</strong> 등 “입력을 코드에 통과시켜 결과를 점수로 환원”하는 거의 모든 일을 선언적으로 매트릭스화할 수 있다. 출력이 자연어든 숫자든 라벨이든 상관없다.</p>
+
+    <h3>1B.4 왜 이게 “가장 큰 장점”인가</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>일반 도구의 한계</th><th>promptfoo의 범용 엔진</th></tr></thead>
+        <tbody>
+          <tr><td>DeepEval은 pytest·Python 런타임에 묶임</td><td>provider가 <b>Python·JS·Go·exec·HTTP</b> 무엇이든 — 런타임·언어 무관</td></tr>
+          <tr><td>RAGAS는 RAG 메트릭에 한정</td><td>어설션이 임의 함수 → <b>pass/fail·0~1·F1 등 무엇이든</b></td></tr>
+          <tr><td>커스텀 평가 스크립트는 매번 새로 작성</td><td>데이터·코드·판정을 <b>선언적 YAML 매트릭스</b>로 표준화·공유</td></tr>
+          <tr><td>결과 포맷·CI 연동을 직접 구현</td><td>JSON·CSV·JUnit XML·HTML <b>리포트와 CI 게이트 기본 제공</b></td></tr>
+          <tr><td>재현성·반복 실행을 별도 관리</td><td><span class="mono">--repeat</span>·캐싱·동일 설정으로 <b>반복 산출 보장</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="box" style="border-left:3px solid var(--violet)">
+      <div class="bt" style="color:var(--violet)">현업 결론</div>
+      <p>LLM 평가·레드티밍은 강력한 “기본 탑재 특수화”일 뿐이고, 본질은 <strong>“아무 데이터 → 아무 코드 → pass/fail·확률값을, 선언적으로·반복적으로·CI에 물려서”</strong> 돌리는 범용 하니스다. 이 점이 사내 표준 테스트 도구로 채택할 만한 가장 큰 이유다. 그리고 이 엔진은 외부 API 없이 완전 로컬·에어갭에서 동작하므로(3장), 격리망 내부의 ML/데이터 파이프라인 회귀 게이트로도 쓸 수 있다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 02 비교 ===================== -->
+<section id="s2">
+  <div class="wrap">
+    <div class="sec-num"><span>SECTION 02</span><span class="bar"></span><span>COMPARISON</span></div>
+    <h2>다른 솔루션과의<br>비교</h2>
+    <p class="lead">먼저 솔직한 전제: <em>모든 상황에 최고인 단일 도구는 없다.</em> 2026년 LLM 평가 생태계는 “평가 라이프사이클의 어느 지점에 있는가”에 따라 도구가 갈린다. 실무 팀 대부분은 <strong>두 개를 병행</strong>한다 — CI 게이트용 하나, 지속 모니터링용 하나. promptfoo는 그중 <strong>레드티밍·멀티모델 비교·프롬프트 반복</strong>에서 가장 강하다.</p>
+
+    <h3>2.1 평가 라이프사이클 지도</h3>
+    <p>도구를 비교하기 전에, 각자가 라이프사이클의 어디를 덮는지 보는 게 핵심이다. 개발(단위 테스트) → 스테이징(배치 평가) → 프로덕션(실시간 모니터링)으로 갈수록 필요한 도구가 달라진다.</p>
+    <div class="flow">
+      <div class="step"><div class="sn">개발</div><h5>단위 테스트 / CI 게이트</h5><p>회귀를 조기에 잡는다.<br><b>promptfoo · DeepEval · RAGAS</b></p></div>
+      <div class="step"><div class="sn">스테이징</div><h5>배치 평가 / 레드팀</h5><p>릴리스 전 종합 성능·보안 측정.<br><b>promptfoo(레드팀) · RAGAS</b></p></div>
+      <div class="step"><div class="sn">프로덕션</div><h5>관측·모니터링</h5><p>실시간 트레이스·드리프트 추적.<br><b>LangSmith · Langfuse · Phoenix · Braintrust</b></p></div>
+    </div>
+    <div class="box warn">
+      <div class="bt">핵심 통찰</div>
+      <p>promptfoo는 <strong>배포 전(pre-deployment) 평가·보안 도구</strong>이지, 프로덕션 모니터링 도구가 아니다. 라이브 트래픽의 품질을 지속 관측하려면 Langfuse·Arize Phoenix·LangSmith 같은 관측 계층을 함께 둬야 한다. “promptfoo로 CI 게이트 + 관측 도구로 모니터링”이 2026년의 표준 조합이다.</p>
+    </div>
+
+    <h3>2.2 종합 비교표</h3>
+    <p>오픈소스 평가/레드팀 도구와 관측 플랫폼을 핵심 축으로 비교한다. ★ 표시는 해당 도구의 대표 강점 영역이다.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>도구</th><th>1차 초점</th><th>인터페이스</th><th>레드티밍</th><th>RAG 메트릭</th><th>프로덕션 관측</th><th>라이선스·비용</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="tool-name">promptfoo</td>
+            <td>프롬프트 평가 + <b>보안 레드팀</b> + 멀티모델 비교 ★</td>
+            <td><span class="tag t-cyan">CLI · YAML</span></td>
+            <td><span class="tag t-pass">★ 최강(50+ 플러그인)</span></td>
+            <td><span class="tag t-warn">기본 수준</span></td>
+            <td><span class="tag t-crit">없음</span></td>
+            <td><span class="tag t-pass">MIT · 무료</span></td>
+          </tr>
+          <tr>
+            <td class="tool-name">DeepEval</td>
+            <td><b>“LLM용 Pytest”</b> — 코드 우선 단위 테스트 ★</td>
+            <td><span class="tag t-cyan">Python · pytest</span></td>
+            <td><span class="tag t-warn">일부(안전 메트릭)</span></td>
+            <td><span class="tag t-pass">★ 폭넓음(50+ 메트릭)</span></td>
+            <td><span class="tag t-warn">Confident AI 연동</span></td>
+            <td><span class="tag t-pass">MIT · 무료(+SaaS)</span></td>
+          </tr>
+          <tr>
+            <td class="tool-name">RAGAS</td>
+            <td><b>RAG 전용</b> 검색·생성 학술 메트릭 ★</td>
+            <td><span class="tag t-cyan">Python 라이브러리</span></td>
+            <td><span class="tag t-crit">없음</span></td>
+            <td><span class="tag t-pass">★ 최심층(연구 기반)</span></td>
+            <td><span class="tag t-warn">Langfuse·Phoenix 기록</span></td>
+            <td><span class="tag t-pass">오픈소스 · 무료</span></td>
+          </tr>
+          <tr>
+            <td class="tool-name">LangSmith</td>
+            <td><b>LangChain 네이티브</b> 트레이싱 + 평가 ★</td>
+            <td><span class="tag t-cyan">호스티드 SaaS</span></td>
+            <td><span class="tag t-warn">안전 테스트 일부</span></td>
+            <td><span class="tag t-warn">중간</span></td>
+            <td><span class="tag t-pass">★ 강함</span></td>
+            <td><span class="tag t-warn">시트당 과금</span></td>
+          </tr>
+          <tr>
+            <td class="tool-name">Langfuse</td>
+            <td><b>오픈소스 관측</b> · 셀프호스트 ★</td>
+            <td><span class="tag t-cyan">SDK + 대시보드</span></td>
+            <td><span class="tag t-crit">없음</span></td>
+            <td><span class="tag t-warn">연동 의존</span></td>
+            <td><span class="tag t-pass">★ 강함</span></td>
+            <td><span class="tag t-pass">OSS · 무료(+클라우드)</span></td>
+          </tr>
+          <tr>
+            <td class="tool-name">Arize Phoenix</td>
+            <td><b>OTel 네이티브</b> 트레이싱 + 평가 ★</td>
+            <td><span class="tag t-cyan">OpenTelemetry</span></td>
+            <td><span class="tag t-crit">없음</span></td>
+            <td><span class="tag t-warn">기본</span></td>
+            <td><span class="tag t-pass">★ 강함</span></td>
+            <td><span class="tag t-pass">오픈코어 · 무료</span></td>
+          </tr>
+          <tr>
+            <td class="tool-name">Braintrust</td>
+            <td><b>풀 라이프사이클</b> 플랫폼(평가→모니터→릴리스 게이트) ★</td>
+            <td><span class="tag t-cyan">SaaS 플랫폼</span></td>
+            <td><span class="tag t-warn">제한적</span></td>
+            <td><span class="tag t-warn">중간</span></td>
+            <td><span class="tag t-pass">★ 강함</span></td>
+            <td><span class="tag t-warn">유료(무료 티어 1M 스팬)</span></td>
+          </tr>
+          <tr>
+            <td class="tool-name">lm-eval-harness</td>
+            <td><b>학술 벤치마크</b>(MMLU·GSM8K 등) ★</td>
+            <td><span class="tag t-cyan">CLI · Python</span></td>
+            <td><span class="tag t-crit">없음</span></td>
+            <td><span class="tag t-crit">해당 없음</span></td>
+            <td><span class="tag t-crit">없음</span></td>
+            <td><span class="tag t-pass">오픈소스 · 무료</span></td>
+          </tr>
+          <tr>
+            <td class="tool-name">Garak · PyRIT · Giskard</td>
+            <td><b>레드팀 전용 대안</b>(벤더 독립) ★</td>
+            <td><span class="tag t-cyan">Python</span></td>
+            <td><span class="tag t-pass">★ 전문</span></td>
+            <td><span class="tag t-warn">Giskard만 RAG</span></td>
+            <td><span class="tag t-crit">없음</span></td>
+            <td><span class="tag t-pass">오픈소스 · 무료</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>2.3 머리맞대기 — promptfoo vs 주요 경쟁자</h3>
+
+    <h4>vs DeepEval — “YAML CLI” vs “Python pytest”</h4>
+    <p>가장 흔한 양자택일이다. 둘은 서로 다른 실패 부류를 덮어, 실무에선 같이 쓰는 게 표준 패턴이다.</p>
+    <ul class="wide">
+      <li><b>promptfoo가 이기는 곳</b> — 레드티밍·적대적 테스트·멀티모델 프롬프트 비교. YAML CLI와 40개 이상의 레드팀 플러그인으로 “LLM 앱을 체계적으로 부수는” 데 가장 강하다. 노드(Node.js) 환경 팀에 자연스럽다.</li>
+      <li><b>DeepEval이 이기는 곳</b> — Python 네이티브 팀의 pytest 기반 CI 품질 게이트. <span class="mono">pytest tests/</span>가 LLM 평가를 일반 테스트와 함께 돌린다. 14~60+ 메트릭(faithfulness·hallucination·bias·toxicity·tool-correctness 등), G-Eval 커스텀 메트릭, MMLU·TruthfulQA 같은 표준 벤치마크 내장.</li>
+      <li><b>표준 조합</b> — promptfoo를 레드팀 CI 게이트로, DeepEval을 메트릭 CI 게이트로. 메트릭 폭은 DeepEval(60+), 보안·레드팀 깊이는 promptfoo가 우위. promptfoo의 YAML은 “선언적이라 쉽다”는 강점인 동시에 “플러그인 추상화가 경직돼 보인다”는 비판도 받는다.</li>
+    </ul>
+
+    <h4>vs RAGAS — 겹치지 않는다</h4>
+    <p>RAGAS는 RAG 평가에 한정된 학술 메트릭(faithfulness, context precision/recall, answer similarity 등)에 특화돼 있고, <strong>레드티밍이나 비-RAG 평가 기능이 없다.</strong> 따라서 promptfoo와 경쟁이라기보다 보완재다. RAG가 핵심이면 RAGAS로 검색·생성을 깊게 측정하고, 보안·멀티모델은 promptfoo로 덮는 식이다.</p>
+
+    <h4>vs LangSmith / Langfuse — 평가 vs 관측</h4>
+    <p>이쪽은 “테스트 도구”가 아니라 “관측 플랫폼”이다. LangSmith는 LangChain/LangGraph 스택에 깊게 통합돼 트레이스를 자동 수집하지만 호스티드 SaaS이고 시트당 과금이라 혼합 스택 팀에는 마찰이 있다. Langfuse는 오픈소스·셀프호스트가 가능해 데이터 거주성·비용에서 유리하지만 평가 깊이는 전용 도구보다 얕다. promptfoo의 약점이 정확히 여기다 — <strong>결과가 로컬에 머무르며 중앙집중 실험 추적이 없다.</strong> 그래서 “promptfoo로 평가/레드팀 + Langfuse·Phoenix로 트레이싱”이 자주 권장된다.</p>
+
+    <h4>vs Garak · PyRIT — 레드팀 순수주의</h4>
+    <p>레드티밍만 떼어 비교하면 promptfoo는 “50+ 플러그인 + YAML CI 통합”의 제너럴리스트다. <strong>PyRIT</strong>(Microsoft, 자사 레드팀에 내부 사용)는 프로그래매틱 캠페인에 더 세밀한 제어를 주는 Python 프레임워크고, <strong>Garak</strong>(NVIDIA 후원), <strong>Giskard</strong>(RAG 강점)도 벤더 독립 오픈소스 대안이다. 이 “벤더 독립성”이 다음 절의 핵심 쟁점이 된다.</p>
+
+    <h3>2.4 OpenAI 인수가 바꾼 것 — 벤더 중립성 쟁점</h3>
+    <div class="box crit">
+      <div class="bt">이해상충(conflict of interest) 질문</div>
+      <p>인수(2026.03.09) 후 2개월간 제품 자체는 눈에 띄게 나빠지지 않았다 — CLI는 그대로 돌고, YAML 스키마도 불변, 공격 라이브러리도 계속 갱신됐다. 그러나 보안 감사 맥락에서 새 질문이 생겼다: <strong>“OpenAI 배포를 감사하려는 기업이, 평가받는 주체(OpenAI)가 소유한 채점기를 신뢰할 수 있는가?”</strong></p>
+    </div>
+    <ul class="wide">
+      <li><b>MIT 라이선스의 보호 범위</b> — 라이선스는 <strong>기존 코드와 포크할 권리</strong>를 보호한다. 그러나 로드맵 방향, 새 공격 라이브러리 갱신 속도, 비-OpenAI 모델 커버리지 우선순위까지 보장하지는 않는다. 발표 수 시간 만에 Hacker News·r/LocalLLaMA에서 포크 논의가 시작됐고, 기술적으로 포크는 어렵지 않다.</li>
+      <li><b>업계 consolidation 신호</b> — 2개 분기 만의 두 번째 대형 AI 레드팀 인수다(2025.11 Splx→Zscaler, 2026.03 promptfoo→OpenAI). 구조적으로 독립적인 벤더가 줄고 있다.</li>
+      <li><b>독립 대안</b> — 채점기 독립성이 감사 요건이라면, 오픈소스 <strong>Garak·PyRIT·Giskard</strong>는 프런티어 모델 소유주가 없다는 점에서 구조적 중립성을 갖는다. 상용 쪽에는 독립 플랫폼들이 있다.</li>
+    </ul>
+    <p>요점: <strong>일상적 평가·CI 회귀·프롬프트 비교에는 promptfoo가 여전히 탁월하다.</strong> 다만 “OpenAI 모델을 감사하는 보안 딜리버러블”이 목적이라면 채점기 소유 구조를 의식하고 벤더 독립 도구를 병행·검토하는 게 합리적이다.</p>
+
+    <h3>2.5 결정 가이드 — 무엇을 골라야 하나</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>상황</th><th>추천</th><th>이유</th></tr></thead>
+        <tbody>
+          <tr><td>모델/프롬프트 선택이 당장 급함</td><td><b>promptfoo</b></td><td>멀티모델 비교에 특화, 가장 빠른 인사이트</td></tr>
+          <tr><td>레드티밍·적대적 테스트가 1순위 + Node 환경</td><td><b>promptfoo</b></td><td>오픈소스 중 가장 종합적인 공격 스위트(500+ 벡터)</td></tr>
+          <tr><td>Python 팀의 CI 메트릭 게이트</td><td><b>DeepEval</b></td><td>pytest 네이티브, 60+ 메트릭, 빌드 실패 연동</td></tr>
+          <tr><td>RAG 검색 품질이 핵심 관심사</td><td><b>RAGAS</b></td><td>검색 특화 학술 메트릭, 가장 깊은 RAG 평가</td></tr>
+          <tr><td>LangChain/LangGraph 스택</td><td><b>LangSmith</b></td><td>프레임워크 네이티브 트레이싱·데이터셋 큐레이션</td></tr>
+          <tr><td>기반 모델 표준 벤치마크</td><td><b>lm-eval-harness</b></td><td>MMLU·GSM8K 등 학술 벤치 — 대체 불가</td></tr>
+          <tr><td>관측+평가를 한 스택에서</td><td><b>Arize Phoenix</b></td><td>OTel 호환, 두 워크플로를 진짜 깊이로 커버</td></tr>
+          <tr><td>채점기 독립성이 감사 요건</td><td><b>Garak · PyRIT · Giskard</b></td><td>프런티어 모델 소유주가 없는 구조적 중립</td></tr>
+          <tr><td>솔로/초기 스타트업, 인프라 없이 $0</td><td><b>promptfoo 또는 DeepEval</b></td><td>계정·클라우드 없이 로컬에서 완전 동작</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="box warn">
+      <div class="bt">promptfoo를 쓰지 말아야 할 때</div>
+      <p>① 모델 하나·프롬프트 하나만 쓰는 단순 케이스 — 평가 오버헤드가 가치보다 큼. ② Node.js를 안 쓰는데 테스트만을 위해 스택에 추가해야 하는 경우. ③ 프로덕션 실시간 모니터링이 필요한 경우 — promptfoo는 배포 전 도구다. ④ 60+ 메트릭의 깊은 메트릭 라이브러리가 필요한 경우 — DeepEval이 더 적합.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 2B 전략 분석 (STRATEGIC READ) ===================== -->
+<section id="s2b" style="background:linear-gradient(180deg,rgba(139,155,242,.05),transparent)">
+  <div class="wrap">
+    <div class="sec-num" style="color:var(--violet)"><span>★ STRATEGIC READ</span><span class="bar" style="background:var(--violet)"></span><span>THE ACQUISITION</span></div>
+    <h2>OpenAI는 왜 샀고,<br>우리에겐 무엇이 바뀌나</h2>
+    <p class="lead">인수가 3개월 지난 지금까지도 제품 자체는 거의 그대로다 — <em>CLI는 돌고, YAML 스키마는 불변, 공격 라이브러리도 계속 갱신되며, MIT 라이선스와 공개 저장소가 유지</em>된다. 그래서 진짜 봐야 할 것은 “비트”가 아니라 <strong>궤적과 맥락</strong>이다. 아래는 세 가지 질문 — 왜 샀나 / 무엇을 풀었나 / 우리에게 무엇이 바뀌나 — 에 대한 분석이다.</p>
+
+    <div class="stats">
+      <div class="stat"><div class="v vi">03·09</div><div class="l">인수 발표(2026)</div></div>
+      <div class="stat"><div class="v vi">$86M</div><div class="l">인수 전 가치평가</div></div>
+      <div class="stat"><div class="v vi">$23M</div><div class="l">누적 조달</div></div>
+      <div class="stat"><div class="v vi">Frontier</div><div class="l">통합 대상 플랫폼</div></div>
+    </div>
+
+    <h3>2B.1 OpenAI는 왜 굳이 샀나</h3>
+    <p>핵심은 산 게 “promptfoo CLI”가 아니라 <strong>OpenAI Frontier를 위한 신뢰</strong>라는 점이다. Frontier는 2026년 2월 출시된 엔터프라이즈 AI 에이전트(코워커) 플랫폼으로 Uber·State Farm·Intuit·Thermo Fisher 등을 고객으로 둔다. 에이전트가 실제 업무 인프라에 닿는 순간, 평가·보안·컴플라이언스는 “있으면 좋은 것”이 아니라 <strong>배포의 전제 조건</strong>이 된다. OpenAI 스스로 이를 인수 사유로 명시했다.</p>
+
+    <div class="cards">
+      <div class="card violet"><div class="ic">이유 1 · 플랫폼 공백</div><h5>“데모 → 프로덕션” 관문</h5><p>Frontier 에이전트를 실전 투입하려면 보안 테스트·레드팀·감사 추적이 필수다. 이 governance 공백이 파일럿을 프로덕션으로 못 넘기는 1순위 병목이었다.</p></div>
+      <div class="card violet"><div class="ic">이유 2 · Buy &gt; Build</div><h5>못 만드는 건 “신뢰”</h5><p>레드팀 기능은 만들 수 있어도 채택과 신뢰는 못 만든다. <strong>포춘 500의 25%·개발자 35만</strong>이 이미 쓰는 “검증된 업계 표준”이라는 점이 규제 조달에서 결정적이다.</p></div>
+      <div class="card violet"><div class="ic">이유 3 · Acqui-hire</div><h5>팀 + 공격 자산</h5><p>OWASP·NIST·MITRE에 매핑된 공격 라이브러리(몇 년 걸려 쌓이는 자산)와 검증된 팀(ex-Discord·ex-Smile Identity, 23명)을 한 번에 확보했다.</p></div>
+      <div class="card violet"><div class="ic">이유 4 · 경쟁 타이밍</div><h5>에이전트 책임성 경쟁</h5><p>같은 주 Codex Security(앱 보안 에이전트)를 내놓았고, 2026년 2월 Anthropic의 Claude Code Security가 같은 영역을 겨눴다. “에이전트 책임성 = 새 프로덕션 관문”이 굳어지던 흐름이다.</p></div>
+    </div>
+
+    <div class="box" style="border-left:3px solid var(--violet);background:linear-gradient(90deg,rgba(139,155,242,.08),transparent)">
+      <div class="bt" style="color:var(--violet)">숨은 전략 — OSS 퍼널</div>
+      <p>오픈소스를 무료로 풀어 개발자 충성도를 유지하면서, 엔터프라이즈 수요를 <strong>Frontier 유료 플랫폼으로 funnel</strong>한다. 보안을 번들 서비스로 묶어 “끈끈한” 신규 매출을 만들고, 동시에 <strong>기업들이 OpenAI 배포를 감사하던 도구를 자사가 보유</strong>하게 되는 효과까지 있다.</p>
+    </div>
+
+    <h3>2B.2 무엇이 pain point였고, 무엇을 풀었나</h3>
+    <p>두 층위로 봐야 한다. promptfoo를 “시장에서 가치 있게” 만든 pain과, “OpenAI에게 특별히 절실했던” pain은 다르다.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>층위</th><th>Pain point</th><th>promptfoo가 푼 것</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="tag t-cyan">시장 일반</span></td>
+            <td>LLM은 비결정적 → 일반 단위 테스트 불가 → 팀들이 “vibe check”로 출고 → 프롬프트 인젝션·탈옥·PII 유출·도구 오용 같은 보안·행동 실패가 프로덕션까지 유출. <b>적대적/행동 리스크가 AI 출시 최대 걸림돌(특히 대기업).</b></td>
+            <td>“looks good to me”를 <b>반복 가능한 자동 평가 + 레드팀 + CI 게이트 + 컴플라이언스 성적표</b>로 전환 → “배포 전에 테스트 가능”하게 만듦.</td>
+          </tr>
+          <tr>
+            <td><span class="tag t-violet" style="background:rgba(139,155,242,.14);color:var(--violet);border:1px solid rgba(139,155,242,.3)">OpenAI 고유</span></td>
+            <td>Frontier 에이전트가 실제 데이터·시스템에 접근 → “에이전트 데모”와 “프로덕션 에이전트” 사이의 거버넌스·보안·감사 추적 공백. 기업들이 이를 조달 기준으로 명문화하던 중.</td>
+            <td>그 공백을 <b>네이티브로·빠르게·신뢰성 있게</b> 메우는 기성 정답 확보. 프롬프트 인젝션·탈옥·데이터 유출·도구 오용·정책 위반 테스트 + 거버넌스 리포팅·추적성을 Frontier에 내장.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>2B.3 우리에겐 무슨 의미인가 — 무엇이 바뀌나</h3>
+    <p>우리 상황(<strong>오프라인·에어갭 + 범용 ML/LLM 하니스로 사내 사용</strong>)에 한정해 솔직하게 말하면:</p>
+
+    <div class="box tip">
+      <div class="bt">지금 당장: 운영상 변화 없음 (그게 핵심)</div>
+      <p>MIT 라이선스와 공개 저장소가 유지되고, 우리가 이미 vendoring한 버전·YAML 스위트·Claude Code(MCP) 내부 워크플로는 그대로 돈다. 라이선스는 <strong>이미 확보한 코드와 포크할 권리</strong>를 보호하므로 소유주가 누구든 우리 손의 코드는 회수되지 않는다. <strong>특히 에어갭 + 범용 하니스 용법은 promptfoo를 쓰는 방식 중 인수 영향이 가장 적다</strong> — 우리는 이미 호스티드 의존을 끊었고, OpenAI가 가져간 가치(Frontier의 호스티드 엔터프라이즈 레드팀)는 애초에 우리 경로 밖이기 때문이다.</p>
+    </div>
+
+    <h4>진짜 바뀌는 것 — “비트”가 아니라 “궤적과 맥락”</h4>
+    <div class="cards">
+      <div class="card amber"><div class="ic">변화 1 · 로드맵</div><h5>OpenAI 우선순위로 정렬</h5><p>유지보수 방향이 Frontier 우선순위(에이전트 보안·OpenAI 모델)에 맞춰진다. <strong>비-OpenAI 모델 커버리지·범용 ML 용도는 후순위</strong>가 될 수 있다. 멀티 모델 지원 약속은 상용 로드맵과 충돌하는 첫 결정에서 시험대에 오른다.</p></div>
+      <div class="card amber"><div class="ic">변화 2 · 중립성</div><h5>채점기 ↔ 피채점자</h5><p>향후 <strong>외부 감사·규제 대응으로 OpenAI 모델 자체를 평가</strong>한다면 “평가받는 당사자가 채점기를 소유”하는 이해상충이 생긴다. 단, 우리 내부 에어갭 용도엔 사실상 무관(OpenAI를 감사하지도, 호스티드를 호출하지도 않음).</p></div>
+    </div>
+
+    <h4>그래서 구체적으로 할 일 (가벼움)</h4>
+    <ol class="wide">
+      <li><b>버전 고정(freeze).</b> 이미 컨테이너에 vendoring했으니 “프리즈된 의존성”으로 다루고, changelog 검토 후에만 의도적으로 올린다. 강제 변경에 휘둘릴 일이 없다.</li>
+      <li><b>범용 하니스 용법을 중심에 둔다.</b> “임의 데이터 + 임의 코드 → pass/fail·점수”는 구조적으로 벤더 중립이라 로드맵 드리프트에 가장 덜 노출된다.</li>
+      <li><b>포크 옵션을 주머니에 둔다.</b> MIT라 포크가 가능하고 기술적으로 어렵지 않으며 커뮤니티 포크 논의도 이미 있다. 당장 할 필요는 없고, 사용을 portable하게(YAML + 로컬 프로바이더 — 이미 그렇다) 유지하면 된다.</li>
+      <li><b>2개 신호를 ~12개월 관찰.</b> (a) 비-OpenAI 모델 커버리지가 계속 1급으로 업데이트되나, (b) OSS 저장소가 활발히 유지되나 vs Frontier 전용으로 표류하나. 둘 다 악화되면 그때 벤더 중립 대안(레드팀: Garak·PyRIT·Giskard / 메트릭: DeepEval)을 검토.</li>
+      <li><b>용도를 분리한다.</b> 중립성이 조달 이슈가 아닌 내부 평가·CI·회귀는 promptfoo를 그대로, 규제 데이터·외부 감사가 걸리는 보안·컴플라이언스 레이어는 벤더 중립 도구로 분리.</li>
+    </ol>
+
+    <div class="box" style="border-left:3px solid var(--violet)">
+      <div class="bt" style="color:var(--violet)">전략 결론</div>
+      <p><strong>사내 오프라인 범용 하니스로서는 저위험이고 우리 포지션은 좋다.</strong> 달라진 단 하나는 인식의 전환이다 — promptfoo를 “중립적 커뮤니티 프로젝트”가 아니라 “<strong>우리가 로드맵을 통제하지 않는 vendored 도구</strong>”로 취급하고, 그에 맞게 핀(pin)·포크(fork) 전략을 갖추는 것. 우리가 이미 한 에어갭·vendoring·범용화는 사실상 그 대비를 선제적으로 끝내 둔 셈이다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 03 오프라인 ===================== -->
+<section id="s3">
+  <div class="wrap">
+    <div class="sec-num"><span>SECTION 03</span><span class="bar"></span><span>OFFLINE / AIR-GAP</span></div>
+    <h2>오프라인·에어갭으로<br>쓰는 방법</h2>
+    <p class="lead">좋은 소식부터: <em>promptfoo는 기본적으로 로컬에서 돈다.</em> 평가 러너는 사용자 머신에서 실행되고, 설정한 프로바이더로 직접 호출이 나간다 — 데이터가 promptfoo 서버를 거치지 않는다. 따라서 “완전 오프라인”의 본질은 두 가지뿐이다: <strong>(1) 모델을 로컬에 두고, (2) promptfoo가 외부로 거는 부수적 호출(텔레메트리·업데이트·일부 레드팀 원격 생성)을 끄는 것.</strong></p>
+
+    <div class="box tip">
+      <div class="bt">현장 검증 (field-validated)</div>
+      <p>이 절의 접근은 실제 배포로 확인되었다: <strong>오프라인으로 컨테이너를 빌드</strong>하고 충분한 문서를 함께 제공해 <strong>Claude Code CLI가 내부에서 평가를 구동</strong>하도록 했고, <strong>에어갭 환경용으로 리빌드</strong>해 격리망 내부에서 그대로 사용 중이다. 참고로 promptfoo는 <span class="mono">promptfoo mcp</span>로 <strong>MCP 서버</strong>를 띄워 자신의 eval·테스트 기능을 도구로 노출할 수 있어, Cursor·Claude Desktop·Claude Code 같은 에이전트가 내부에서 평가를 호출하는 워크플로에 자연스럽게 들어맞는다.</p>
+    </div>
+
+    <div class="box warn">
+      <div class="bt">먼저 알아야 할 진실</div>
+      <p>promptfoo 공식 문서는 분명히 한다: 텔레메트리·업데이트 차단 같은 환경변수 설정은 <strong>“네트워크 방화벽이 아니다.”</strong> 진짜 엄격한 오프라인/에어갭이 필요하면 (로컬 프로바이더) + (네트워크 egress 통제) + (필요 시 Enterprise On-Prem)를 조합해야 한다. 즉 promptfoo 설정 + OS/방화벽 차단이 함께 가야 한다.</p>
+    </div>
+
+    <h3>3.1 1단계 — 로컬 프로바이더로 모델을 가져온다</h3>
+    <p>외부 API 대신 로컬에서 추론하는 프로바이더를 쓰면 promptfoo가 외부 모델 API에 닿을 일이 없다. 대표 선택지는 <strong>Ollama</strong>(가장 흔함), <strong>LocalAI</strong>(OpenAI 호환 셀프호스트), 그리고 vLLM·llama.cpp 같은 OpenAI 호환 엔드포인트다.</p>
+
+    <h4>Ollama 연결</h4>
+    <p>Ollama는 모델을 한 번 <span class="mono">pull</span>로 받아 두면 인터넷 없이 추론·임베딩이 모두 로컬에서 돈다. promptfoo는 <span class="mono">/api/generate</span>와 <span class="mono">/api/embeddings</span>를 모두 지원한다 — 즉 <strong>llm-rubric 채점과 similar(유사도) 어설션까지 로컬 모델로 처리</strong>할 수 있다.</p>
+    <div class="code">
+      <div class="code-head"><span class="fname">terminal</span><span>bash</span></div>
+<pre><span class="c"># 인터넷 연결된 상태에서 모델 미리 받기</span>
+ollama pull llama3.3
+ollama pull nomic-embed-text     <span class="c"># 임베딩(유사도 어설션용)</span>
+
+<span class="c"># promptfoo가 IPv4로 직접 닿게(localhost IPv6 이슈 회피)</span>
+export OLLAMA_BASE_URL=<span class="s">"http://127.0.0.1:11434"</span>
+
+<span class="c"># 다른 머신의 Ollama에 붙기(사내 GPU 서버 등)</span>
+export OLLAMA_BASE_URL=<span class="s">"http://192.168.1.100:11434"</span>
+<span class="c"># 이때 서버는 OLLAMA_HOST=0.0.0.0:11434 로 떠 있어야 함</span></pre>
+    </div>
+    <div class="code">
+      <div class="code-head"><span class="fname">promptfooconfig.yaml</span><span>local-only</span></div>
+<pre><span class="k">providers</span>:
+  - <span class="v">ollama:chat:llama3.3</span>            <span class="c"># 대상 모델</span>
+  - <span class="v">ollama:completion:mistral</span>
+
+<span class="c"># 로컬 모델을 "채점기"로도 사용 → LLM 호출이 외부로 안 나감</span>
+<span class="k">defaultTest</span>:
+  <span class="k">options</span>:
+    <span class="k">provider</span>:
+      <span class="k">text</span>: <span class="v">ollama:chat:llama3.3</span>          <span class="c"># llm-rubric 채점기</span>
+      <span class="k">embedding</span>: <span class="v">ollama:embeddings:nomic-embed-text</span>  <span class="c"># similar 채점기</span></pre>
+    </div>
+    <div class="box tip">
+      <div class="bt">리소스 절약 팁</div>
+      <p>기본적으로 promptfoo는 모든 프로바이더를 동시(concurrent)에 평가한다. <span class="mono">-j 1</span> 플래그를 주면 한 번에 모델 하나·프롬프트 하나씩 순차 실행해, <strong>한 모델만 메모리에 올라가</strong> 로컬 GPU/RAM을 아낀다. 큰 로컬 모델을 돌릴 때 유용하다.</p>
+    </div>
+
+    <h4>LocalAI / vLLM / llama.cpp</h4>
+    <p>OpenAI 호환 API를 제공하는 엔진이면 promptfoo의 OpenAI 호환 프로바이더 설정으로 <span class="mono">baseURL</span>만 로컬 주소로 바꿔 붙일 수 있다. 사내 게이트웨이(<span class="mono">http://internal-llm:8000/v1</span>)도 동일하게 처리된다.</p>
+
+    <h3>3.2 2단계 — 외부로 나가는 부수 호출을 끈다</h3>
+    <p>로컬 모델만 써도 promptfoo는 기본적으로 텔레메트리, 업데이트 확인, 그리고 일부 레드팀 기능의 원격 생성을 시도할 수 있다. 아래 환경변수로 이를 차단한다. <strong>텔레메트리에는 프롬프트·모델 출력·테스트케이스·API 키·전체 설정 파일이 포함되지 않는다</strong>(패키지 버전·CI 여부 등 메타데이터뿐)지만, 오프라인에선 모두 꺼 두는 게 깔끔하다.</p>
+    <div class="code">
+      <div class="code-head"><span class="fname">offline.env</span><span>env vars</span></div>
+<pre><span class="c"># 익명 사용 분석(텔레메트리) 비활성화</span>
+export PROMPTFOO_DISABLE_TELEMETRY=<span class="v">1</span>
+
+<span class="c"># NPM 레지스트리 업데이트 확인 비활성화</span>
+export PROMPTFOO_DISABLE_UPDATE=<span class="v">1</span>
+
+<span class="c"># 레드팀: 원격 생성 폴백 비활성화(자체 OPENAI_API_KEY나 로컬 모델 필요)</span>
+export PROMPTFOO_DISABLE_REDTEAM_REMOTE_GENERATION=<span class="v">true</span>
+
+<span class="c"># 사내 CA 인증서가 있는 환경(기업 프록시)</span>
+export PROMPTFOO_CA_CERT_PATH=<span class="s">/path/to/ca-bundle.pem</span></pre>
+    </div>
+
+    <div class="box crit">
+      <div class="bt">레드팀의 결정적 제약 — 원격 전용 기능</div>
+      <p>이게 오프라인에서 가장 중요한 함정이다. promptfoo의 <strong>일부 레드팀 플러그인·전략은 promptfoo의 호스티드 추론을 요구</strong>하며 로컬에서 실행할 수 없다(문서에 🌐로 표시됨). 즉, <strong>완전 에어갭에서는 이 고급 공격 기법들을 쓸 수 없다.</strong></p>
+      <p><b>원격 전용 전략 예:</b> <span class="mono">audio · citation · gcg · goat · jailbreak:composite · jailbreak:hydra · jailbreak:likert · jailbreak:meta</span>. 또한 <span class="mono">promptfoo redteam poison</span>은 자체 API 키가 있어도 항상 호스티드 생성을 쓴다. 임베딩·moderation 어설션도 별도 프로바이더 지정이 필요하다.</p>
+    </div>
+    <p>정리하면, 에어갭에서 가능한 것은 <strong>평가(eval) 전반 + 로컬 모델 채점 + 직접 정의한(static) 레드팀 케이스</strong>이고, 적대적 입력을 동적으로 생성하는 일부 고급 전략은 제약된다. 완전 격리 환경에서 풀 레드팀이 필요하면 <strong>Enterprise On-Prem</strong> 라인을 검토해야 한다.</p>
+
+    <h3>3.3 3단계 — 결과 저장은 이미 로컬(SQLite)</h3>
+    <p>기본적으로 평가 결과는 로컬에 저장된다. CLI는 SQLite DB(<span class="mono">promptfoo.db</span>)를 사용자 홈의 <span class="mono">.promptfoo</span> 디렉터리에 둔다. 공유(sharing)·클라우드 동기화 같은 클라우드 기능을 명시적으로 호출하지 않는 한 결과가 밖으로 나가지 않는다. 즉 별도 조치 없이도 데이터는 로컬에 머문다.</p>
+
+    <h3>3.4 (선택) 웹 UI를 셀프호스팅 — Docker</h3>
+    <p>팀이 평가 이력을 웹 UI로 보고 싶다면 공식 Docker 이미지로 서버를 띄울 수 있다. 단, 공식 문서는 <strong>이 셀프호스트 버전을 프로덕션 권장하지 않는다</strong>(SQLite 단일 파일, 수동 영속화, 멀티팀·RBAC·수평확장 없음 — 복제본 2개 이상이면 “Job not found” 오류). 엔터프라이즈 고객은 이 이미지 대신 별도 엔터프라이즈 이미지를 받아야 한다.</p>
+    <div class="code">
+      <div class="code-head"><span class="fname">docker-compose.yml</span><span>self-host</span></div>
+<pre><span class="k">services</span>:
+  <span class="k">promptfoo</span>:
+    <span class="k">image</span>: <span class="s">ghcr.io/promptfoo/promptfoo:latest</span>
+    <span class="k">ports</span>: [<span class="s">"3000:3000"</span>]
+    <span class="k">volumes</span>:
+      - <span class="s">./promptfoo_data:/home/promptfoo/.promptfoo</span>   <span class="c"># 영속화(필수)</span>
+    <span class="k">environment</span>:
+      - <span class="v">PROMPTFOO_DISABLE_TELEMETRY=1</span>
+      - <span class="v">PROMPTFOO_DISABLE_UPDATE=1</span>
+      <span class="c"># 서버에서 직접 평가 시 키 추가(CLI 전용이면 로컬 환경에 둘 것)</span>
+      <span class="c"># - OPENAI_API_KEY=...</span></pre>
+    </div>
+    <p>UI는 <span class="mono">http://localhost:3000</span>. CLI에서 이 셀프호스트 인스턴스로 결과를 올리려면 두 변수를 가리키게 한 뒤 명시적으로 업로드한다:</p>
+    <div class="code">
+      <div class="code-head"><span class="fname">terminal</span><span>bash</span></div>
+<pre>export PROMPTFOO_REMOTE_API_BASE_URL=<span class="s">http://your-server:3000</span>
+export PROMPTFOO_REMOTE_APP_BASE_URL=<span class="s">http://your-server:3000</span>
+<span class="c"># 데이터·blob 영속 경로 / 설정 디렉터리 재정의</span>
+<span class="c"># /home/promptfoo/.promptfoo/blobs (이미지·오디오 등 외부화 저장)</span>
+<span class="c"># PROMPTFOO_CONFIG_DIR 로 기본 설정 디렉터리 변경 가능</span></pre>
+    </div>
+
+    <h3>3.5 진짜 에어갭(air-gapped) 운영 절차</h3>
+    <p>정부·금융·의료·국방처럼 “네트워크를 떠나는 데이터 = 보안 사고”인 환경에서는 promptfoo 설정만으로 부족하다. 로컬 AI 생태계(Ollama·LocalAI·llama.cpp)는 에어갭에서 잘 돌지만, 핵심은 <strong>운영 규율</strong>이다. 권장 절차:</p>
+    <ol class="wide">
+      <li><b>스니커넷으로 모델 반입</b> — 연결된 머신에서 Ollama 설치본과 <span class="mono">~/.ollama/models/</span> 디렉터리(매니페스트+blob)를 통째로 외장 매체에 복사해 격리 머신의 동일 경로로 옮긴다. <span class="mono">ollama list</span>로 인식 확인. 레지스트리 <span class="mono">pull</span>은 에어갭에서 동작하지 않으므로 파일 직접 복사가 정석이다.</li>
+      <li><b>오프라인 패키지 반입</b> — promptfoo는 npm/pip 패키지이므로, 동일하게 오프라인 미러나 vendored tarball로 설치한다. Node.js 런타임도 함께.</li>
+      <li><b>egress 차단을 OS/방화벽으로 강제</b> — promptfoo 환경변수는 방화벽이 아니다. 프로세스 단위 아웃바운드 차단 규칙으로 “설정 실수로라도 밖으로 못 나가게” 강제한다. 예: macOS <span class="mono">pf</span>, Linux <span class="mono">iptables/nftables</span>, Windows 방화벽 아웃바운드 규칙.</li>
+      <li><b>로컬 채점기 고정</b> — llm-rubric·similar 어설션의 채점/임베딩 프로바이더를 모두 로컬 Ollama로 명시(3.1의 <span class="mono">options.provider</span>). 누락 시 기본 채점기가 외부를 시도할 수 있다.</li>
+      <li><b>원격 전용 레드팀 기능 회피</b> — 🌐 표시 전략·플러그인은 제외하고, 정적 레드팀 케이스(직접 작성하거나 HuggingFace 데이터셋에서 반입)로 대체한다. 풀 동적 레드팀이 필수면 Enterprise On-Prem.</li>
+      <li><b>검증</b> — Little Snitch/LuLu(macOS)나 네트워크 모니터로 평가 실행 중 promptfoo·ollama 프로세스의 아웃바운드 연결이 0인지 확인. 인터넷을 물리적으로 끊고 동일 평가가 정상 동작하면 오프라인 확정.</li>
+    </ol>
+
+    <h3>3.6 오프라인 능력 요약 — 무엇이 되고 안 되나</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>기능</th><th>완전 오프라인</th><th>비고</th></tr></thead>
+        <tbody>
+          <tr><td>프롬프트·모델 평가(eval)</td><td><span class="tag t-pass">가능 ✓</span></td><td>러너가 로컬 실행, 로컬 프로바이더로 호출</td></tr>
+          <tr><td>결정적 어설션(contains·regex·latency·cost·json·js/py)</td><td><span class="tag t-pass">가능 ✓</span></td><td>외부 호출 자체가 없음</td></tr>
+          <tr><td>llm-rubric / factuality 채점</td><td><span class="tag t-pass">가능 ✓</span></td><td>채점기를 로컬 Ollama로 지정 시</td></tr>
+          <tr><td>similar(임베딩 유사도)</td><td><span class="tag t-pass">가능 ✓</span></td><td>로컬 임베딩 모델 지정 시(nomic-embed-text 등)</td></tr>
+          <tr><td>멀티모델 비교</td><td><span class="tag t-pass">가능 ✓</span></td><td>여러 로컬 모델을 프로바이더로</td></tr>
+          <tr><td>결과 저장·웹 UI</td><td><span class="tag t-pass">가능 ✓</span></td><td>로컬 SQLite + 셀프호스트 Docker</td></tr>
+          <tr><td>정적 레드팀 케이스 실행</td><td><span class="tag t-pass">가능 ✓</span></td><td>직접 작성/데이터셋 반입 케이스</td></tr>
+          <tr><td>고급 동적 레드팀 전략(composite·hydra·gcg·goat·audio·citation…)</td><td><span class="tag t-crit">불가 ✗</span></td><td>🌐 호스티드 추론 필요 → Enterprise On-Prem 검토</td></tr>
+          <tr><td>redteam poison</td><td><span class="tag t-crit">불가 ✗</span></td><td>항상 호스티드 생성 사용</td></tr>
+          <tr><td>공유(sharing)·클라우드 동기화·호스티드 리포트</td><td><span class="tag t-crit">불가 ✗</span></td><td>설계상 클라우드 기능</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="box tip">
+      <div class="bt">오프라인 최소 구성 한 줄 요약</div>
+      <p><strong>Ollama(로컬 모델 + 임베딩)</strong> + <strong>채점기를 로컬로 고정</strong> + <strong>3개 환경변수로 텔레메트리/업데이트/원격생성 차단</strong> + <strong>OS 방화벽으로 egress 강제 차단</strong>. 이 네 가지면 평가·멀티모델 비교·기본 보안 테스트를 인터넷 없이 돌릴 수 있다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 04 실무 가이드 / FAQ ===================== -->
+<section id="s4">
+  <div class="wrap">
+    <div class="sec-num"><span>SECTION 04</span><span class="bar"></span><span>PLAYBOOK &amp; FAQ</span></div>
+    <h2>실무 도입 체크리스트<br>&amp; 자주 묻는 질문</h2>
+    <p class="lead">조사 내용을 “내일 당장 무엇을 할까”로 옮긴 절. 도입 단계별 체크리스트와, 실무에서 반복적으로 나오는 질문에 대한 답을 모았다.</p>
+
+    <h3>4.1 단계별 도입 체크리스트</h3>
+    <div class="cards">
+      <div class="card"><div class="ic">Day 1 · 탐색</div><h5>10분 만에 첫 평가</h5><p><span class="mono">npx promptfoo@latest init --example getting-started</span> → 키 1개 설정 → <span class="mono">eval</span> → <span class="mono">view</span>. 매트릭스가 어떻게 생겼는지 눈으로 익힌다.</p></div>
+      <div class="card"><div class="ic">Week 1 · 평가 자산화</div><h5>실패 모드 5개 작성</h5><p>실제 프로덕션에서 자주 깨지던 입력 5개를 테스트케이스로 옮긴다. 결정적 어설션(contains·regex·latency·cost)부터. LLM 채점은 나중에.</p></div>
+      <div class="card green"><div class="ic">Week 2 · CI 게이트</div><h5>PR마다 자동 실행</h5><p>GitHub Action으로 <span class="mono">prompts/**</span> 변경 시 평가를 돌리고 <span class="mono">--assert</span>로 회귀 시 빌드를 막는다. 프롬프트도 코드처럼 버전 관리.</p></div>
+      <div class="card amber"><div class="ic">Week 3 · 보안</div><h5>레드팀 베이스라인</h5><p><span class="mono">redteam init</span> → <span class="mono">owasp:llm</span> 프리셋으로 1차 스캔. PII·탈옥 같은 치명 항목에서 95%+ 통과를 목표로 시스템 프롬프트를 조인다.</p></div>
+      <div class="card violet"><div class="ic">Week 4 · 관측 연계</div><h5>모니터링 페어링</h5><p>배포 후 품질 드리프트는 promptfoo가 못 본다. Langfuse·Phoenix 등 관측 도구를 붙여 “CI 게이트 + 실시간 모니터링” 2-스택을 완성한다.</p></div>
+      <div class="card"><div class="ic">상시 · 비용</div><h5>캐싱·반복 관리</h5><p>캐싱으로 동일 호출 재사용, <span class="mono">--repeat</span>로 신뢰성 측정, 모델 선택 단계에선 mini/flash급으로 케이스를 줄여 토큰비를 통제한다.</p></div>
+    </div>
+
+    <h3>4.2 안티패턴 — 흔히 하는 실수</h3>
+    <ul class="wide">
+      <li><b>프롬프트만 테스트하기</b> — 프롬프트를 격리해 검증하면 동적으로 프롬프트가 생성되는 실제 서비스 동작을 못 본다. “테스트 대상(system under test)”은 프롬프트가 아니라 <strong>서비스 자체</strong>여야 한다. HTTP 타깃으로 실제 엔드포인트를 친다.</li>
+      <li><b>한 번 돌리고 끝</b> — 비결정성 때문에 단발 통과는 “운 좋게 통과”일 수 있다. <span class="mono">--repeat</span>로 반복 신뢰성을 본다.</li>
+      <li><b>LLM 채점 남발</b> — 모든 어설션을 llm-rubric으로 하면 느리고 비싸다. 결정적 검사를 먼저 깔고, 주관적 기준만 LLM에 맡긴다.</li>
+      <li><b>오프라인인데 채점기 방치</b> — 대상 모델만 로컬로 바꾸고 채점기/임베딩 프로바이더를 안 지정하면 기본 채점기가 외부를 시도한다. 둘 다 로컬로 고정해야 진짜 오프라인.</li>
+      <li><b>레드팀을 프로덕션 모니터로 오해</b> — promptfoo는 배포 전 도구다. 라이브 트래픽 감시 용도가 아니다.</li>
+    </ul>
+
+    <h3>4.3 FAQ</h3>
+    <div class="deflist">
+      <div class="row"><dt>코딩 없이 쓸 수 있나?</dt><dd>대부분의 일반 시나리오는 <b>YAML만으로</b> 가능하다. 커스텀 어설션·고급 로직이 필요할 때만 JavaScript/Python 훅을 쓴다.</dd></div>
+      <div class="row"><dt>어떤 모델을 지원하나?</dt><dd>OpenAI·Anthropic·Google·Azure·AWS Bedrock·HuggingFace, Ollama 등 <b>로컬 모델</b>, 그리고 <b>OpenAI 호환 API를 가진 모든 프로바이더</b>(50+). 같은 프롬프트를 전부에 동시 비교할 수 있다.</dd></div>
+      <div class="row"><dt>데이터가 외부로 나가나?</dt><dd>기본은 <b>아니오</b>. 러너는 로컬에서 돌고 설정한 프로바이더로 직접 호출된다. 공유·클라우드 동기화·호스티드 리포트·일부 레드팀 원격 생성 같은 <b>클라우드 기능을 명시적으로 켤 때만</b> 데이터가 promptfoo 운영 서비스에 닿는다.</dd></div>
+      <div class="row"><dt>API 키가 텔레메트리로 새나?</dt><dd>아니오. 키는 로컬 환경변수에서 읽고 그 자체로 전송되지 않는다. 다만 설정·요청 예시·레드팀 셋업 폼에 <b>직접 붙여 넣은</b> 비밀값은 로컬 아티팩트나 클라우드 기능에 저장·전송될 수 있으니 그런 폼에 실제 시크릿을 넣지 말 것.</dd></div>
+      <div class="row"><dt>CI/CD에 넣을 수 있나?</dt><dd>그렇다. 머신리더블 출력(JSON 등)을 내므로 GitHub Actions·GitLab CI·Jenkins·CircleCI 어디든 붙는다. 통과율이 임계값 밑이거나 취약점 점수가 높으면 빌드를 실패시킨다.</dd></div>
+      <div class="row"><dt>인수 후에도 안전하게 쓸 수 있나?</dt><dd>오픈소스 CLI는 MIT로 유지되고 저장소도 공개다. 인수 2개월 시점까지 제품은 눈에 띄게 나빠지지 않았다. 단 보안 감사에서 <b>채점기 독립성</b>이 요건이면 벤더 독립 대안(Garak·PyRIT·Giskard)을 병행 검토.</dd></div>
+      <div class="row"><dt>비용은?</dt><dd>코어는 무료(MIT). 클라우드 Team $50/월, Enterprise 커스텀. 평가 중 호출한 <b>LLM 토큰비는 별도</b>이며 로컬 모델을 쓰면 0이 된다.</dd></div>
+    </div>
+
+    <div class="box tip">
+      <div class="bt">한 문장 결론</div>
+      <p>promptfoo는 “LLM 앱에 단위 테스트와 침투 테스트의 규율을 동시에 가져오는, 로컬 우선 오픈소스 도구”다. <strong>프롬프트·모델 선택과 보안 레드티밍이 목적이고 Node 환경이라면 2026년에도 가장 빠른 출발점</strong>이며, 메트릭 깊이(DeepEval)나 프로덕션 관측(Langfuse·Phoenix)은 별도 도구로 보완하는 2-스택 구성이 정석이다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 부록 A1 환경변수 ===================== -->
+<section id="a1">
+  <div class="wrap">
+    <div class="sec-num"><span>APPENDIX 01</span><span class="bar"></span><span>ENV REFERENCE</span></div>
+    <h2>부록 A1 — 환경변수<br>레퍼런스</h2>
+    <p class="lead">오프라인·셀프호스트·CI 구성에서 자주 쓰는 promptfoo 환경변수를 한 곳에 모았다. 환경변수는 터미널/셸 인스턴스에 종속되므로, 영구화하려면 <span class="mono">~/.bashrc</span>·<span class="mono">~/.zshrc</span>에 추가한다.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>환경변수</th><th>역할</th><th>오프라인 권장값</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">PROMPTFOO_DISABLE_TELEMETRY</td><td>익명 사용 분석 비활성화(opt-out 1회 기록)</td><td><span class="tag t-pass">1</span></td></tr>
+          <tr><td class="mono">PROMPTFOO_DISABLE_UPDATE</td><td>NPM 레지스트리 업데이트 확인 끄기</td><td><span class="tag t-pass">1</span></td></tr>
+          <tr><td class="mono">PROMPTFOO_DISABLE_REDTEAM_REMOTE_GENERATION</td><td>레드팀 원격 생성 폴백 끄기(로컬/자체키 필요)</td><td><span class="tag t-pass">true</span></td></tr>
+          <tr><td class="mono">OLLAMA_BASE_URL</td><td>Ollama 서버 주소(IPv4 직결, 원격 서버)</td><td class="mono">http://127.0.0.1:11434</td></tr>
+          <tr><td class="mono">OLLAMA_API_KEY</td><td>Ollama 호출 시 Bearer 토큰(선택)</td><td><span class="tag t-mute">선택</span></td></tr>
+          <tr><td class="mono">REQUEST_TIMEOUT_MS</td><td>요청 타임아웃(ms) — 느린 로컬 모델에 상향</td><td class="mono">예: 120000</td></tr>
+          <tr><td class="mono">PROMPTFOO_CA_CERT_PATH</td><td>사내 CA 인증서 번들 경로(기업 프록시)</td><td class="mono">/path/ca.pem</td></tr>
+          <tr><td class="mono">PROMPTFOO_REMOTE_API_BASE_URL</td><td>CLI가 결과를 올릴 셀프호스트 API 주소</td><td class="mono">http://host:3000</td></tr>
+          <tr><td class="mono">PROMPTFOO_REMOTE_APP_BASE_URL</td><td>셀프호스트 앱(웹 UI) 주소</td><td class="mono">http://host:3000</td></tr>
+          <tr><td class="mono">PROMPTFOO_CONFIG_DIR</td><td>기본 설정·DB 디렉터리 재정의(기본 ~/.promptfoo)</td><td class="mono">/data/.promptfoo</td></tr>
+          <tr><td class="mono">PROMPTFOO_SHARE_CHUNK_SIZE</td><td>대용량 평가 공유 시 청크 크기(셀프호스트 튜닝)</td><td class="mono">예: 10</td></tr>
+          <tr><td class="mono">PROMPTFOO_INLINE_MEDIA</td><td>이미지·오디오를 외부화 대신 인라인 유지(레거시)</td><td class="mono">true</td></tr>
+          <tr><td class="mono">OPENAI_API_KEY / ANTHROPIC_API_KEY …</td><td>상용 프로바이더 키(오프라인이면 불필요)</td><td><span class="tag t-mute">오프라인 미사용</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="mono" style="font-size:12.5px;color:var(--fg-faint)">참고: Docker 빌드 차원에서 이미지가 텔레메트리를 끄도록 빌드되어 있기도 하다(<span style="color:var(--cyan)">VITE_TELEMETRY_DISABLED=1</span>, <span style="color:var(--cyan)">VITE_IS_HOSTED=1</span>). URL 프리픽스로 서빙하려면 <span style="color:var(--cyan)">VITE_PUBLIC_BASENAME</span>로 재빌드한다.</p>
+  </div>
+</section>
+
+<!-- ===================== 부록 A2 레드팀 카탈로그 ===================== -->
+<section id="a2">
+  <div class="wrap">
+    <div class="sec-num"><span>APPENDIX 02</span><span class="bar"></span><span>RED TEAM CATALOG</span></div>
+    <h2>부록 A2 — 레드팀<br>플러그인·전략 카탈로그</h2>
+    <p class="lead">자주 쓰는 플러그인(무엇을 묻나)과 전략(어떻게 전달하나), 프레임워크 프리셋을 정리했다. 🌐는 promptfoo 커뮤니티 에디션에서 원격 추론을 쓰는 항목 — 완전 오프라인에서 제약된다.</p>
+
+    <h4>플러그인 (vulnerability plugins)</h4>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>범주</th><th>플러그인</th><th>탐지 대상</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="2"><span class="sev c">보안·접근통제</span></td><td class="mono">prompt-injection · sql-injection · shell-injection · ssrf</td><td>명령/시스템 프롬프트 우회, 인젝션, 서버측 요청 위조</td></tr>
+          <tr><td class="mono">rbac · bola(bofa) · bfla · debug-access · system-prompt-extraction</td><td>인가 결함(IDOR류), 디버그 노출, 시스템 프롬프트 추출</td></tr>
+          <tr><td><span class="sev h">데이터 프라이버시</span></td><td class="mono">pii:direct · pii:session · pii:social · pii:api-db · harmful:privacy</td><td>PII 직접/세션/사회공학/DB 경유 유출</td></tr>
+          <tr><td><span class="sev h">과도한 자율성</span></td><td class="mono">excessive-agency · hijacking</td><td>범위 밖 행동·도구 호출, 목표 하이재킹, 권한 상승</td></tr>
+          <tr><td><span class="sev m">유해성·편향</span></td><td class="mono">harmful:hate · harmful:self-harm · politics · religion</td><td>혐오·자해 유도, 정치·종교·차별 편향</td></tr>
+          <tr><td><span class="sev m">오정보·신뢰</span></td><td class="mono">hallucination · overreliance · competitors · contracts · imitation</td><td>환각, 과의존, 경쟁사 비방, 계약 위반, 사칭</td></tr>
+          <tr><td><span class="sev l">커스텀·데이터셋</span></td><td class="mono">policy(커스텀) · 연구 데이터셋 프리셋</td><td>법무·브랜드·컴플라이언스 정책, 사전 컴파일된 안전 데이터셋</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>전략 (delivery strategies)</h4>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>전략</th><th>기법</th><th>오프라인</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">basic · prompt-injection</td><td>페이로드를 인젝션 프레임에 래핑</td><td><span class="tag t-pass">로컬 가능</span></td></tr>
+          <tr><td class="mono">jailbreak</td><td>DAN류 가드레일 우회</td><td><span class="tag t-pass">로컬 가능</span></td></tr>
+          <tr><td class="mono">base64 · rot13 · leetspeak</td><td>인코딩으로 필터 회피</td><td><span class="tag t-pass">로컬 가능</span></td></tr>
+          <tr><td class="mono">multilingual</td><td>저자원 언어 번역(안전장치 약점 탐색)</td><td><span class="tag t-pass">로컬 가능</span></td></tr>
+          <tr><td class="mono">crescendo · tree</td><td>다중 턴 점진 escalation, 트리 탐색</td><td><span class="tag t-warn">일부 원격</span></td></tr>
+          <tr><td class="mono">jailbreak:composite · :hydra · :likert · :meta</td><td>조합·메타 탈옥(고급)</td><td><span class="tag t-crit">🌐 원격 전용</span></td></tr>
+          <tr><td class="mono">gcg · goat · citation · audio</td><td>화이트박스 최적화·인용·오디오 등</td><td><span class="tag t-crit">🌐 원격 전용</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>프레임워크 프리셋</h4>
+    <ul class="wide">
+      <li><span class="mono">owasp:llm</span> — OWASP LLM Top 10 전체. <span class="mono">owasp:llm:01</span>처럼 개별 항목도 지정 가능.</li>
+      <li><span class="mono">owasp:api</span> — OWASP API Security Top 10(불안전한 플러그인 설계 등).</li>
+      <li><span class="mono">owasp:agentic</span> — OWASP Top 10 for Agentic Applications(Black Hat Europe 2025 발표): 목표 하이재킹·메모리 포이즈닝·다중 에이전트 연쇄 등.</li>
+      <li><span class="mono">mitre:atlas</span> — MITRE ATLAS AI 위협 프레임워크 매핑.</li>
+      <li>NIST AI RMF · EU AI Act — 규제·표준 매핑 리포트 생성.</li>
+    </ul>
+
+    <div class="box tip">
+      <div class="bt">가격 참고(2026)</div>
+      <p>오픈소스 코어는 <strong>MIT 라이선스·완전 무료</strong>(셀프호스트 기능 제한 없음). 클라우드는 개인용 무료 티어(레드팀 프로브 월 1만 건 수준)와 협업용 <strong>Team $50/월</strong>, 그리고 커스텀 Enterprise가 있다. 별도로 평가 중 호출한 <strong>LLM API 토큰 비용</strong>은 본인 부담(예: GPT-4o로 100케이스 ≈ $0.5~2.0). <strong>로컬 모델(Ollama)을 쓰면 API 비용은 0.</strong> 인수 이후 정책은 변동 가능하니 promptfoo.dev에서 최신 확인 권장.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 부록 A3 용어집 & 출처 ===================== -->
+<section id="a3" style="border-bottom:none">
+  <div class="wrap">
+    <div class="sec-num"><span>APPENDIX 03</span><span class="bar"></span><span>GLOSSARY &amp; SOURCES</span></div>
+    <h2>부록 A3 — 용어집</h2>
+    <div class="deflist">
+      <div class="row"><dt>eval</dt><dd>프롬프트×프로바이더×테스트케이스를 돌려 어설션으로 채점하는 평가 실행.</dd></div>
+      <div class="row"><dt>red teaming</dt><dd>적대적 입력으로 AI의 보안·안전 취약점을 배포 전에 찾는 행위.</dd></div>
+      <div class="row"><dt>LLM-as-judge</dt><dd>주관적 품질을 다른 LLM에게 평어 루브릭으로 채점시키는 방식(llm-rubric).</dd></div>
+      <div class="row"><dt>prompt injection</dt><dd>사용자/외부 콘텐츠로 모델의 시스템 지시를 의도치 않게 바꾸는 공격(직접/간접).</dd></div>
+      <div class="row"><dt>jailbreak</dt><dd>가드레일을 우회해 모델이 금지된 콘텐츠를 생성하게 만드는 기법.</dd></div>
+      <div class="row"><dt>excessive agency</dt><dd>에이전트가 의도된 범위를 넘어 도구를 호출하거나 권한을 넘는 행동을 하는 위험.</dd></div>
+      <div class="row"><dt>RAG</dt><dd>검색 증강 생성. 외부 문서를 검색해 맥락으로 넣고 답하는 구조. 충실도·맥락 관련성이 핵심 평가축.</dd></div>
+      <div class="row"><dt>faithfulness</dt><dd>출력이 제공된 검색 맥락에 충실한지(지어내지 않았는지)를 보는 RAG 메트릭.</dd></div>
+      <div class="row"><dt>air-gap</dt><dd>외부 네트워크와 물리적으로 격리된 환경. 데이터 유출이 곧 보안 사고로 간주됨.</dd></div>
+      <div class="row"><dt>OWASP LLM Top 10</dt><dd>LLM 앱의 10대 핵심 보안 위험 목록. promptfoo가 프리셋으로 자동 테스트.</dd></div>
+      <div class="row"><dt>OpenAI Frontier</dt><dd>OpenAI의 엔터프라이즈 AI 코워커 플랫폼(2026.02.05 출시). promptfoo 기술이 통합되는 곳.</dd></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <h4>출처 (Sources)</h4>
+    <p class="mono" style="font-size:12.5px;color:var(--fg-dim);max-width:760px">아래는 본 보고서 작성에 사용한 1차/공식 자료 및 주요 분석 글이다. 2026년 6월 기준 온라인 조사 결과이며, 가격·기능·소유 구조는 변동될 수 있다.</p>
+    <div class="src">
+      <a href="https://github.com/promptfoo/promptfoo" target="_blank" rel="noopener">github.com/promptfoo/promptfoo — 공식 저장소·README</a><br>
+      <a href="https://www.promptfoo.dev/docs/intro/" target="_blank" rel="noopener">promptfoo.dev/docs — 공식 문서(intro·assertions·getting-started)</a><br>
+      <a href="https://www.promptfoo.dev/docs/faq/" target="_blank" rel="noopener">promptfoo.dev/docs/faq — FAQ(오프라인·텔레메트리·프라이버시)</a><br>
+      <a href="https://www.promptfoo.dev/docs/red-team/troubleshooting/data-handling/" target="_blank" rel="noopener">promptfoo.dev — Data Handling and Privacy(원격 전용 기능)</a><br>
+      <a href="https://www.promptfoo.dev/docs/usage/self-hosting/" target="_blank" rel="noopener">promptfoo.dev/docs/usage/self-hosting — 셀프호스팅(Docker·Compose)</a><br>
+      <a href="https://www.promptfoo.dev/docs/configuration/telemetry/" target="_blank" rel="noopener">promptfoo.dev — Telemetry Configuration</a><br>
+      <a href="https://www.promptfoo.dev/docs/providers/ollama/" target="_blank" rel="noopener">promptfoo.dev — Ollama 프로바이더</a><br>
+      <a href="https://www.promptfoo.dev/docs/red-team/owasp-llm-top-10/" target="_blank" rel="noopener">promptfoo.dev — OWASP LLM Top 10 / Red Team Plugins</a><br>
+      <a href="https://openai.com/index/openai-to-acquire-promptfoo/" target="_blank" rel="noopener">openai.com — OpenAI to acquire Promptfoo (2026.03.09)</a><br>
+      <a href="https://www.promptfoo.dev/blog/promptfoo-joining-openai/" target="_blank" rel="noopener">promptfoo.dev/blog — Promptfoo is joining OpenAI</a><br>
+      <a href="https://genai.qa/blog/promptfoo-vs-deepeval-vs-ragas/" target="_blank" rel="noopener">genai.qa — Promptfoo vs DeepEval vs RAGAS (2026)</a><br>
+      <a href="https://inference.net/content/llm-evaluation-tools-comparison/" target="_blank" rel="noopener">inference.net — LLM Evaluation Tools Comparison (2026)</a><br>
+      <a href="https://www.braintrust.dev/articles/deepeval-alternatives-2026" target="_blank" rel="noopener">braintrust.dev — DeepEval Alternatives (2026)</a><br>
+      <a href="https://repello.ai/blog/promptfoo-alternatives" target="_blank" rel="noopener">repello.ai — Promptfoo Alternatives after OpenAI Acquisition</a><br>
+      <a href="https://www.datacamp.com/tutorial/promptfoo-tutorial" target="_blank" rel="noopener">datacamp.com — Promptfoo Tutorial</a><br>
+      <a href="https://www.toxsec.com/p/promptfoo-red-teaming" target="_blank" rel="noopener">toxsec.com — Promptfoo Red Teaming: DAST for Your LLM Pipeline</a><br>
+      <a href="https://www.promptfoo.dev/docs/providers/python/" target="_blank" rel="noopener">promptfoo.dev — Python Provider(call_api·워커 프로세스)</a><br>
+      <a href="https://www.promptfoo.dev/docs/providers/custom-script/" target="_blank" rel="noopener">promptfoo.dev — Custom Scripts / exec Provider</a><br>
+      <a href="https://www.promptfoo.dev/docs/configuration/expected-outputs/python/" target="_blank" rel="noopener">promptfoo.dev — Python Assertions(bool·float·GradingResult)</a><br>
+      <a href="https://www.promptfoo.dev/docs/configuration/test-cases/" target="_blank" rel="noopener">promptfoo.dev — Test Cases(CSV·JSON·JSONL·XLSX·동적 생성)</a><br>
+      <a href="https://www.promptfoo.dev/docs/usage/command-line/" target="_blank" rel="noopener">promptfoo.dev — Command Line(generate·import·MCP 서버)</a><br>
+      <a href="https://www.promptfoo.dev/docs/configuration/outputs/" target="_blank" rel="noopener">promptfoo.dev — Output Formats(JSON·CSV·JSONL·JUnit XML)</a><br>
+      <a href="https://localaimaster.com/blog/air-gapped-ai-deployment" target="_blank" rel="noopener">localaimaster.com — Air-Gapped AI Deployment Guide</a>
+    </div>
+    <div class="foot-meta">
+      <span>promptfoo 기술 평가 보고서 · 온라인 조사 기반</span>
+      <span>작성: 2026-06 · 본 문서는 정보 제공용이며 법률·투자 자문이 아님</span>
+    </div>
+  </div>
+</footer>
+</main>
+
+<script>
+(function(){
+  // ---- 스크롤 진행 바 ----
+  var bar=document.getElementById('progress');
+  function onScroll(){
+    var h=document.documentElement;
+    var pct=(h.scrollTop)/(h.scrollHeight-h.clientHeight)*100;
+    bar.style.width=pct+'%';
+  }
+  document.addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+  // ---- eval 매트릭스 시그니처 ----
+  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var grid=document.getElementById('matrix');
+  if(grid){
+    var cols=window.innerWidth<680?12:16, rows=6, total=cols*rows, cells=[];
+    for(var i=0;i<total;i++){var c=document.createElement('div');c.className='cell';grid.appendChild(c);cells.push(c);}
+    // 결정적 패턴(seed)으로 pass/warn/fail 분포
+    function roll(i){var x=Math.sin(i*12.9898+4.1414)*43758.5453;x=x-Math.floor(x);return x;}
+    function paint(animated){
+      cells.forEach(function(c,i){
+        var base=roll(i+ (animated?Math.floor(Date.now()/1400):0));
+        c.className='cell';
+        if(base>0.80) c.classList.add('fail');
+        else if(base>0.66) c.classList.add('warn');
+        else if(base>0.16) c.classList.add('pass');
+      });
+    }
+    paint(false);
+    if(!reduce){
+      // 진입 시 한 번 순차 점등
+      cells.forEach(function(c,i){c.style.transitionDelay=(i*8)+'ms';});
+      setTimeout(function(){paint(false);cells.forEach(function(c){c.style.transitionDelay='';});},60);
+      // 은은한 주기적 재평가
+      setInterval(function(){paint(true);},1400);
+    }
+  }
+
+  // ---- 목차 스무스 스크롤(이미 CSS로 처리, 포커스 보강) ----
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener('click',function(e){
+      var id=a.getAttribute('href');var el=document.querySelector(id);
+      if(el){e.preventDefault();el.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+        el.setAttribute('tabindex','-1');el.focus({preventScroll:true});}
+    });
+  });
+})();
+</script>
+</body>
+</html>
